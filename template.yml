@@ -10,4 +10,4 @@ Resources:
       Runtime: python3.8
       FunctionName: SamplePython
       CodeUri: ./src #Directory the source file is
-      Role: arn:aws:iam::977566059069:policy/SudocoinsLambdaRole
+      # Role: arn:aws:iam::977566059069:policy/SudocoinsLambdaRole
