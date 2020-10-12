@@ -53,4 +53,4 @@ Resources:
       Action: "lambda:InvokeFunction"
       FunctionName: !GetAtt "SampleFunction.Arn"
       Principal: "apigateway.amazonaws.com"
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${apiGateway}/*/GET/"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${SampleFunctionRestApi}/*/GET/"
