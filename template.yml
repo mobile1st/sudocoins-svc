@@ -2,10 +2,50 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
- SampleFunction:
-  Type: AWS::Serverless::Function
-  Properties:
-   Handler: Index.lambda_handler
-   Runtime: python3.8
-   FunctionName: SamplePython
-   CodeUri: ./src #Directory the source file is
+
+  SampleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Index.lambda_handler
+      Runtime: python3.8
+      FunctionName: SamplePython
+      CodeUri: ./src #Directory the source file is
+      Role: arn:aws:iam::977566059069:policy/SudocoinsLambdaRole
+
+  SampleFunctionProxyResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref SampleFunctionRestApi
+      ParentId: !GetAtt
+        - SampleFunctionRestApi
+        - RootResourceId
+      PathPart: '{proxy+}'
+
+  SampleFunctionProxyResourceANY:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref SampleFunctionRestApi
+      ResourceId: !Ref SampleFunctionProxyResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub >-
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SampleFunction.Arn}/invocations
+
+  SampleFunctionApiGatewayDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - "SampleFunctionProxyResourceANY"
+    Properties:
+      RestApiId: !Ref "SampleFunctionRestApi"
+      StageName: "prod"
+
+  SampleFunctionApiGatewayDeploymentInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "SampleFunction.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${apiGateway}/*/GET/"
