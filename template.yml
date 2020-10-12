@@ -12,6 +12,11 @@ Resources:
       CodeUri: ./src #Directory the source file is
       Role: arn:aws:iam::977566059069:policy/SudocoinsLambdaRole
 
+  SampleFunctionRestApi:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: "sample-function"
+
   SampleFunctionProxyResource:
     Type: 'AWS::ApiGateway::Resource'
     Properties:
