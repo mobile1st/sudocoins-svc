@@ -1,4 +1,4 @@
-import json 
+import json
 import os
 import boto3
 from botocore.exceptions import ClientError
@@ -62,13 +62,13 @@ def get_survey_object(buyer_name):
         return None
     else:
         config_data = response['Item']
-        if buyer_name in config_data["buyer"].keys():
-            buyer_object = config_data["buyer"][buyer_name]
+        if buyer_name in config_data['configValue']["buyer"].keys():
+            buyer_object = config_data['configValue']["buyer"][buyer_name]
             return buyer_object
     return None
 
 
-def lambda_handler(event):
+def lambda_handler(event, context):
     # TODO implement
     json_input = event["body-json"]
     profile_resp = load_profile(json_input["param"]["user_id"])
@@ -89,6 +89,7 @@ def lambda_handler(event):
             "code": 2,
             'body': data
         }
+
     survey_tile = get_survey_object(json_input["param"]["name"])
     if survey_tile is None:
         data = {

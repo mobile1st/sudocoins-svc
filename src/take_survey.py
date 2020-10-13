@@ -87,7 +87,7 @@ def generate_entry_url(params, transaction_id):
 
 # This lambda is called by API end point '/TakeSurvey'
 # It is return redirect url for frontend.
-def lambda_handler(event):
+def lambda_handler(event, context):
     params = event["queryStringParameters"]
     data = take_survey(params)
     if data is None:
@@ -105,4 +105,3 @@ def lambda_handler(event):
         'statusCode': 200,
         'body': {"redirect": entry_url}
     }
-
