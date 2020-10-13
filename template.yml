@@ -10,4 +10,11 @@ Resources:
       Runtime: python3.8
       FunctionName: SamplePython
       CodeUri: ./src #Directory the source file is
+  Profile:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: profile.lambda_handler
+      Runtime: python3.8
+      FunctionName: load_profile
+      CodeUri: ./src #Directory the source file is
       # Role: arn:aws:iam::977566059069:policy/SudocoinsLambdaRole
