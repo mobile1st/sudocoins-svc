@@ -18,3 +18,19 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsLoadProfile
       CodeUri: ./src
+
+  SudoCoinsSurveyEndFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: survey_end.lambda_handler
+      Runtime: python3.8
+      FunctionName: SudoCoinsSurveyEnd
+      CodeUri: ./src
+
+  SudoCoinsTakeSurveyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: take_survey.lambda_handler
+      Runtime: python3.8
+      FunctionName: SudoCoinsTakeSurvey
+      CodeUri: ./src

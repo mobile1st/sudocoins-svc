@@ -47,9 +47,9 @@ def take_survey(params):
     buyer_name = params["buyer_name"]
     ip = params["ip"]
     survey_object = get_survey_object(buyer_name)
-    default_cpi = survey_object["default_cpi"]
+    default_cpi = survey_object["defaultCPI"]
 
-    transaction_id = uuid.uuid1()
+    transaction_id = str(uuid.uuid1())
     started = datetime.utcnow().isoformat()
 
     try:
@@ -73,6 +73,7 @@ def take_survey(params):
         return data
     except Exception as e:
         print(f'Create Profile Failed: {e}')
+        return none
     return None
 
 
