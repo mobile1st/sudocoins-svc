@@ -47,9 +47,9 @@ def take_survey(params):
     buyer_name = params["buyer_name"]
     ip = params["ip"]
     survey_object = get_survey_object(buyer_name)
-    default_cpi = survey_object["defaultCPI"]
+    default_cpi = survey_object["default_cpi"]
 
-    transaction_id = str(uuid.uuid1())
+    transaction_id = uuid.uuid1()
     started = datetime.utcnow().isoformat()
 
     try:
@@ -73,7 +73,6 @@ def take_survey(params):
         return data
     except Exception as e:
         print(f'Create Profile Failed: {e}')
-        return none
     return None
 
 
@@ -90,11 +89,6 @@ def generate_entry_url(params, transaction_id):
 # It is return redirect url for frontend.
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
-    return {
-        'statusCode': 200,
-        'body': {"event": event}
-    }
-    '''
     data = take_survey(params)
     if data is None:
         return {
@@ -111,5 +105,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': {"redirect": entry_url}
     }
-    
-    '''
