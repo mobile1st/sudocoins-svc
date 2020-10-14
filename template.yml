@@ -11,10 +11,10 @@ Resources:
       FunctionName: SamplePython
       CodeUri: ./src
 
-  SudocoinsProfileFunction:
+  SudoCoinsLoadProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: profile.lambda_handler
       Runtime: python3.8
-      FunctionName: load_profile
+      FunctionName: SudoCoinsLoadProfile
       CodeUri: ./src
