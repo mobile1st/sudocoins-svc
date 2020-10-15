@@ -69,15 +69,15 @@ def get_survey_object(buyer_name):
 
 
 def lambda_handler(event, context):
-    json_input = event["body-json"]
-    profile_resp = load_profile(json_input["param"]["user_id"])
+    json_input = event["body"]
+    profile_resp = load_profile(json_input["user_id"])
     if profile_resp["statusCode"] != 200:
         return {
             'statusCode': 400,
             "code": 1,
             'body': 'Invalid account'
         }
-    history_resp = load_history(json_input["param"]["user_id"])
+    history_resp = load_history(json_input["user_id"])
     if history_resp["statusCode"] != 200:
         data = {
             "profile": profile_resp["profile"],
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
             'body': data
         }
 
-    survey_tile = get_survey_object(json_input["param"]["name"])
+    survey_tile = get_survey_object(json_input["name"])
     if survey_tile is None:
         data = {
             "code": 3,
