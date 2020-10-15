@@ -3,14 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
 
-  SampleFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: Index.lambda_handler
-      Runtime: python3.8
-      FunctionName: SamplePython
-      CodeUri: ./src
-
   SudoCoinsLoadProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
