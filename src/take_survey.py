@@ -22,17 +22,17 @@ def get_survey_object(buyer_name):
             # - cint
             # - lucid
             # buyer:
-                # cint:
-                    # id:
-                    # name:
-                    # appId:
-                    # secretkey:
-                    # URL:
-                    # defaultCPI:
-                    # maxCPI:
-                    # parameters:
-                    # createdAt:
-                    # updatedAt:
+            # cint:
+            # id:
+            # name:
+            # appId:
+            # secretkey:
+            # URL:
+            # defaultCPI:
+            # maxCPI:
+            # parameters:
+            # createdAt:
+            # updatedAt:
             if buyer_name in config_data["buyer"].keys():
                 buyer_object = config_data["buyer"][buyer_name]
                 return buyer_object
@@ -47,14 +47,14 @@ def take_survey(params):
     buyer_name = params["buyer_name"]
     ip = params["ip"]
     survey_object = get_survey_object(buyer_name)
-    default_cpi = survey_object["Default_CPI"]
+    default_cpi = survey_object["defaultCPI"]
 
-    transaction_id = str(uuid.uuid1())
+    transaction_id = uuid.uuid1()
     started = datetime.utcnow().isoformat()
 
     try:
         data = {
-            'TransactionId': transaction_id,
+            'TransactionId': str(transaction_id),
             "UserId": user_id,
             'status': "start",
             'CPI': default_cpi,
@@ -69,7 +69,6 @@ def take_survey(params):
         response = transaction_table.put_item(
             Item=data
         )
-        # return response
         return data
     except Exception as e:
         print(f'Create Profile Failed: {e}')
@@ -87,21 +86,22 @@ def generate_entry_url(params, transaction_id):
 
 # This lambda is called by API end point '/TakeSurvey'
 # It is return redirect url for frontend.
-def lambda_handler(event):
+def lambda_handler(event, context):
     params = event["queryStringParameters"]
     data = take_survey(params)
     if data is None:
         return {
             'statusCode': 400,
-            'body': {}
+            'body': {"data": data}
         }
     entry_url = generate_entry_url(params, data["TransactionId"])
     if entry_url is None:
         return {
             'statusCode': 400,
-            'body': {}
+            'body': {"entryURL": "fix"}
         }
     return {
         'statusCode': 200,
         'body': {"redirect": entry_url}
     }
+
