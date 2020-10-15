@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 import boto3
 from botocore.exceptions import ClientError
-
+import json
 
 def get_survey_object(buyer_name):
     config_table_name = os.environ["CONFIG_TABLE"]
@@ -75,16 +75,16 @@ def lambda_handler(event, context):
     if data is None:
         return {
             'statusCode': 400,
-            'body': {"data": data}
+            'body': json.dumps({"data": data})
         }
     entry_url = generate_entry_url(params, data["TransactionId"])
     if entry_url is None:
         return {
             'statusCode': 400,
-            'body': {"entryURL": "fix"}
+            'body': json.dumps({"entryURL": "fix"})
         }
     return {
         'statusCode': 200,
-        'body': {"redirect": entry_url}
+        'body': json.dumps({"redirect": entry_url})
     }
 
