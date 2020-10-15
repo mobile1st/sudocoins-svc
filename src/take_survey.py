@@ -69,7 +69,6 @@ def generate_entry_url(params, transaction_id):
     return entry_url
 
 
-# This lambda is called by API end point '/TakeSurvey'
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
     data = take_survey(params)
