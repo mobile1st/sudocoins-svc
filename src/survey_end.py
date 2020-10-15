@@ -4,7 +4,6 @@ import boto3
 
 
 def lambda_handler(event, context):
-    # TODO implement Kinesis writes
     try:
         params = event["queryStringParameters"]
         kinesis = boto3.client('kinesis')

@@ -18,21 +18,6 @@ def get_survey_object(buyer_name):
     else:
         try:
             config_data = response['Item']["configValue"]
-            # publicBuyers:
-            # - cint
-            # - lucid
-            # buyer:
-            # cint:
-            # id:
-            # name:
-            # appId:
-            # secretkey:
-            # URL:
-            # defaultCPI:
-            # maxCPI:
-            # parameters:
-            # createdAt:
-            # updatedAt:
             if buyer_name in config_data["buyer"].keys():
                 buyer_object = config_data["buyer"][buyer_name]
                 return buyer_object
@@ -85,7 +70,6 @@ def generate_entry_url(params, transaction_id):
 
 
 # This lambda is called by API end point '/TakeSurvey'
-# It is return redirect url for frontend.
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
     data = take_survey(params)
