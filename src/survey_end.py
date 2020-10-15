@@ -15,14 +15,13 @@ def lambda_handler(event, context):
             "signature_hmac_sha": params["signature_hmac_sha"]}
 
         try:
-            """
             kinesis.put_record(StreamName=os.environ["KINESIS_STREAM"],
                                Data=json.dumps(item),
-                               PartitionKey=str(params["transaction_id"]))"""
+                               PartitionKey=str(params["transaction_id"]))
 
             return {
                 'statusCode': 200,
-                'body': 'Configure writes for Kineses'
+                'body': 'Success'
             }
 
         except Exception as e:

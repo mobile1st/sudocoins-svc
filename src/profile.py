@@ -108,6 +108,6 @@ def lambda_handler(event, context):
         "survey": survey_tile
     }
     return {
-        'statusCode': 400,
+        'statusCode': 200,
         'body': data
     }

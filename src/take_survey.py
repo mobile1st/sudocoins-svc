@@ -47,9 +47,9 @@ def take_survey(params):
     buyer_name = params["buyer_name"]
     ip = params["ip"]
     survey_object = get_survey_object(buyer_name)
-    default_cpi = survey_object["default_cpi"]
+    default_cpi = survey_object["Default_CPI"]
 
-    transaction_id = uuid.uuid1()
+    transaction_id = str(uuid.uuid1())
     started = datetime.utcnow().isoformat()
 
     try:
@@ -87,7 +87,7 @@ def generate_entry_url(params, transaction_id):
 
 # This lambda is called by API end point '/TakeSurvey'
 # It is return redirect url for frontend.
-def lambda_handler(event, context):
+def lambda_handler(event):
     params = event["queryStringParameters"]
     data = take_survey(params)
     if data is None:
