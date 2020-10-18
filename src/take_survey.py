@@ -70,7 +70,7 @@ def generate_entry_url(params, transaction_id):
 
 
 def lambda_handler(event, context):
-    params = event["queryStringParameters"]
+    params = event
     data = take_survey(params)
     if data is None:
         return {
