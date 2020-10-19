@@ -4,8 +4,6 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 
 def load_profile(user_id):
@@ -72,7 +70,10 @@ def get_survey_object(buyer_name):
 
 
 def lambda_handler(event, context):
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     logger.info("getProfile event=%s", event)
+
     json_input = event["body"]
     profile_resp = load_profile(json_input["user_id"])
     if profile_resp["statusCode"] != 200:
