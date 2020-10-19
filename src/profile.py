@@ -1,8 +1,11 @@
 import json
 import os
 import boto3
+import logging
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def load_profile(user_id):
@@ -14,13 +17,13 @@ def load_profile(user_id):
             KeyConditionExpression=Key("UserId").eq(user_id),
         )
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        # print(e.response['Error']['Message'])
         return {
             'statusCode': 400,
             'profile': 'Invalid user_id'
         }
     else:
-        print(response)
+        # print(response)
         return {
             'statusCode': 200,
             'profile': response['Items']
@@ -38,7 +41,7 @@ def load_history(user_id):
             ScanIndexForward=False)
 
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        # print(e.response['Error']['Message'])
         return {
             'statusCode': 200,
             'body': 'Invalid user_id'
@@ -58,7 +61,7 @@ def get_survey_object(buyer_name):
     try:
         response = config_table.get_item(Key={'configKey': config_key})
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        # print(e.response['Error']['Message'])
         return None
     else:
         config_data = response['Item']
@@ -69,6 +72,7 @@ def get_survey_object(buyer_name):
 
 
 def lambda_handler(event, context):
+    logger.info("getProfile event=%s", event)
     json_input = event["body"]
     profile_resp = load_profile(json_input["user_id"])
     if profile_resp["statusCode"] != 200:
