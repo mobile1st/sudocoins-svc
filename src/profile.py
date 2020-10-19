@@ -14,13 +14,12 @@ def load_profile(user_id):
             KeyConditionExpression=Key("UserId").eq(user_id),
         )
     except ClientError as e:
-        # print(e.response['Error']['Message'])
+        print("Failed to query profile for userId=%s error=%s", user_id, e.response['Error']['Message'])
         return {
             'statusCode': 400,
             'profile': 'Invalid user_id'
         }
     else:
-        # print(response)
         return {
             'statusCode': 200,
             'profile': response['Items']
@@ -38,16 +37,10 @@ def load_history(user_id):
             ScanIndexForward=False)
 
     except ClientError as e:
-        # print(e.response['Error']['Message'])
-        return {
-            'statusCode': 200,
-            'body': 'Invalid user_id'
-        }
+        print("Failed to query ledger for userId=%s error=%s", user_id, e.response['Error']['Message'])
+        return 'error', {}
     else:
-        return {
-            'statusCode': 200,
-            'history': json.dumps(response['Items'])
-        }
+        return 'success', json.dumps(response['Items'])
 
 
 def get_survey_object(buyer_name):
@@ -58,7 +51,7 @@ def get_survey_object(buyer_name):
     try:
         response = config_table.get_item(Key={'configKey': config_key})
     except ClientError as e:
-        # print(e.response['Error']['Message'])
+        print("Failed to query config for buyer=%s error=%s", buyer_name, e.response['Error']['Message'])
         return None
     else:
         config_data = response['Item']
@@ -75,31 +68,20 @@ def lambda_handler(event, context):
     if profile_resp["statusCode"] != 200:
         return {
             'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST'
-            },
             'body': {
                 "code": 1,
                 "error": 'Invalid account'
             }
         }
-    history_resp = load_history(json_input["user_id"])
-    if history_resp["statusCode"] != 200:
-        data = {
-            "code": 2,
-            "profile": profile_resp["profile"],
-            "history": "Error occured during fetching history"
-        }
+    history_status, history = load_history(json_input["user_id"])
+    if history_status != 'success':
         return {
             'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST'
-            },
-            'body': data
+            'body': {
+                "code": 2,
+                "profile": profile_resp["profile"],
+                "history": history
+            }
         }
 
     survey_tile = get_survey_object(json_input["name"])
@@ -107,29 +89,18 @@ def lambda_handler(event, context):
         data = {
             "code": 3,
             "profile": profile_resp["profile"],
-            "history": history_resp["history"],
+            "history": history,
             "survey_tile": "Error fetching survey tile"
         }
         return {
             'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST'
-            },
             'body': data
         }
-    data = {
-        "profile": profile_resp["profile"],
-        "history": history_resp["history"],
-        "survey": survey_tile
-    }
     return {
         'statusCode': 200,
-        'headers': {
-            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST'
-        },
-        'body': data
+        'body': {
+            "profile": profile_resp["profile"],
+            "history": history,
+            "survey": survey_tile
+        }
     }
