@@ -87,4 +87,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps({"redirect": entry_url})
     }
-
