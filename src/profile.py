@@ -69,6 +69,7 @@ def get_survey_object(buyer_name):
 
 
 def lambda_handler(event, context):
+    print(event)
     json_input = event["body"]
     profile_resp = load_profile(json_input["user_id"])
     if profile_resp["statusCode"] != 200:
