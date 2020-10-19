@@ -74,30 +74,18 @@ def lambda_handler(event, context):
     if profile_resp["statusCode"] != 200:
         return {
             'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST'
-            },
-            'body': {
-                "code": 1,
-                "error": 'Invalid account'
-            }
+            "code": 1,
+            'body': 'Invalid account'
         }
     history_resp = load_history(json_input["user_id"])
     if history_resp["statusCode"] != 200:
         data = {
-            "code": 2,
             "profile": profile_resp["profile"],
             "history": "Error occured during fetching history"
         }
         return {
             'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST'
-            },
+            "code": 2,
             'body': data
         }
 
@@ -111,11 +99,6 @@ def lambda_handler(event, context):
         }
         return {
             'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST'
-            },
             'body': data
         }
     data = {
@@ -125,10 +108,5 @@ def lambda_handler(event, context):
     }
     return {
         'statusCode': 200,
-        'headers': {
-            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST'
-        },
         'body': data
     }
