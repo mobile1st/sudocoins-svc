@@ -62,7 +62,7 @@ def get_survey_object(buyer_name):
 
 
 def lambda_handler(event, context):
-    print("event=%s context=%", event, context)
+    print("event=%s userId=%", event, context.identity.cognito_identity_id)
     json_input = event
     profile_resp = load_profile(json_input["user_id"])
     if profile_resp["statusCode"] != 200:
