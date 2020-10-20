@@ -26,3 +26,11 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsTakeSurvey
       CodeUri: ./src
+
+  SudoCoinsEndTransactionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: end_transaction.lambda_handler
+      Runtime: python3.8
+      FunctionName: SudoCoinsEndTransaction
+      CodeUri: ./src

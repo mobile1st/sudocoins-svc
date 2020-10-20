@@ -6,18 +6,16 @@ import boto3
 def lambda_handler(event, context):
     try:
         params = event["queryStringParameters"]
-        kinesis = boto3.client('kinesis')
+        sqs = boto3.resource('sqs')
+        queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
         item = {
+            "transaction_id": params["transaction_id"],
             "status": params["status"],
             "IP address": params["IP address"],
             "transaction_timestamp": params["transaction_timestamp"],
             "signature_hmac_sha": params["signature_hmac_sha"]}
-
         try:
-            kinesis.put_record(StreamName=os.environ["KINESIS_STREAM"],
-                               Data=json.dumps(item),
-                               PartitionKey=str(params["transaction_id"]))
-
+            response = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='cint')
             return {
                 'statusCode': 200,
                 'body': 'Success'
