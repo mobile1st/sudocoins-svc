@@ -43,11 +43,11 @@ def take_survey(params):
             "UserId": user_id,
             'status': "start",
             'Revenue': revenue,
-            'Payout': "NULL",
+            'Payout': "",
             'IP': ip,
             'Started': str(started),
-            'Completed': "NULL",
-            'Redirected': "NULL"
+            'Completed': "",
+            'Redirected': ""
         }
         dynamodb = boto3.resource('dynamodb')
         transaction_table = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
