@@ -4,6 +4,12 @@ import boto3
 
 
 def lambda_handler(event, context):
+    response = {}
+    response["statusCode"]=302
+    response["headers"]={'Location': 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'}
+    data = {}
+    response["body"]=json.dumps(data)
+
     try:
         params = event["queryStringParameters"]
         sqs = boto3.resource('sqs')
@@ -15,23 +21,14 @@ def lambda_handler(event, context):
             "transaction_timestamp": params["transaction_timestamp"],
             "signature_hmac_sha": params["signature_hmac_sha"]}
         try:
-            response = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='cint')
-            return {
-                'statusCode': 200,
-                'body': 'Success'
-            }
+            record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='cint')
+            return response #add query parameter data based on transaction result
 
         except Exception as e:
-            return {
-                "status": 400,
-                "body": "Invalid kinesis record"
-            }
+            return response #add qp data based on error
 
     except Exception as e:
+        return response #add qp data
         print(e)
-        return {
-            "status": 400,
-            "body": "Bad Request"
-        }
 
 
