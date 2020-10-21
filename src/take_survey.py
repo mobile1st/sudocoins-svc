@@ -32,7 +32,7 @@ def take_survey(params):
     buyer_name = params["buyer_name"]
     ip = params["ip"]
     survey_object = get_survey_object(buyer_name)
-    default_cpi = survey_object["defaultCPI"]
+    revenue = survey_object["defaultCPI"]
 
     transaction_id = uuid.uuid1()
     started = datetime.utcnow().isoformat()
@@ -42,7 +42,7 @@ def take_survey(params):
             'TransactionId': str(transaction_id),
             "UserId": user_id,
             'status': "start",
-            'CPI': default_cpi,
+            'Revenue': revenue,
             'Payout': "NULL",
             'IP': ip,
             'Started': str(started),

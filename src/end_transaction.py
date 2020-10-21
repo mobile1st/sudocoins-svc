@@ -20,14 +20,14 @@ def update_transaction(payload):
 
     else:
         transaction = response['Item']
-        defaultCPI = transaction["CPI"]
+        revenue = transaction["Revenue"]
         transaction_table.update_item(
             Key={
                 'TransactionId': transactionId
             },
             UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c, Redirected=:r",
             ExpressionAttributeValues={
-                ":pay": str(float(defaultCPI) * 0.8),
+                ":pay": str(float(revenue) * 0.8),
                 ":s": data["status"],
                 ":c": data["transaction_timestamp"],
                 ":r": "Redirected"
