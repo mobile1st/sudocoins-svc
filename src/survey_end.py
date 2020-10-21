@@ -54,6 +54,7 @@ def lambda_handler(event, context):
         print(e)
 
 #see if sha256 hash of redirect URL matches hash from Buyer
+'''
 def checkSha(URL,signature_hmac_sha):
     hash_object = hashlib.sha256(URL.encode('utf-8'))
     hex_dig = hash_object.hexdigest()
@@ -61,4 +62,4 @@ def checkSha(URL,signature_hmac_sha):
         return True
     else:
         return False
-
+'''

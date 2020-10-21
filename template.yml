@@ -34,3 +34,11 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsEndTransaction
       CodeUri: ./src
+
+  CashOutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: cash_out.lambda_handler
+      Runtime: python3.8
+      FunctionName: CashOut
+      CodeUri: ./src
