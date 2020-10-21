@@ -21,7 +21,7 @@ def lambda_handler(event, context):
             "transaction_timestamp": params["transaction_timestamp"],
             "signature_hmac_sha": params["signature_hmac_sha"]}
         try:
-            record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='cint')
+            record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='Transaction')
             return response #add query parameter data based on transaction result
 
         except Exception as e:
