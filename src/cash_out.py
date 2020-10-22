@@ -2,31 +2,39 @@ import json
 from datetime import datetime
 import boto3
 from botocore.exceptions import ClientError
+import uuid
 
 
 def lambda_handler(event, context):
+    print(event)
     dynamodb = boto3.resource('dynamodb')
     ledger_table = dynamodb.Table("Ledger")
     payout_table = dynamodb.Table("Payouts")
+
+    json_input = json.loads(event["body"])
+
     # set time
     created_at = datetime.utcnow().isoformat()
+    # tid
+    transactionId = str(uuid.uuid1())
     # payout object
     payout = {
-        "PayoutID": "",  # auto-generated
-        "UserId": "",  # from event
-        "Amount": "",  # from event
+        "paymentId": transactionId,
+        "UserId": json_input["UserId"],
+        "Amount": json_input["Amount"],
         "CreatedAt": created_at,
-        "Type": "",  # from event
-        "Address": "",  # from event
+        "Type": json_input["Type"],
+        "Address": json_input["Address"],
         "Status": "pending"
     }
     # withdraw record added to ledger table
     withdraw = {
-        "UserId": "",  # from event
-        "Amount": "",  # from event
+        "UserId": json_input["UserId"],
+        "Amount": json_input["Amount"],
         "CreatedAt": created_at,
-        "Type": "",  # from event
-        "Status": "pending"
+        "Type": "Withdraw",
+        "Status": "Pending",
+        "TransactionId": transactionId
     }
     payout_response = payout_table.put_item(
         Item=payout
