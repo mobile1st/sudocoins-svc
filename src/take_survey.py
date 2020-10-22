@@ -5,6 +5,7 @@ import boto3
 from botocore.exceptions import ClientError
 import json
 
+
 def get_survey_object(buyer_name):
     config_table_name = os.environ["CONFIG_TABLE"]
     config_key = "TakeSurveyPage"
@@ -36,28 +37,47 @@ def take_survey(params):
 
     transaction_id = uuid.uuid1()
     started = datetime.utcnow().isoformat()
-
+    data = []
+    # create start transaction
     try:
         data = {
             'TransactionId': str(transaction_id),
             "UserId": user_id,
             'status': "start",
             'Revenue': revenue,
-            'Payout': "",
             'IP': ip,
-            'Started': str(started),
-            'Completed': "",
-            'Redirected': ""
+            'Started': str(started)
         }
         dynamodb = boto3.resource('dynamodb')
         transaction_table = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
         response = transaction_table.put_item(
             Item=data
         )
-        return data
+
     except Exception as e:
-        print(f'Create Profile Failed: {e}')
-    return None
+        print(f'Create Transaction start record Failed: {e}')
+
+    # create ledger transaction
+    try:
+        record = {
+            "UserId": user_id,
+            'TransactionId': str(transaction_id),
+            'Amount': "",
+            'Type': "Survey",
+            'Status': "Started",
+            'Started': str(started),
+            'IP': ip,
+        }
+        dynamodb = boto3.resource('dynamodb')
+        transaction_table = dynamodb.Table(os.environ["LEDGER_TABLE"])
+        response = transaction_table.put_item(
+            Item=record
+        )
+
+    except Exception as e:
+        print(f'Create Ledger record Failed: {e}')
+
+    return data
 
 
 def generate_entry_url(params, transaction_id):
@@ -72,6 +92,7 @@ def generate_entry_url(params, transaction_id):
 def lambda_handler(event, context):
     params = event
     data = take_survey(params)
+    print(data)
     if data is None:
         return {
             'statusCode': 400,

@@ -3,14 +3,19 @@ from botocore.exceptions import ClientError
 import base64
 import os
 import json
+from datetime import datetime
 
 
-def update_transaction(payload):
+def update(payload):
     dynamodb = boto3.resource('dynamodb')
     transaction_table = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
+    ledger_table = dynamodb.Table(os.environ["LEDGER_TABLE"])
+
     data = json.loads(payload)
-    transactionId = "04ab3d2b-1188-11eb-8831-7f8847dd45ce"  # data['transaction_id']
+    # print(data)
+    transactionId = "255e183a-1494-11eb-ba43-6795a48f110e"  # data['transaction_id']
     # hard coded for testing;
+    updated = str(datetime.utcnow().isoformat())
 
     try:
         response = transaction_table.get_item(Key={'TransactionId': transactionId})
@@ -21,7 +26,7 @@ def update_transaction(payload):
     else:
         transaction = response['Item']
         revenue = transaction["Revenue"]
-        transaction_table.update_item(
+        tdata = transaction_table.update_item(
             Key={
                 'TransactionId': transactionId
             },
@@ -29,7 +34,7 @@ def update_transaction(payload):
             ExpressionAttributeValues={
                 ":pay": str(float(revenue) * 0.8),
                 ":s": data["status"],
-                ":c": data["transaction_timestamp"],
+                ":c": updated,  # data["transaction_timestamp"],
                 ":r": "Redirected"
             },
             ExpressionAttributeNames={
@@ -38,11 +43,29 @@ def update_transaction(payload):
             ReturnValues="UPDATED_NEW"
         )
 
+        ldata = ledger_table.update_item(
+            Key={
+                'UserId': transaction["UserId"],
+                'TransactionId': transactionId
+            },
+            UpdateExpression="set Amount=:pay, #status1=:s, Updated=:c",
+            ExpressionAttributeValues={
+                ":pay": str(float(revenue) * 0.8),
+                ":s": data["status"],
+                ":c": updated  # data["transaction_timestamp"]
+            },
+            ExpressionAttributeNames={
+                "#status1": "status"
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        print(tdata, ldata)
+
 
 def lambda_handler(event, context):
     for record in event['Records']:
-        payload = record["body"]
-        update_transaction(payload)
+        payload = record['body']  # json.dumps(record['body'])
+        update(payload)
     return {
         "status": 200,
         "body": "success"

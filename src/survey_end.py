@@ -30,10 +30,12 @@ def lambda_handler(event, context):
     #append hash to redirect
     '''
     try:
+        print(event)
         params = event["queryStringParameters"]
+        print(params)
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-
+        print(queue)
         item = {
             "transaction_id": params["transaction_id"],
             "status": params["status"],
@@ -42,6 +44,7 @@ def lambda_handler(event, context):
             "signature_hmac_sha": params["signature_hmac_sha"]}
         try:
             record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
+            print(record)
             return response  # add query parameter data based on transaction result
 
         except Exception as e:

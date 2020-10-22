@@ -47,22 +47,23 @@ def load_history(user_id):
     dynamodb = boto3.resource('dynamodb')
     ledger_table = dynamodb.Table(ledger_table_name)
 
-    ledger_table_name = os.environ["TRANSACTION_TABLE"]
+    transaction_table_name = os.environ["TRANSACTION_TABLE"]
     dynamodb = boto3.resource('dynamodb')
-    transaction_table = dynamodb.Table(ledger_table_name)
+    transaction_table = dynamodb.Table(transaction_table_name)
 
     try:
         ledger_history = ledger_table.query(
-            IndexName="UserId-CreatedAt-index",
             KeyConditionExpression=Key("UserId").eq(user_id),
             ScanIndexForward=False)
-
+        '''
         transaction_history = transaction_table.query(
             KeyConditionExpression=Key("UserId").eq(user_id),
             ScanIndexForward=False)
 
         history = mergeHistory(ledger_history, transaction_history)
+        '''
 
+        history = ledger_history
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", user_id, e.response['Error']['Message'])
         return 'error', {}
