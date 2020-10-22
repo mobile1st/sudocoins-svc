@@ -42,3 +42,11 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsCashOut
       CodeUri: ./src
+
+  UpdateProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: update_profile.lambda_handler
+      Runtime: python3.8
+      FunctionName: UpdateProfile
+      CodeUri: ./src
