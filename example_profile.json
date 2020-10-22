@@ -23,18 +23,16 @@
   ],
   "survey": [
     {
-      "maxCPI": null,
       "name": "Cint",
       "iconLocation": "/cint.jpg",
-      "defaultCPI": "1.25",
-      "URL": "https://www.testsurvey.com/demo1"
+      "incentive": "1.25",
+      "URL": "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?ip=108.50.251.254"
     },
     {
-      "maxCPI": null,
       "name": "Test",
       "iconLocation": "/cint.jpg",
-      "defaultCPI": "2.00",
-      "URL": "https://www.testsurvey.com/demo2"
+      "incentive": "2.00",
+      "URL": "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoTakeSurvey/user_id=d6a0fb1c-cc9a-41cf-b92e-fbbb1efceaa9&buyer_name=cint&ip=108.50.251.254"
     }
   ]
 }
