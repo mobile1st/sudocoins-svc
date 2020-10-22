@@ -40,5 +40,5 @@ Resources:
     Properties:
       Handler: cash_out.lambda_handler
       Runtime: python3.8
-      FunctionName: CashOut
+      FunctionName: SudoCoinsCashOut
       CodeUri: ./src

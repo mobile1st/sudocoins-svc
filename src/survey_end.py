@@ -5,12 +5,10 @@ import hashlib
 
 
 def lambda_handler(event, context):
-    #Redirect to Profile page
-    response = {}
-    response["statusCode"]=302
-    response["headers"]={'Location': 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'}
+    #  Redirect to Profile page
+    response = {"statusCode": 302, "headers": {'Location': 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'}}
     data = {}
-    response["body"]=json.dumps(data)
+    response["body"] = json.dumps(data)
     '''
     #Verify Hash
     params = event["queryStringParameters"]
@@ -43,17 +41,18 @@ def lambda_handler(event, context):
             "transaction_timestamp": params["transaction_timestamp"],
             "signature_hmac_sha": params["signature_hmac_sha"]}
         try:
-            record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='Transaction')
-            return response #add query parameter data based on transaction result
+            record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
+            return response  # add query parameter data based on transaction result
 
         except Exception as e:
-            return response #add qp data based on error
+            return response  # add qp data based on error
 
     except Exception as e:
-        return response #add qp data
+        return response  # add qp data
         print(e)
 
-#see if sha256 hash of redirect URL matches hash from Buyer
+
+#  see if sha256 hash of redirect URL matches hash from Buyer
 '''
 def checkSha(URL,signature_hmac_sha):
     hash_object = hashlib.sha256(URL.encode('utf-8'))

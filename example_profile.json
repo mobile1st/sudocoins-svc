@@ -4,12 +4,13 @@
     "active": true,
     "email": "babhan312@hotmail.com",
     "signupDate": "2020-10-06",
-    "UserID": "myUniqueUID"
+    "balance": "",
+    "currency": "USD"
   },
   "history": [
     {
-      "lastUpdate": "2020-10-06T10:28:54.512287",
-      "amount": "1.00 USD",
+      "Date": "2020-10-06T10:28:54.512287",
+      "Amount": "1.00 USD",
       "Type": "Survey",
       "Status": "Pending"
     },

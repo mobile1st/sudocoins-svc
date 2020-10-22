@@ -20,9 +20,17 @@ def load_profile(user_id):
             'profile': 'Invalid user_id'
         }
     else:
+        '''
+        profile_object = {
+            "active": response['Items']["Status"],
+            "email": response['Items']["Email"],
+            "signupDate": response['Items']["CreatedAt"],
+            "UserID": response['Items']["UserId"]
+        }
+        '''
         return {
             'statusCode': 200,
-            'profile': response['Items']
+            'profile': response['Items']  # replace with profile_object
         }
 
 
