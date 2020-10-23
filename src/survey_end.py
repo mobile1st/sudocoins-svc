@@ -6,9 +6,9 @@ import hashlib
 
 def lambda_handler(event, context):
     #  Redirect to Profile page
-    response = {"statusCode": 302, "headers": {'Location': 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'}}
+    redirect_URL = 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'
+    msg = '?msg='
     data = {}
-    response["body"] = json.dumps(data)
     '''
     #Verify Hash
     params = event["queryStringParameters"]
@@ -30,12 +30,9 @@ def lambda_handler(event, context):
     #append hash to redirect
     '''
     try:
-        print(event)
         params = event["queryStringParameters"]
-        print(params)
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-        print(queue)
         item = {
             "transaction_id": params["transaction_id"],
             "status": params["status"],
@@ -43,19 +40,27 @@ def lambda_handler(event, context):
             "transaction_timestamp": params["transaction_timestamp"],
             "signature_hmac_sha": params["signature_hmac_sha"]}
         try:
+            msg = msg + str(params["status"])
             record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
-            print(record)
-            return response  # add query parameter data based on transaction result
+            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}}
+            response["body"] = json.dumps(data)
+            return response
 
         except Exception as e:
-            return response  # add qp data based on error
+            msg = msg + "invalid_transaction_id"
+            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}}
+            response["body"] = json.dumps(data)
+            return response
 
     except Exception as e:
-        return response  # add qp data
-        print(e)
+        msg = msg + "error"
+        response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}}
+        response["body"] = json.dumps(data)
+        return response
+
+    #  see if sha256 hash of redirect URL matches hash from Buyer
 
 
-#  see if sha256 hash of redirect URL matches hash from Buyer
 '''
 def checkSha(URL,signature_hmac_sha):
     hash_object = hashlib.sha256(URL.encode('utf-8'))
