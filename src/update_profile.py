@@ -23,10 +23,10 @@ def lambda_handler(event, context):
             ":ge": json_input["gravatarEmail"]
 
         },
-        ReturnValues="UPDATED_NEW"
+        ReturnValues="ALL_NEW"
     )
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Profile updated')
+        'body': json.dumps(data["Attributes"])
     }
