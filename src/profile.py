@@ -28,13 +28,24 @@ def load_profile(user_id):
             currency = response['Items'][0]["currency"]
         else:
             currency = "USD"
+        if "lang" in response['Items'][0].keys():
+            lang = response['Items'][0]["lang"]
+        else:
+            lang = "English"
+        if "gravatarEmail" in response['Items'][0].keys():
+            ge = response['Items'][0]["gravatarEmail"]
+        else:
+            ge = response['Items'][0]["Email"]
+
         profile_object = {
             "active": response['Items'][0]["Status"],
             "email": response['Items'][0]["Email"],
             "signupDate": response['Items'][0]["CreatedAt"],
             "UserID": response['Items'][0]["UserId"],
             "balance": balance,
-            "currency": currency
+            "currency": currency,
+            "lang": lang,
+            "gravatarEmail": ge
         }
         return {
             'statusCode': 200,
@@ -63,7 +74,7 @@ def load_history(user_id):
         history = mergeHistory(ledger_history, transaction_history)
         '''
 
-        history = ledger_history
+        history = ledger_history["Items"]
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", user_id, e.response['Error']['Message'])
         return 'error', {}
