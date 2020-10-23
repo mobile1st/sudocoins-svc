@@ -32,7 +32,7 @@ def lambda_handler(event, context):
         "UserId": json_input["UserId"],
         "Amount": json_input["Amount"],
         "CreatedAt": created_at,
-        "Type": "Withdraw",
+        "Type": "Cash Out",
         "Status": "Pending",
         "TransactionId": transactionId
     }
