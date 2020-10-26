@@ -33,6 +33,7 @@ def lambda_handler(event, context):
         params = event["queryStringParameters"]
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
+
         item = {
             "transaction_id": params["transaction_id"],
             "status": params["status"],
@@ -42,20 +43,17 @@ def lambda_handler(event, context):
         try:
             msg = msg + str(params["status"])
             record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
-            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}}
-            response["body"] = json.dumps(data)
+            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
             return response
 
         except Exception as e:
             msg = msg + "invalid_transaction_id"
-            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}}
-            response["body"] = json.dumps(data)
+            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
             return response
 
     except Exception as e:
         msg = msg + "error"
-        response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}}
-        response["body"] = json.dumps(data)
+        response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
         return response
 
     #  see if sha256 hash of redirect URL matches hash from Buyer
