@@ -1,4 +1,3 @@
-import json
 import os
 import boto3
 from botocore.exceptions import ClientError
@@ -20,10 +19,12 @@ def load_profile(user_id):
             'profile': 'Invalid user_id'
         }
     else:
+        '''
         if "balance" in response['Items'][0].keys():
             balance = response['Items'][0]["balance"]
         else:
             balance = "0"
+        '''
         if "currency" in response['Items'][0].keys():
             currency = response['Items'][0]["currency"]
         else:
@@ -42,7 +43,7 @@ def load_profile(user_id):
             "email": response['Items'][0]["Email"],
             "signupDate": response['Items'][0]["CreatedAt"],
             "UserID": response['Items'][0]["UserId"],
-            "balance": balance,
+            #  "balance": balance,
             "currency": currency,
             "lang": lang,
             "gravatarEmail": ge
@@ -58,9 +59,8 @@ def load_history(user_id):
     dynamodb = boto3.resource('dynamodb')
     ledger_table = dynamodb.Table(ledger_table_name)
 
-    transaction_table_name = os.environ["TRANSACTION_TABLE"]
-    dynamodb = boto3.resource('dynamodb')
-    transaction_table = dynamodb.Table(transaction_table_name)
+    #  transaction_table_name = os.environ["TRANSACTION_TABLE"]
+    #  transaction_table = dynamodb.Table(transaction_table_name)
 
     try:
         ledger_history = ledger_table.query(
@@ -82,6 +82,7 @@ def load_history(user_id):
         return 'success', history  # json.dumps(ledger_history['Items'])
 
 
+'''
 def mergeHistory(ledger_history, transaction_history):
     history_list = []
     for i in ledger_history['Items']:
@@ -89,6 +90,22 @@ def mergeHistory(ledger_history, transaction_history):
     for k in transaction_history['Items']:
         history_list.append(k)
     return history_list
+'''
+
+
+def getBalance(history):
+    debit = 0
+    credit = 0
+    for i in history:
+        if i["type"] == "Cash Out":
+            credit += int(i["Amount"])
+        elif 'Amount' in i.keys():
+            debit += int(i["Amount"])
+    balance = debit - credit
+    if balance <= 0:
+        return str(0)
+    else:
+        return str(debit)
 
 
 def get_survey_object(userId):
@@ -107,19 +124,16 @@ def get_survey_object(userId):
         buyer_object = []
         for i in config_data['configValue']['publicBuyers']:
             buyer_object.append(config_data['configValue']["buyer"][i])
-
         survey_tiles = []
         for i in buyer_object:
-            object = {
+            buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
                 "incentive": i["defaultCPI"],
                 "URL": URL + "&buyer_name=" + i["name"] + "&user_id=" + userId
             }
-            survey_tiles.append(object)
+            survey_tiles.append(buyer)
         return survey_tiles
-
-    return None
 
 
 def lambda_handler(event, context):
@@ -144,7 +158,7 @@ def lambda_handler(event, context):
                 "history": history
             }
         }
-
+    profile_resp["profile"]["balance"] = getBalance(history)
     survey_tile = get_survey_object(json_input["user_id"])
     if survey_tile is None:
         data = {
