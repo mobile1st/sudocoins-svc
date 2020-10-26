@@ -26,7 +26,7 @@ def loadProfile(user_id):
         if "lang" in response['Items'][0].keys():
             lang = response['Items'][0]["lang"]
         else:
-            lang = "English"
+            lang = "en"
         if "gravatarEmail" in response['Items'][0].keys():
             ge = response['Items'][0]["gravatarEmail"]
         else:

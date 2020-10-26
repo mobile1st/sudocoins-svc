@@ -41,12 +41,12 @@ def take_survey(params):
     # create start transaction
     try:
         data = {
-            'TransactionId': str(transaction_id),
+            'transactionId': str(transaction_id),
             "UserId": user_id,
             'status': "start",
-            'Revenue': revenue,
-            'IP': ip,
-            'Started': str(started)
+            'revenue': revenue,
+            'ip': ip,
+            'started': str(started)
         }
         dynamodb = boto3.resource('dynamodb')
         transaction_table = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
@@ -61,12 +61,12 @@ def take_survey(params):
     try:
         record = {
             "UserId": user_id,
-            'TransactionId': str(transaction_id),
-            'Amount': "",
-            'Type': "Survey",
-            'Status': "Started",
-            'Started': str(started),
-            'IP': ip,
+            'transactionId': str(transaction_id),
+            'amount': "",
+            'type': "Survey",
+            'status': "Started",
+            'lastUpdated': str(started),
+            'ip': ip,
         }
         dynamodb = boto3.resource('dynamodb')
         transaction_table = dynamodb.Table(os.environ["LEDGER_TABLE"])
