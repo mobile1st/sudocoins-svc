@@ -97,10 +97,10 @@ def getBalance(history):
     debit = 0
     credit = 0
     for i in history:
-        if i["type"] == "Cash Out":
-            credit += int(i["Amount"])
-        elif 'Amount' in i.keys():
-            debit += int(i["Amount"])
+        if i["Type"] == "Cash Out":
+            credit += float(i["Amount"])
+        elif 'Amount' in i.keys() and i['Amount'] != "":
+            debit += float(i["Amount"])
     balance = debit - credit
     if balance <= 0:
         return str(0)
@@ -158,6 +158,7 @@ def lambda_handler(event, context):
                 "history": history
             }
         }
+    print(history)
     profile_resp["profile"]["balance"] = getBalance(history)
     survey_tile = get_survey_object(json_input["user_id"])
     if survey_tile is None:
