@@ -5,7 +5,6 @@ import hashlib
 
 
 def lambda_handler(event, context):
-    #  Redirect to Profile page
     redirect_URL = 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'
     msg = '?msg='
     data = {}
@@ -29,20 +28,31 @@ def lambda_handler(event, context):
     #convert item to json and encrypt
     #append hash to redirect
     '''
+    expectedKeys = ["supplier_sub_id", "status", "ip", "transaction_datetimeiso", "signature_hmac_sha"]
+    missingKeys = []
+
     try:
         params = event["queryStringParameters"]
+        print(params)
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
 
+        for i in params:
+            if i not in expectedKeys:
+                missingKeys.append(i)
+        '''    
+
         item = {
-            "transaction_id": params["transaction_id"],
+            "transaction_id": params["supplier_sub_id"],
             "status": params["status"],
-            "IP address": params["IP address"],
-            "transaction_timestamp": params["transaction_timestamp"],
+            "IP address": params["ip"],
+            "transaction_timestamp": params["transaction_datetimeiso"],
             "signature_hmac_sha": params["signature_hmac_sha"]}
+        '''
         try:
             msg = msg + str(params["status"])
-            record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
+            # . record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
+            record = queue.send_message(MessageBody=json.dumps(params), MessageGroupId='EndTransaction')
             response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
             return response
 
