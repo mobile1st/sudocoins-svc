@@ -10,7 +10,7 @@ def loadProfile(user_id):
     profileTable = dynamodb.Table(profileTableName)
     try:
         response = profileTable.query(
-            KeyConditionExpression=Key("UserId").eq(user_id),
+            KeyConditionExpression=Key("userId").eq(user_id),
         )
     except ClientError as e:
         print("Failed to query profile for userId=%s error=%s", user_id, e.response['Error']['Message'])
@@ -30,13 +30,13 @@ def loadProfile(user_id):
         if "gravatarEmail" in response['Items'][0].keys():
             ge = response['Items'][0]["gravatarEmail"]
         else:
-            ge = response['Items'][0]["Email"]
+            ge = response['Items'][0]["email"]
 
         profile_object = {
-            "active": response['Items'][0]["Status"],
-            "email": response['Items'][0]["Email"],
-            "signupDate": response['Items'][0]["CreatedAt"],
-            "UserID": response['Items'][0]["UserId"],
+            "active": response['Items'][0]["status"],
+            "email": response['Items'][0]["email"],
+            "signupDate": response['Items'][0]["createdAt"],
+            "userId": response['Items'][0]["userId"],
             "currency": currency,
             "lang": lang,
             "gravatarEmail": ge
@@ -52,9 +52,13 @@ def loadHistory(user_id):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(ledgerTableName)
     try:
+        print("try")
         ledgerHistory = ledgerTable.query(
-            KeyConditionExpression=Key("UserId").eq(user_id),
-            ScanIndexForward=False)
+            KeyConditionExpression=Key("userId").eq(user_id),
+            ScanIndexForward=False,
+            ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
+            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
+        print(ledgerHistory)
         history = ledgerHistory["Items"]
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", user_id, e.response['Error']['Message'])
@@ -67,10 +71,10 @@ def getBalance(history):
     debit = 0
     credit = 0
     for i in history:
-        if i["Type"] == "Cash Out":
-            credit += float(i["Amount"])
-        elif 'Amount' in i.keys() and i['Amount'] != "":
-            debit += float(i["Amount"])
+        if i["type"] == "Cash Out":
+            credit += float(i["amount"])
+        elif 'amount' in i.keys() and i['amount'] != "":
+            debit += float(i["amount"])
     balance = debit - credit
     if balance <= 0:
         return str(0)
@@ -83,7 +87,7 @@ def getSurveyObject(userId):
     configKey = "TakeSurveyPage"
     dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
-    URL = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?ip=108.50.251.254"
+    URL = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
     try:
         response = configTable.get_item(Key={'configKey': configKey})
     except ClientError as e:
@@ -99,8 +103,8 @@ def getSurveyObject(userId):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": i["defaultCPI"],
-                "URL": URL + "&buyer_name=" + i["name"] + "&user_id=" + userId
+                "incentive": i["defaultCpi"],
+                "URL": URL + "&buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
         return surveyTiles
