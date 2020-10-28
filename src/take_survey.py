@@ -11,39 +11,42 @@ def getSurveyObject(buyerName):
     configKey = "TakeSurveyPage"
     dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
+
     try:
         response = configTable.get_item(Key={'configKey': configKey})
+
     except ClientError as e:
         print(e.response['Error']['Message'])
         return None
+
     else:
         try:
             configData = response['Item']["configValue"]
             if buyerName in configData["buyer"].keys():
                 buyerObject = configData["buyer"][buyerName]
+
                 return buyerObject
+
         except Exception as e:
             print(e)
             return None
+
     return None
 
 
-def takeSurvey(params):
+def takeSurvey(params, ip):
     userId = params["userId"]
     buyerName = params["buyerName"]
     transactionId = uuid.uuid1()
     started = datetime.utcnow().isoformat()
     surveyData = []
-    # . ip = params["ip"]
-    # . survey_object = get_survey_object(buyerName)
-    # . revenue = survey_object["defaultCPI"]
     # create start transaction
     try:
         transactionData = {
             'transactionId': str(transactionId),
             "userId": userId,
             'status': "started",
-            # . 'ip': ip,
+            'ip': ip,
             'started': str(started),
             'buyer': buyerName
         }
@@ -56,15 +59,16 @@ def takeSurvey(params):
 
     except Exception as e:
         print(f'Create Transaction start record Failed: {e}')
-
     # create ledger transaction
+
     try:
         ledgerData = {
             "userId": userId,
             'transactionId': str(transactionId),
             'type': "Survey",
             'status': "Started",
-            'lastUpdate': str(started)  # . ,'ip': ip,
+            'lastUpdate': str(started),
+            'ip': ip,
         }
         dynamodb = boto3.resource('dynamodb')
         ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
@@ -79,28 +83,32 @@ def takeSurvey(params):
     return surveyData
 
 
-def generateEntryUrl(params, transactionId):
+def generateEntryUrl(params, transactionId, ip):
     userId = params["userId"]
     buyerName = params["buyerName"]
     survey = getSurveyObject(buyerName)
+
     if survey is None:
         return None
-    entryUrl = "{0}?si={1}&ssi={2}&unique_user_id={3}".format(survey['url'], survey['appId'], transactionId, userId)
+
+    entryUrl = "{0}?si={1}&ssi={2}&unique_user_id={3}&ip={4}".format(survey['url'], survey['appId'], transactionId,
+                                                                     userId, ip)
+
     return entryUrl
 
 
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
-    # . params = event
-    print(params)
-    data = takeSurvey(params)
-    print(data)
+    ip = event['requestContext']['identity']['sourceIp']
+    data = takeSurvey(params, ip)
+
     if len(data) == 0:
         return {
             'statusCode': 400,
             'body': json.dumps({"data": data})
         }
-    entryUrl = generateEntryUrl(params, data[0]["transactionId"])
+
+    entryUrl = generateEntryUrl(params, data[0]["transactionId"], ip)
     if entryUrl is None:
         return {
             'statusCode': 400,
@@ -108,7 +116,6 @@ def lambda_handler(event, context):
         }
 
     body = {}
-
     response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
 
     return response
