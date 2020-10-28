@@ -12,6 +12,7 @@ def update(payload):
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
 
     data = json.loads(payload)
+    print(data)
     transactionId = data["queryStringParameters"]['t']
     # updated = str(datetime.utcnow().isoformat())
     try:
@@ -85,6 +86,7 @@ def getSurveyObject(buyerName):
 def lambda_handler(event, context):
     for record in event['Records']:
         payload = record['body']
+        print(payload)
         update(payload)
     return {
         "status": 200,

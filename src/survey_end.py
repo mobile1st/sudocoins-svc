@@ -12,6 +12,7 @@ def lambda_handler(event, context):
     msg = '?msg='
     data = {}
     params = event["queryStringParameters"]
+    print(event)
     # . f = Fernet("MY_KEY")
 
     # create sqs message and redirect message
@@ -46,6 +47,8 @@ def lambda_handler(event, context):
         print("try")
         try:
             record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
+            print(record)
+            print(msgValue)
             encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
             # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
             response = {
