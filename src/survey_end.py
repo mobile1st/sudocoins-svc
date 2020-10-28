@@ -26,8 +26,10 @@ def lambda_handler(event, context):
     hashState = checkSha(url, sha)
     if hashState == True:
         msgValue["hashState"] = True
+        hs = "True"
     else:
         msgValue["hashState"] = False
+        hs = "False"
 
     # Missing params
     expectedParams = ["c", "h", "t", "ts", "ip"]
@@ -41,29 +43,43 @@ def lambda_handler(event, context):
     try:
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-
+        print("try")
         try:
             record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
             encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
-            token = hashlib.sha256(encodeData).hexdigest()
             # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
-            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg + token}, "body": json.dumps(data)}
+            response = {
+                "statusCode": 302,
+                "headers": {'Location': redirectUrl + msg + hs + '&status=' + params["c"]},  # . add encrypted token
+                "body": json.dumps(data)
+
+            }
+
             return response
 
         except Exception as e:
             msgValue["error"] = "invalid_transaction_id"
             encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
-            token = hashlib.sha256(encodeData).hexdigest()
             # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
-            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg + token}, "body": json.dumps(data)}
+            response = {
+                "statusCode": 302,
+                "headers": {'Location': redirectUrl + msg + msgValue["error"]},  # . add encrypted token
+                "body": json.dumps(data)
+
+            }
+
             return response
 
     except Exception as e:
         msgValue["error"] = "error"
         encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
-        token = hashlib.sha256(encodeData).hexdigest()
         # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
-        response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': redirectUrl + msg + msgValue["error"]},  # . add encrypted token
+            "body": json.dumps(data)
+        }
+
         return response
 
 
