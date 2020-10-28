@@ -12,7 +12,7 @@ def update(payload):
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
 
     data = json.loads(payload)
-    transactionId = data['t']
+    transactionId = data["queryStringParameters"]['t']
     # updated = str(datetime.utcnow().isoformat())
     try:
         response = transactionTable.get_item(Key={'transactionId': transactionId})
@@ -29,11 +29,12 @@ def update(payload):
             Key={
                 'transactionId': transactionId
             },
-            UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c",
+            UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c, Redirect=:r",
             ExpressionAttributeValues={
                 ":pay": str(float(revenue) * 0.8),
-                ":s": data["c"],
-                ":c": data["ts"]
+                ":s": data["queryStringParameters"]["c"],
+                ":c": data["queryStringParameters"]["ts"],
+                ":r": data
             },
             ExpressionAttributeNames={
                 "#status1": "status"
@@ -49,8 +50,8 @@ def update(payload):
             UpdateExpression="set amount=:pay, #status1=:s, lastUpdate=:c",
             ExpressionAttributeValues={
                 ":pay": str(float(revenue) * 0.8),
-                ":s": data["c"],
-                ":c": data["ts"]
+                ":s": data["queryStringParameters"]["c"],
+                ":c": data["queryStringParameters"]["ts"]
             },
             ExpressionAttributeNames={
                 "#status1": "status"

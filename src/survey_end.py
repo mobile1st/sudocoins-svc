@@ -4,76 +4,74 @@ import boto3
 import hashlib
 
 
+# . from cryptography.fernet import Fernet
+
+
 def lambda_handler(event, context):
     redirectUrl = 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'
     msg = '?msg='
     data = {}
-    '''
-    #Verify Hash
     params = event["queryStringParameters"]
-    signature_hmac_sha = params["signature_hmac_sha"]
-    URL = "grab from event or re-create"
-    hashState = checkSha(URL, signature_hmac_sha)
+    # . f = Fernet("MY_KEY")
 
-    #Missing params
-    expectedParams = ["transaction_id", "status", "IP address",
-                      "transaction_timestamp","signature_hmac_sha"]
+    # create sqs message and redirect message
+    msgValue = {}
+    msgValue["referer"] = event["headers"]["referer"]
+    msgValue["queryStringParameters"] = params
+
+    # Verify Hash
+    sha = params["h"]
+    url = ("https://1ql2u7kixc.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsSurveyEnd?"
+           "ts={0}&t={1}&c={2}&ip={3}").format(params["ts"], params["t"], params["c"], params["ip"])
+    hashState = checkSha(url, sha)
+    if hashState == True:
+        msgValue["hashState"] = True
+    else:
+        msgValue["hashState"] = False
+
+    # Missing params
+    expectedParams = ["c", "h", "t", "ts", "ip"]
     receivedParams = params.keys()
     missingParams = []
     for i in expectedParams:
         if i not in receivedParams:
             missingParams.append(i)
-
-    #add hashState and MissingParams to the item
-    #convert item to json and encrypt
-    #append hash to redirect
-    '''
-    expectedKeys = ["supplier_sub_id", "status", "ip", "transaction_datetimeiso", "signature_hmac_sha"]
-    missingKeys = []
+    msgValue["missingParams"] = missingParams
 
     try:
-        params = event["queryStringParameters"]
-        print(params)
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-        msg = msg + str(params["c"])  # . status
-        ''' 
-        for i in params:
-            if i not in expectedKeys:
-                missingKeys.append(i)
 
-
-        item = {
-            "transaction_id": params["supplier_sub_id"],
-            "status": params["status"],
-            "IP address": params["ip"],
-            "transaction_timestamp": params["transaction_datetimeiso"],
-            "signature_hmac_sha": params["signature_hmac_sha"]}
-        '''
         try:
-            record = queue.send_message(MessageBody=json.dumps(params), MessageGroupId='EndTransaction')
-            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
+            record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
+            encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
+            token = hashlib.sha256(encodeData).hexdigest()
+            # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
+            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg + token}, "body": json.dumps(data)}
             return response
 
         except Exception as e:
-            msg = msg + "invalid_transaction_id"
-            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
+            msgValue["error"] = "invalid_transaction_id"
+            encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
+            token = hashlib.sha256(encodeData).hexdigest()
+            # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
+            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg + token}, "body": json.dumps(data)}
             return response
 
     except Exception as e:
-        msg = msg + "error"
+        msgValue["error"] = "error"
+        encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
+        token = hashlib.sha256(encodeData).hexdigest()
+        # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
         response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
         return response
 
-    #  see if sha256 hash of redirect URL matches hash from Buyer
 
-
-'''
-def checkSha(URL,signature_hmac_sha):
-    hash_object = hashlib.sha256(URL.encode('utf-8'))
-    hex_dig = hash_object.hexdigest()
-    if hex_dig == signature_hmac_sha:
+def checkSha(url, hash):
+    hashObject = hashlib.sha256(url.encode('utf-8'))
+    hexDig = hashObject.hexdigest()
+    if hexDig == hash:
         return True
     else:
         return False
-'''
+
