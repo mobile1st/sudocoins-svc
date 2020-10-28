@@ -60,6 +60,7 @@ def update(payload):
         )
         print(tdata, ldata)
 
+
 def getSurveyObject(buyerName):
     configTableName = os.environ["CONFIG_TABLE"]
     configKey = "TakeSurveyPage"
@@ -79,7 +80,6 @@ def getSurveyObject(buyerName):
         except Exception as e:
             print(e)
             return None
-
 
 
 def lambda_handler(event, context):
