@@ -8,34 +8,32 @@ from datetime import datetime
 
 def update(payload):
     dynamodb = boto3.resource('dynamodb')
-    transaction_table = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
-    ledger_table = dynamodb.Table(os.environ["LEDGER_TABLE"])
+    transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
+    ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
 
     data = json.loads(payload)
-    # print(data)
-    transactionId = "255e183a-1494-11eb-ba43-6795a48f110e"  # data['transaction_id']
-    # hard coded for testing;
-    updated = str(datetime.utcnow().isoformat())
-
+    transactionId = data['t']
+    # updated = str(datetime.utcnow().isoformat())
     try:
-        response = transaction_table.get_item(Key={'TransactionId': transactionId})
+        response = transactionTable.get_item(Key={'transactionId': transactionId})
+        transaction = response['Item']
+        buyerName = transaction['buyer']
+        surveyObject = getSurveyObject(buyerName)
+        revenue = surveyObject["defaultCpi"]
 
     except ClientError as e:
         print(e.response['Error']['Message'])
 
     else:
-        transaction = response['Item']
-        revenue = transaction["Revenue"]
-        tdata = transaction_table.update_item(
+        tdata = transactionTable.update_item(
             Key={
-                'TransactionId': transactionId
+                'transactionId': transactionId
             },
-            UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c, Redirected=:r",
+            UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c",
             ExpressionAttributeValues={
                 ":pay": str(float(revenue) * 0.8),
-                ":s": data["status"],
-                ":c": updated,  # data["transaction_timestamp"],
-                ":r": "Redirected"
+                ":s": data["c"],
+                ":c": data["ts"]
             },
             ExpressionAttributeNames={
                 "#status1": "status"
@@ -43,16 +41,16 @@ def update(payload):
             ReturnValues="UPDATED_NEW"
         )
 
-        ldata = ledger_table.update_item(
+        ldata = ledgerTable.update_item(
             Key={
-                'UserId': transaction["UserId"],
-                'TransactionId': transactionId
+                'userId': transaction["userId"],
+                'transactionId': transactionId
             },
-            UpdateExpression="set Amount=:pay, #status1=:s, Updated=:c",
+            UpdateExpression="set amount=:pay, #status1=:s, lastUpdate=:c",
             ExpressionAttributeValues={
                 ":pay": str(float(revenue) * 0.8),
-                ":s": data["status"],
-                ":c": updated  # data["transaction_timestamp"]
+                ":s": data["c"],
+                ":c": data["ts"]
             },
             ExpressionAttributeNames={
                 "#status1": "status"
@@ -61,10 +59,31 @@ def update(payload):
         )
         print(tdata, ldata)
 
+def getSurveyObject(buyerName):
+    configTableName = os.environ["CONFIG_TABLE"]
+    configKey = "TakeSurveyPage"
+    dynamodb = boto3.resource('dynamodb')
+    configTable = dynamodb.Table(configTableName)
+    try:
+        response = configTable.get_item(Key={'configKey': configKey})
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+        return None
+    else:
+        try:
+            configData = response['Item']["configValue"]
+            if buyerName in configData["buyer"].keys():
+                buyerObject = configData["buyer"][buyerName]
+                return buyerObject
+        except Exception as e:
+            print(e)
+            return None
+
+
 
 def lambda_handler(event, context):
     for record in event['Records']:
-        payload = record['body']  # json.dumps(record['body'])
+        payload = record['body']
         update(payload)
     return {
         "status": 200,

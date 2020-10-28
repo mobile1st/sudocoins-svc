@@ -5,7 +5,7 @@ import hashlib
 
 
 def lambda_handler(event, context):
-    redirect_URL = 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'
+    redirectUrl = 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'
     msg = '?msg='
     data = {}
     '''
@@ -36,11 +36,12 @@ def lambda_handler(event, context):
         print(params)
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-
+        msg = msg + str(params["c"])  # . status
+        ''' 
         for i in params:
             if i not in expectedKeys:
                 missingKeys.append(i)
-        '''    
+
 
         item = {
             "transaction_id": params["supplier_sub_id"],
@@ -50,20 +51,18 @@ def lambda_handler(event, context):
             "signature_hmac_sha": params["signature_hmac_sha"]}
         '''
         try:
-            msg = msg + str(params["status"])
-            # . record = queue.send_message(MessageBody=json.dumps(item), MessageGroupId='EndTransaction')
             record = queue.send_message(MessageBody=json.dumps(params), MessageGroupId='EndTransaction')
-            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
+            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
             return response
 
         except Exception as e:
             msg = msg + "invalid_transaction_id"
-            response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
+            response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
             return response
 
     except Exception as e:
         msg = msg + "error"
-        response = {"statusCode": 302, "headers": {'Location': redirect_URL + msg}, "body": json.dumps(data)}
+        response = {"statusCode": 302, "headers": {'Location': redirectUrl + msg}, "body": json.dumps(data)}
         return response
 
     #  see if sha256 hash of redirect URL matches hash from Buyer

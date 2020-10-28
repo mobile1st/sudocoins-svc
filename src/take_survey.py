@@ -34,16 +34,16 @@ def takeSurvey(params):
     transactionId = uuid.uuid1()
     started = datetime.utcnow().isoformat()
     surveyData = []
-    #. ip = params["ip"]
-    #. survey_object = get_survey_object(buyerName)
-    #. revenue = survey_object["defaultCPI"]
+    # . ip = params["ip"]
+    # . survey_object = get_survey_object(buyerName)
+    # . revenue = survey_object["defaultCPI"]
     # create start transaction
     try:
         transactionData = {
             'transactionId': str(transactionId),
             "userId": userId,
             'status': "started",
-            #. 'ip': ip,
+            # . 'ip': ip,
             'started': str(started),
             'buyer': buyerName
         }
@@ -64,14 +64,14 @@ def takeSurvey(params):
             'transactionId': str(transactionId),
             'type': "Survey",
             'status': "Started",
-            'lastUpdate': str(started) #. ,'ip': ip,
+            'lastUpdate': str(started)  # . ,'ip': ip,
         }
         dynamodb = boto3.resource('dynamodb')
         ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
         ledgerResponse = ledgerTable.put_item(
             Item=ledgerData
         )
-        transactionData.append(ledgerData)
+        surveyData.append(ledgerData)
 
     except Exception as e:
         print(f'Create Ledger record Failed: {e}')
@@ -90,7 +90,9 @@ def generateEntryUrl(params, transactionId):
 
 
 def lambda_handler(event, context):
-    params = event
+    params = event["queryStringParameters"]
+    # . params = event
+    print(params)
     data = takeSurvey(params)
     print(data)
     if len(data) == 0:
@@ -104,7 +106,11 @@ def lambda_handler(event, context):
             'statusCode': 400,
             'body': json.dumps({"entry urL": "error generating entry url"})
         }
-    return {
-        'statusCode': 200,
-        'body': json.dumps({"redirect": entryUrl})
-    }
+
+    body = {}
+
+    response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
+
+    return response
+
+

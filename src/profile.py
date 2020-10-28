@@ -56,8 +56,8 @@ def loadHistory(user_id):
         ledgerHistory = ledgerTable.query(
             KeyConditionExpression=Key("userId").eq(user_id),
             ScanIndexForward=False,
-            ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
-            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
+            ExpressionAttributeNames = {'#s': 'status', '#t': 'type'},
+            ProjectionExpression= "transactionId, lastUpdate, #t, #s, amount")
         print(ledgerHistory)
         history = ledgerHistory["Items"]
     except ClientError as e:
@@ -104,7 +104,7 @@ def getSurveyObject(userId):
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
                 "incentive": i["defaultCpi"],
-                "URL": URL + "&buyerName=" + i["name"] + "&userId=" + userId
+                "URL": URL + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
         return surveyTiles
