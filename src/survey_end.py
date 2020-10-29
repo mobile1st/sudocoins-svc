@@ -2,9 +2,7 @@ import json
 import os
 import boto3
 import hashlib
-
-
-# . from cryptography.fernet import Fernet
+import base64
 
 
 def lambda_handler(event, context):
@@ -12,10 +10,8 @@ def lambda_handler(event, context):
     msg = '?msg='
     data = {}
     params = event["queryStringParameters"]
-    print(event)
-    # . f = Fernet("MY_KEY")
 
-    # create sqs message and redirect message
+    # Create sqs message and redirect message
     msgValue = {}
     msgValue["referer"] = event["headers"]["referer"]
     msgValue["queryStringParameters"] = params
@@ -44,29 +40,28 @@ def lambda_handler(event, context):
     try:
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-        print("try")
+        kmsClient = boto3.client('kms')
         try:
             record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
-            print(record)
-            print(msgValue)
-            encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
-            # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
+            secret = json.dumps(msgValue, indent=2).encode('utf-8')
+            token = encrypt(kmsClient, secret, os.environ["keyId"])
             response = {
                 "statusCode": 302,
-                "headers": {'Location': redirectUrl + msg + hs + '&status=' + params["c"]},  # . add encrypted token
+                "headers": {'Location': redirectUrl + msg + hs + '&status=' + params["c"] + "&token=" + token},
                 "body": json.dumps(data)
-
             }
 
             return response
 
         except Exception as e:
+            print(e)
             msgValue["error"] = "invalid_transaction_id"
-            encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
-            # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
+            secret = json.dumps(msgValue, indent=2).encode('utf-8')
+            token = encrypt(kmsClient, secret, os.environ["keyId"])
             response = {
                 "statusCode": 302,
-                "headers": {'Location': redirectUrl + msg + msgValue["error"]},  # . add encrypted token
+                "headers": {'Location': redirectUrl + msg + msgValue["error"] + "&token=" + token},
+                # . add encrypted token
                 "body": json.dumps(data)
 
             }
@@ -75,11 +70,11 @@ def lambda_handler(event, context):
 
     except Exception as e:
         msgValue["error"] = "error"
-        encodeData = json.dumps(msgValue, indent=2).encode('utf-8')
-        # . token = f.encrypt(encodeData).decode(encoding='UTF-8')
+        secret = json.dumps(msgValue, indent=2).encode('utf-8')
+        token = encrypt(kmsClient, secret, os.environ["keyId"])
         response = {
             "statusCode": 302,
-            "headers": {'Location': redirectUrl + msg + msgValue["error"]},  # . add encrypted token
+            "headers": {'Location': redirectUrl + msg + msgValue["error"] + "&token=" + token},  # . add encrypted token
             "body": json.dumps(data)
         }
 
@@ -94,3 +89,25 @@ def checkSha(url, hash):
     else:
         return False
 
+
+def encrypt(client, secret, keyId):
+    ciphertext = client.encrypt(
+        KeyId=keyId,
+        Plaintext=bytes(secret),
+    )
+    token = base64.b64encode(ciphertext["CiphertextBlob"]).decode("utf-8")
+
+    return token
+
+
+'''
+this function will decrypt
+def decrypt(secret, keyId):
+    client = boto3.client('kms')
+    dec = base64.b64decode(secret)
+    plaintext = client.decrypt(
+        CiphertextBlob=dec, KeyId=keyId)
+
+    return plaintext["Plaintext"]
+
+'''
