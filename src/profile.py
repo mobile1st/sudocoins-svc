@@ -65,7 +65,6 @@ def loadHistory(user_id):
             ScanIndexForward=False,
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
-
         history = ledgerHistory["Items"]
 
     except ClientError as e:
@@ -99,7 +98,7 @@ def getSurveyObject(userId):
     configKey = "TakeSurveyPage"
     dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
-    URL = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
+    url = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
 
     try:
         response = configTable.get_item(Key={'configKey': configKey})
@@ -111,18 +110,16 @@ def getSurveyObject(userId):
     else:
         configData = response['Item']
         buyerObject = []
-
         for i in configData['configValue']['publicBuyers']:
             buyerObject.append(configData['configValue']["buyer"][i])
 
         surveyTiles = []
-
         for i in buyerObject:
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
                 "incentive": i["defaultCpi"],
-                "URL": URL + "buyerName=" + i["name"] + "&userId=" + userId
+                "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
 
@@ -133,8 +130,12 @@ def lambda_handler(event, context):
     print("event=%s userId=%", event, context.identity.cognito_identity_id)
     jsonInput = event
 
-    profileResp = loadProfile(jsonInput["user_id"])
-    if profileResp["statusCode"] != 200:
+    try:
+        profileResp = loadProfile(jsonInput["user_id"])
+
+    except Exception as e:
+        print(e)
+
         return {
             'statusCode': 400,
             'body': {
@@ -143,12 +144,36 @@ def lambda_handler(event, context):
             }
         }
 
-    historyStatus, history = loadHistory(jsonInput["user_id"])
+    try:
+        historyStatus, history = loadHistory(jsonInput["user_id"])
 
-    profileResp["profile"]["balance"] = getBalance(history)
+    except Exception as e:
+        print(e)
+        history = {}
 
-    surveyTile = getSurveyObject(jsonInput["user_id"])
-    if surveyTile is None:
+    try:
+        profileResp["profile"]["balance"] = getBalance(history)
+
+    except Exception as e:
+        print(e)
+        profileResp["profile"]["balance"] = ""
+
+    try:
+        surveyTile = getSurveyObject(jsonInput["user_id"])
+        if surveyTile is None:
+            data = {
+                "code": 3,
+                "profile": profileResp["profile"],
+                "history": history,
+                "survey_tile": "Error fetching survey tile"
+            }
+
+            return {
+                'statusCode': 400,
+                'body': data
+            }
+
+    except Exception as e:
         data = {
             "code": 3,
             "profile": profileResp["profile"],
