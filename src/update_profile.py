@@ -5,10 +5,14 @@ import json
 
 
 def lambda_handler(event, context):
-    print(event)
+    """Updates the profile for a registered users.
+    Arguments: currency, language, gravatarEmail
+    Returns: fields updated
+    """
     dynamodb = boto3.resource('dynamodb')
     profile_table = dynamodb.Table("Profile")
     json_input = json.loads(event["body"])
+
     data = profile_table.update_item(
         Key={
             "UserId": json_input["UserId"]
