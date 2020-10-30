@@ -100,6 +100,7 @@ def getBalance(history, currency):
             debit += float(i["amount"])
 
     balance = debit - credit
+    print(balance)
     if balance <= 0:
         return str(0)
     else:
@@ -110,7 +111,7 @@ def getBalance(history, currency):
                 "value":str(balance*100)
             }
             response = requests.get(url, params=params)
-            btcBalance = response.content
+            btcBalance = response.content.decode("utf-8")
             return str(btcBalance)
         elif currency == "usd":
             return str(100*balance)
