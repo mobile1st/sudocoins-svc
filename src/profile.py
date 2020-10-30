@@ -2,20 +2,25 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
+import requests
 
 
-def loadProfile(user_id):
+def loadProfile(userId):
+    """Fetches user preferences for the Profile page.
+    Argument: userId. This may change to email or cognito sub id .
+    Returns: a dict mapping user attributes to their values.
+    """
     profileTableName = os.environ["PROFILE_TABLE"]
     dynamodb = boto3.resource('dynamodb')
     profileTable = dynamodb.Table(profileTableName)
 
     try:
         response = profileTable.query(
-            KeyConditionExpression=Key("userId").eq(user_id),
+            KeyConditionExpression=Key("userId").eq(userId),
         )
 
     except ClientError as e:
-        print("Failed to query profile for userId=%s error=%s", user_id, e.response['Error']['Message'])
+        print("Failed to query profile for userId=%s error=%s", userId, e.response['Error']['Message'])
 
         return {
             'statusCode': 400,
@@ -26,7 +31,7 @@ def loadProfile(user_id):
         if "currency" in response['Items'][0].keys():
             currency = response['Items'][0]["currency"]
         else:
-            currency = "USD"
+            currency = "usd"
 
         if "lang" in response['Items'][0].keys():
             lang = response['Items'][0]["lang"]
@@ -54,21 +59,25 @@ def loadProfile(user_id):
         }
 
 
-def loadHistory(user_id):
+def loadHistory(userId):
+    """Fetches the user history from the Ledger table.
+    Arguments: userId.
+    Returns: a list of of objects, each representing a user's transaction.
+    """
     ledgerTableName = os.environ["LEDGER_TABLE"]
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(ledgerTableName)
 
     try:
         ledgerHistory = ledgerTable.query(
-            KeyConditionExpression=Key("userId").eq(user_id),
+            KeyConditionExpression=Key("userId").eq(userId),
             ScanIndexForward=False,
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
         history = ledgerHistory["Items"]
 
     except ClientError as e:
-        print("Failed to query ledger for userId=%s error=%s", user_id, e.response['Error']['Message'])
+        print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
 
         return 'error', {}
 
@@ -76,7 +85,11 @@ def loadHistory(user_id):
         return 'success', history
 
 
-def getBalance(history):
+def getBalance(history, currency):
+    """Iterates through the user's history and computes the user's balance
+    Arguments: list of ledger records, user's preferred currency
+    Returns: the user's balance.
+    """
     debit = 0
     credit = 0
 
@@ -90,10 +103,26 @@ def getBalance(history):
     if balance <= 0:
         return str(0)
     else:
-        return str(debit)
+        if currency == "btc":
+            url = 'https://blockchain.info/tobtc?'
+            params = {
+                "currency":"USD",
+                "value":str(balance*100)
+            }
+            response = requests.get(url, params=params)
+            btcBalance = response.content
+            return str(btcBalance)
+        elif currency == "usd":
+            return str(100*balance)
+        else:
+            return str(balance)
 
 
 def getSurveyObject(userId):
+    """Fetches a list of open surveys for the user
+    Arguments: userId
+    Returns: list of survey urls and incentives
+    """
     configTableName = os.environ["CONFIG_TABLE"]
     configKey = "TakeSurveyPage"
     dynamodb = boto3.resource('dynamodb')
@@ -152,7 +181,7 @@ def lambda_handler(event, context):
         history = {}
 
     try:
-        profileResp["profile"]["balance"] = getBalance(history)
+        profileResp["profile"]["balance"] = getBalance(history, profileResp["profile"]["currency"])
 
     except Exception as e:
         print(e)
