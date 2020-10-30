@@ -11,9 +11,8 @@ def update(payload):
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
     configTable = dynamodb.Table(os.environ["CONFIG_TABLE"])
-    #data = payload
+    # . data = payload
     data = json.loads(payload)
-    print(data)
     transactionId = data["queryStringParameters"]['t']
     # updated = str(datetime.utcnow().isoformat())
     try:
@@ -22,6 +21,9 @@ def update(payload):
         buyerName = transaction['buyer']
         surveyObject = getSurveyObject(buyerName)
         revenue = surveyObject["defaultCpi"]
+
+        revShare = configTable.get_item(Key={'configKey': 'revShare'})
+        revShare = float(revShare['Item']["configValue"]["type"]["survey"])
 
     except ClientError as e:
         print(e.response['Error']['Message'])
@@ -33,7 +35,7 @@ def update(payload):
             },
             UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c, Redirect=:r",
             ExpressionAttributeValues={
-                ":pay": str(float(revenue) * 0.8),
+                ":pay": str(float(revenue) * revShare),
                 ":s": data["queryStringParameters"]["c"],
                 ":c": data["queryStringParameters"]["ts"],
                 ":r": data
@@ -58,7 +60,7 @@ def update(payload):
             },
             UpdateExpression="set amount=:pay, #status1=:s, lastUpdate=:c",
             ExpressionAttributeValues={
-                ":pay": str(float(revenue) * 0.8),
+                ":pay": str(float(revenue) * revShare),
                 ":s": userStatus,
                 ":c": data["queryStringParameters"]["ts"]
             },
@@ -94,7 +96,6 @@ def getSurveyObject(buyerName):
 def lambda_handler(event, context):
     for record in event['Records']:
         payload = record['body']
-        print(payload)
         update(payload)
     return {
         "status": 200,
