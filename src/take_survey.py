@@ -7,10 +7,14 @@ import json
 
 
 def getSurveyObject(buyerName):
-    configTableName = os.environ["CONFIG_TABLE"]
-    configKey = "TakeSurveyPage"
+    """Fetches information about a particular survey to generate entry url
+    Arguments: buyer name
+    Returns: config for buyer to build survey entry url
+    """
     dynamodb = boto3.resource('dynamodb')
+    configTableName = os.environ["CONFIG_TABLE"]
     configTable = dynamodb.Table(configTableName)
+    configKey = "TakeSurveyPage"
 
     try:
         response = configTable.get_item(Key={'configKey': configKey})
@@ -35,6 +39,9 @@ def getSurveyObject(buyerName):
 
 
 def takeSurvey(params, ip):
+    """Generates a transaction and ledger record for the user
+    Arguments: event parameters including userId, buyerName, and ip
+    Returns: validation that records were successfully created"""
     userId = params["userId"]
     buyerName = params["buyerName"]
     transactionId = uuid.uuid1()
@@ -59,7 +66,6 @@ def takeSurvey(params, ip):
 
     except Exception as e:
         print(f'Create Transaction start record Failed: {e}')
-    # create ledger transaction
 
     try:
         ledgerData = {
@@ -84,10 +90,12 @@ def takeSurvey(params, ip):
 
 
 def generateEntryUrl(params, transactionId, ip):
+    """Generates entry url that redirects user to the buyer's platform
+    Arguments: event params including userId and buyerName, transactionId generated, ip
+    Returns: redirect url"""
     userId = params["userId"]
     buyerName = params["buyerName"]
     survey = getSurveyObject(buyerName)
-
     if survey is None:
         return None
 
@@ -100,24 +108,33 @@ def generateEntryUrl(params, transactionId, ip):
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
     ip = event['requestContext']['identity']['sourceIp']
-    data = takeSurvey(params, ip)
+    try:
+        data = takeSurvey(params, ip)
+        if len(data) == 0:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"data": data})
+            }
+    except Exception as e:
+        print(e)
+        pass
 
-    if len(data) == 0:
-        return {
-            'statusCode': 400,
-            'body': json.dumps({"data": data})
-        }
+    try:
+        entryUrl = generateEntryUrl(params, data[0]["transactionId"], ip)
+        if entryUrl is None:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"entry urL": "error generating entry url"})
+            }
 
-    entryUrl = generateEntryUrl(params, data[0]["transactionId"], ip)
-    if entryUrl is None:
-        return {
-            'statusCode': 400,
-            'body': json.dumps({"entry urL": "error generating entry url"})
-        }
+        body = {}
+        response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
 
-    body = {}
-    response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
+        return response
 
-    return response
+    except Exception as e:
+        print(e)
+        """redirect user back to profile page with error message"""
+        return e
 
 
