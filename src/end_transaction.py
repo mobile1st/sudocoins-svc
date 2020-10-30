@@ -10,8 +10,9 @@ def update(payload):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
-
-    data = json.loads(payload)
+    configTable = dynamodb.Table(os.environ["CONFIG_TABLE"])
+    data = payload
+    # data = json.loads(payload) uncomment
     print(data)
     transactionId = data["queryStringParameters"]['t']
     # updated = str(datetime.utcnow().isoformat())
@@ -43,6 +44,13 @@ def update(payload):
             ReturnValues="UPDATED_NEW"
         )
 
+        surveyStatus = configTable.get_item(Key={'configKey': 'surveyStatus'})
+        surveyStatus = surveyStatus['Item']["configValue"]["status"]
+        if data["queryStringParameters"]["c"] in surveyStatus:
+            userStatus = surveyStatus[data["queryStringParameters"]["c"]]
+        else:
+            userStatus = data["queryStringParameters"]["c"]
+
         ldata = ledgerTable.update_item(
             Key={
                 'userId': transaction["userId"],
@@ -51,7 +59,7 @@ def update(payload):
             UpdateExpression="set amount=:pay, #status1=:s, lastUpdate=:c",
             ExpressionAttributeValues={
                 ":pay": str(float(revenue) * 0.8),
-                ":s": data["queryStringParameters"]["c"],
+                ":s": userStatus,
                 ":c": data["queryStringParameters"]["ts"]
             },
             ExpressionAttributeNames={
