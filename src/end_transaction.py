@@ -11,8 +11,8 @@ def update(payload):
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
     configTable = dynamodb.Table(os.environ["CONFIG_TABLE"])
-    data = payload
-    # data = json.loads(payload) uncomment
+    #data = payload
+    data = json.loads(payload)
     print(data)
     transactionId = data["queryStringParameters"]['t']
     # updated = str(datetime.utcnow().isoformat())
