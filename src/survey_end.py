@@ -17,7 +17,8 @@ def lambda_handler(event, context):
         }
 
         try:
-            pushMsg(msgValue)
+            messageResponse = pushMsg(msgValue)
+            print(messageResponse)
 
         except Exception as e:
             print(e)
@@ -65,7 +66,7 @@ def pushMsg(msgValue):
     queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
     record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
 
-    return None
+    return record
 
 
 def missingParams(params, expectedParams):
@@ -118,17 +119,4 @@ def encrypt(client, secret, keyId):
     token = base64.b64encode(ciphertext["CiphertextBlob"]).decode("utf-8")
 
     return token
-
-
-'''
-this function will decrypt
-def decrypt(secret, keyId):
-    client = boto3.client('kms')
-    dec = base64.b64decode(secret)
-    plaintext = client.decrypt(
-        CiphertextBlob=dec, KeyId=keyId)
-
-    return plaintext["Plaintext"]
-
-'''
 
