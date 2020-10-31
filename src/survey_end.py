@@ -6,79 +6,99 @@ import base64
 
 
 def lambda_handler(event, context):
-    redirectUrl = 'https://master.d2wa1oa4l29mvk.amplifyapp.com/'
-    msg = '?msg='
+
+    try:
+        redirectUrl, hostUrl, expectedParams = getUrls()
+        msgValue = {
+            "referer": event["headers"]["referer"],
+            "queryStringParameters": event["queryStringParameters"],
+            "hashState": verifyHash(hostUrl, event["queryStringParameters"]),
+            "missingParams": missingParams(event["queryStringParameters"], expectedParams)
+        }
+
+        try:
+            pushMsg(msgValue)
+
+        except Exception as e:
+            print(e)
+            msgValue["status"] = "Invalid transactionId"
+
+        try:
+            token = encryptMsg(msgValue)
+
+        except Exception as e:
+            print(e)
+            token = ""
+
+    except Exception as e:
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com'},
+            "body": json.dumps({})
+        }
+
+    response = createRedirect(redirectUrl, token)
+    print(msgValue["hashState"])
+    print(msgValue["queryStringParameters"]['c'])
+    return response
+
+
+def createRedirect(redirectUrl, token):
     data = {}
-    params = event["queryStringParameters"]
+    response = {
+        "statusCode": 302,
+        "headers": {'Location': redirectUrl + "msg=" + token},
+        "body": json.dumps(data)
+    }
+    return response
 
-    # Create sqs message and redirect message
-    msgValue = {}
-    msgValue["referer"] = event["headers"]["referer"]
-    msgValue["queryStringParameters"] = params
 
-    # Verify Hash
-    sha = params["h"]
-    url = ("https://1ql2u7kixc.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsSurveyEnd?"
-           "ts={0}&t={1}&c={2}&ip={3}").format(params["ts"], params["t"], params["c"], params["ip"])
-    hashState = checkSha(url, sha)
-    if hashState == True:
-        msgValue["hashState"] = True
-        hs = "True"
-    else:
-        msgValue["hashState"] = False
-        hs = "False"
+def encryptMsg(msgValue):
+    kmsClient = boto3.client('kms')
+    secret = json.dumps(msgValue, indent=2).encode('utf-8')
+    token = encrypt(kmsClient, secret, os.environ["keyId"])
+    return token
 
-    # Missing params
-    expectedParams = ["c", "h", "t", "ts", "ip"]
+
+def pushMsg(msgValue):
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
+    record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
+
+    return None
+
+
+def missingParams(params, expectedParams):
     receivedParams = params.keys()
     missingParams = []
     for i in expectedParams:
         if i not in receivedParams:
             missingParams.append(i)
-    msgValue["missingParams"] = missingParams
+    return missingParams
 
-    try:
-        sqs = boto3.resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-        kmsClient = boto3.client('kms')
-        try:
-            record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
-            secret = json.dumps(msgValue, indent=2).encode('utf-8')
-            token = encrypt(kmsClient, secret, os.environ["keyId"])
-            response = {
-                "statusCode": 302,
-                "headers": {'Location': redirectUrl + msg + hs + '&status=' + params["c"] + "&token=" + token},
-                "body": json.dumps(data)
-            }
 
-            return response
+def verifyHash(hostUrl, params):
+    shaUrl = params["h"]
+    hashUrl = (hostUrl + "ts={0}&t={1}&c={2}&ip={3}").format(params["ts"], params["t"], params["c"], params["ip"])
+    hashState = checkSha(hashUrl, shaUrl)
+    if hashState:
+        return True
+    else:
+        return False
 
-        except Exception as e:
-            print(e)
-            msgValue["error"] = "invalid_transaction_id"
-            secret = json.dumps(msgValue, indent=2).encode('utf-8')
-            token = encrypt(kmsClient, secret, os.environ["keyId"])
-            response = {
-                "statusCode": 302,
-                "headers": {'Location': redirectUrl + msg + msgValue["error"] + "&token=" + token},
-                # . add encrypted token
-                "body": json.dumps(data)
 
-            }
+def getUrls():
+    dynamodb = boto3.resource('dynamodb')
+    configTableName = os.environ["CONFIG_TABLE"]
+    configTable = dynamodb.Table(configTableName)
+    configKey = "surveyEnd"
 
-            return response
+    response = configTable.get_item(Key={'configKey': configKey})
+    redirectUrl = response['Item']["configValue"]["redirectUrl"]
+    hostUrl = response['Item']["configValue"]["hostUrl"]
+    expectedParams = response['Item']["configValue"]["expectedParams"]
 
-    except Exception as e:
-        msgValue["error"] = "error"
-        secret = json.dumps(msgValue, indent=2).encode('utf-8')
-        token = encrypt(kmsClient, secret, os.environ["keyId"])
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': redirectUrl + msg + msgValue["error"] + "&token=" + token},  # . add encrypted token
-            "body": json.dumps(data)
-        }
-
-        return response
+    return redirectUrl, hostUrl, expectedParams
 
 
 def checkSha(url, hash):
@@ -111,3 +131,4 @@ def decrypt(secret, keyId):
     return plaintext["Plaintext"]
 
 '''
+
