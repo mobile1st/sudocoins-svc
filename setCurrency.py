@@ -5,8 +5,8 @@ import json
 
 
 def lambda_handler(event, context):
-    """Updates the profile for a registered users.
-    Arguments: currency, language, gravatarEmail
+    """Updates the currency for the user
+    Arguments: userId
     Returns: fields updated
     """
     dynamodb = boto3.resource('dynamodb')
@@ -18,12 +18,9 @@ def lambda_handler(event, context):
         Key={
             "userId": json_input["userId"]
         },
-        UpdateExpression="set currency=:c, lang=:l, gravatarEmail=:ge",
+        UpdateExpression="set currency=:c",
         ExpressionAttributeValues={
-            ":c": json_input["currency"],
-            ":l": json_input["language"],
-            ":ge": json_input["gravatarEmail"]
-
+            ":c": json_input["currency"]
         },
         ReturnValues="ALL_NEW"
     )
