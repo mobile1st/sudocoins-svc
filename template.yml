@@ -58,3 +58,11 @@ Resources:
       Runtime: python3.8
       FunctionName: setCurrency
       CodeUri: ./src
+
+  contactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: contact.lambda_handler
+      Runtime: python3.8
+      FunctionName: contact
+      CodeUri: ./src

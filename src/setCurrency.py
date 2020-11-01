@@ -1,20 +1,19 @@
 import boto3
-from botocore.exceptions import ClientError
-import uuid
 import json
 
 
 def lambda_handler(event, context):
     """Updates the currency for the user
-    Arguments: userId
-    Returns: fields updated
+    Arguments: userId, currency
+    Returns: the new currency value
     """
     dynamodb = boto3.resource('dynamodb')
-    profile_table = dynamodb.Table("Profile")
+    profileTable = dynamodb.Table("Profile")
     json_input = json.loads(event["body"])
+    print(event)
     # . json_input = event["body"] #. uncomment for testing
 
-    data = profile_table.update_item(
+    data = profileTable.update_item(
         Key={
             "userId": json_input["userId"]
         },
