@@ -21,8 +21,7 @@ def update(payload):
     # . data = payload
     data = json.loads(payload)
     transactionId = data["queryStringParameters"]['t']
-
-    # . updated = str(datetime.utcnow().isoformat())
+    updated = str(datetime.utcnow().isoformat())
 
     try:
         payment, userId = getPayout(transactionId)
@@ -32,21 +31,21 @@ def update(payload):
         payment = ""
 
     try:
-        updateTransaction(transactionId, payment, data)
+        updateTransaction(transactionId, payment, data, updated)
 
-        updateLedger(transactionId, payment, data, userId)
+        updateLedger(transactionId, payment, data, userId, updated)
 
     except ClientError as e:
         print(e)
         return None
 
 
-def updateLedger(transactionId, payment, data, userId):
+def updateLedger(transactionId, payment, data, userId, updated):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
     configTable = dynamodb.Table(os.environ["CONFIG_TABLE"])
 
-    if data["hashState"] == False:
+    if not data["hashState"]:
         surveyCode = "F"
     else:
         surveyCode = data["queryStringParameters"]["c"]
@@ -68,7 +67,7 @@ def updateLedger(transactionId, payment, data, userId):
         ExpressionAttributeValues={
             ":pay": payment,
             ":s": ledgerStatus,
-            ":c": data["queryStringParameters"]["ts"]
+            ":c": updated
         },
         ExpressionAttributeNames={
             "#status1": "status"
@@ -79,11 +78,11 @@ def updateLedger(transactionId, payment, data, userId):
     return data
 
 
-def updateTransaction(transactionId, payment, data):
+def updateTransaction(transactionId, payment, data, updated):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
 
-    if data["hashState"] == False:
+    if not data["hashState"]:
         surveyStatus = "F"
     else:
         surveyStatus = data["queryStringParameters"]["c"]
@@ -96,7 +95,7 @@ def updateTransaction(transactionId, payment, data):
         ExpressionAttributeValues={
             ":pay": payment,
             ":s": surveyStatus,
-            ":c": data["queryStringParameters"]["ts"],
+            ":c": updated,
             ":r": data
         },
         ExpressionAttributeNames={
