@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         "userId": userId,
         "email": jsonInput["email"],
         "phone": jsonInput["phone"],
-        "sub": jsonInput["sub"]
+        "sub": jsonInput["sub"],
         "createdAt": ts,
         "identityProvider": jsonInput["identityProvider"],
         "status": True,
