@@ -162,7 +162,7 @@ def lambda_handler(event, context):
 
     try:
         profileResp = loadProfile(jsonInput["user_id"])
-
+        print("profile loaded")
     except Exception as e:
         print(e)
 
@@ -176,20 +176,21 @@ def lambda_handler(event, context):
 
     try:
         historyStatus, history = loadHistory(jsonInput["user_id"])
-
+        print("history loaded")
     except Exception as e:
         print(e)
         history = {}
 
     try:
         profileResp["profile"]["balance"] = getBalance(history, profileResp["profile"]["currency"])
-
+        print("balance loaded")
     except Exception as e:
         print(e)
         profileResp["profile"]["balance"] = ""
 
     try:
         surveyTile = getSurveyObject(jsonInput["user_id"])
+        print("survey list loaded")
         if surveyTile is None:
             data = {
                 "code": 3,
@@ -215,7 +216,7 @@ def lambda_handler(event, context):
             'statusCode': 400,
             'body': data
         }
-
+    print("about to return")
     return {
         'statusCode': 200,
         'body': {
