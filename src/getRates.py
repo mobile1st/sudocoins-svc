@@ -17,8 +17,7 @@ def lambda_handler(event, context):
 
     data = {
         "currency": "btc",
-        "btcUsd": str(btcUsd),
-        "btcSudo": str(float(btcUsd) * 100)
+        "sudo": str((float(btcUsd) * .01))
     }
 
     ratesResponse = profileTable.put_item(

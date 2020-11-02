@@ -59,7 +59,7 @@ def loadProfile(userId):
         }
 
 
-def loadHistory(userId):
+def loadHistory(userId, rate):
     """Fetches the user history from the Ledger table.
     Arguments: userId.
     Returns: a list of of objects, each representing a user's transaction.
@@ -75,6 +75,10 @@ def loadHistory(userId):
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
         history = ledgerHistory["Items"]
+
+        for i in history:
+            if 'amount' in i:
+                i['amount'] = (float(i['amount'])) * (rate)
 
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
@@ -94,32 +98,25 @@ def getBalance(history, currency):
     credit = 0
 
     for i in history:
-        if i["type"] == "Cash Out":
-            credit += float(i["amount"])
-        elif 'amount' in i.keys() and i['amount'] != "":
-            debit += float(i["amount"])
+        if 'type' in i.keys():
+            if i["type"] == "Cash Out":
+
+                credit += float(i["amount"])
+            elif 'amount' in i.keys() and i['amount'] != "":
+
+                debit += float(i["amount"])
 
     balance = debit - credit
-    print(balance)
     if balance <= 0:
         return str(0)
     else:
-        if currency == "btc":
-            url = 'https://blockchain.info/tobtc?'
-            params = {
-                "currency":"USD",
-                "value":str(balance*100)
-            }
-            response = requests.get(url, params=params)
-            btcBalance = response.content.decode("utf-8")
-            return str(btcBalance)
-        elif currency == "usd":
-            return str(100*balance)
+        if currency == "usd":
+            return str(round(balance, 2))
         else:
-            return str(balance)
+            return balance
 
 
-def getSurveyObject(userId):
+def getSurveyObject(userId, rate):
     """Fetches a list of open surveys for the user
     Arguments: userId
     Returns: list of survey urls and incentives
@@ -148,7 +145,7 @@ def getSurveyObject(userId):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": i["defaultCpi"],
+                "incentive": float(i["defaultCpi"]) * rate,
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
@@ -173,9 +170,16 @@ def lambda_handler(event, context):
                 "error": 'Invalid account'
             }
         }
+    try:
+        rate = getRates(profileResp["profile"]["currency"])
+        print("rate loaded")
+    except Exception as e:
+        print(e)
+        rate = .01
+        profileResp["profile"]["currency"] = 'usd'
 
     try:
-        historyStatus, history = loadHistory(jsonInput["user_id"])
+        historyStatus, history = loadHistory(jsonInput["user_id"], rate)
         print("history loaded")
     except Exception as e:
         print(e)
@@ -189,7 +193,7 @@ def lambda_handler(event, context):
         profileResp["profile"]["balance"] = ""
 
     try:
-        surveyTile = getSurveyObject(jsonInput["user_id"])
+        surveyTile = getSurveyObject(jsonInput["user_id"], rate)
         print("survey list loaded")
         if surveyTile is None:
             data = {
@@ -216,7 +220,7 @@ def lambda_handler(event, context):
             'statusCode': 400,
             'body': data
         }
-    print("about to return")
+    print("about to return the entire response")
     return {
         'statusCode': 200,
         'body': {
@@ -225,3 +229,15 @@ def lambda_handler(event, context):
             "survey": surveyTile
         }
     }
+
+
+def getRates(currency):
+    ratesTableName = os.environ["RATES_TABLE"]
+    dynamodb = boto3.resource('dynamodb')
+    ratesTable = dynamodb.Table(ratesTableName)
+
+    ratesResponse = ratesTable.get_item(Key={'currency': currency})
+    rate = ratesResponse['Item']["sudo"]
+
+    return float(rate)
+

@@ -24,14 +24,14 @@ def update(payload):
     updated = str(datetime.utcnow().isoformat())
 
     try:
-        payment, userId = getPayout(transactionId)
+        payment, userId, revenue = getPayout(transactionId)
 
     except ClientError as e:
         print(e.response['Error']['Message'])
         payment = ""
 
     try:
-        updateTransaction(transactionId, payment, data, updated)
+        updateTransaction(transactionId, payment, data, updated, revenue)
 
         updateLedger(transactionId, payment, data, userId, updated)
 
@@ -47,6 +47,7 @@ def updateLedger(transactionId, payment, data, userId, updated):
 
     if not data["hashState"]:
         surveyCode = "F"
+        payment = 0
     else:
         surveyCode = data["queryStringParameters"]["c"]
 
@@ -78,12 +79,14 @@ def updateLedger(transactionId, payment, data, userId, updated):
     return data
 
 
-def updateTransaction(transactionId, payment, data, updated):
+def updateTransaction(transactionId, payment, data, updated, revenue):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
 
     if not data["hashState"]:
         surveyStatus = "F"
+        revenue = 0
+        payment = 0
     else:
         surveyStatus = data["queryStringParameters"]["c"]
 
@@ -91,15 +94,16 @@ def updateTransaction(transactionId, payment, data, updated):
         Key={
             'transactionId': transactionId
         },
-        UpdateExpression="set Payout=:pay, #status1=:s, Completed=:c, Redirect=:r",
+        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev",
+        ExpressionAttributeNames={
+            "#status1": "status"
+        },
         ExpressionAttributeValues={
             ":pay": payment,
             ":s": surveyStatus,
             ":c": updated,
-            ":r": data
-        },
-        ExpressionAttributeNames={
-            "#status1": "status"
+            ":r": data,
+            ":rev": revenue
         },
         ReturnValues="UPDATED_NEW"
     )
@@ -125,7 +129,7 @@ def getPayout(transactionId):
         print(e)
         payment = ""
 
-    return payment, userId
+    return payment, userId, revenue
 
 
 def getSurveyRevenue(buyerName):
