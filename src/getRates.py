@@ -16,14 +16,19 @@ def lambda_handler(event, context):
     btcUsd = getBtc()
 
     data = {
-        "currency": "usd",
+        "currency": "btc",
         "btcUsd": str(btcUsd),
-        "btcSudo": str(btcUsd * 100)
+        "btcSudo": str(float(btcUsd) * 100)
     }
 
     ratesResponse = profileTable.put_item(
         Item=data
     )
+
+    return {
+        'statusCode': 200,
+        'body': "Rates saved"
+    }
 
 
 def getBtc():
