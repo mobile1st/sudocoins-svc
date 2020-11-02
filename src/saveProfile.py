@@ -13,11 +13,11 @@ def lambda_handler(event, context):
     profileTable = dynamodb.Table("Profile")
     jsonInput = json.loads(event["body"])
     print(event)
-    # . json_input = event["body"] #. uncomment for testing
+    #. jsonInput = event["body"] #. uncomment for testing
 
-    userId = uuid.uuid1()
+    userId = str(uuid.uuid1())
     ts = str(datetime.utcnow().isoformat())
-    data = {
+    userProfile = {
         "userId": userId,
         "email": jsonInput["email"],
         "phone": jsonInput["phone"],
@@ -26,14 +26,14 @@ def lambda_handler(event, context):
         "createdAt": ts,
         "identityProvider": jsonInput["identityProvider"],
         "status": True,
-        "ip": jsonInput["ip"]
+        "ip": event['requestContext']['identity']['sourceIp']
     }
 
-    data = profileTable.put_item(
-
+    profileResponse = profileTable.put_item(
+        Item=userProfile
     )
 
     return {
         'statusCode': 200,
-        'body': json.dumps(data["Attributes"])
+        'body': "Profile saved"
     }
