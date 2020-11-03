@@ -67,12 +67,12 @@ Resources:
       FunctionName: contact
       CodeUri: ./src
 
-  saveProfileFunction:
+  setProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: saveProfile.lambda_handler
+      Handler: setProfile.lambda_handler
       Runtime: python3.8
-      FunctionName: saveProfile
+      FunctionName: setProfile
       CodeUri: ./src
 
   exchangeRatesFunction:
@@ -81,4 +81,12 @@ Resources:
       Handler: getRates.lambda_handler
       Runtime: python3.8
       FunctionName: getRates
+      CodeUri: ./src
+
+  getUserIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getUserId.lambda_handler
+      Runtime: python3.8
+      FunctionName: getUserId
       CodeUri: ./src
