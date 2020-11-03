@@ -23,37 +23,29 @@ def lambda_handler(event, context):
             })
     # if an email is found, use the existing userId
     if response['Count'] > 0:
-        return response['Items']['userId']
-
+        return response['Items'][0]['userId']
+    # if en email isn't found, create a new record in the profile table
     else:
         userProfile = {}
         for i in userData:
             userProfile[i] = userData[i]
 
+        userProfile['createdAt'] = ts
+        userProfile['identityProvider'] = 'Cognito'
+        userProfile['status'] = True
+
         if 'sub' in userProfile:
             userProfile["userId"] = userProfile['sub']
+
         else:
             userProfile["userId"] = str(uuid.uuid1())
 
-            userProfile['createdAt'] = ts
-            userProfile['identityProvider'] = 'Cognito'
-            userProfile['status'] = True
+        print(userProfile)
 
-            return {
-                'statusCode': 200,
-                'body': userProfile["userId"]
-            }
+        newRecord = profileTable.put_item(
+            Item=userProfile)
 
-    '''
-    {'userName': 'tedbrink29@gmail.com',
-     'request': {
-        'userAttributes': {
-            'sub': '58ed289b-0bb1-4741-aa9f-3802262d319a',
-            'email_verified': 'true',
-            'cognito:user_status': 'CONFIRMED',
-            'phone_number_verified': 'false',
-            'phone_number': '+17329938083',
-            'email': 'tedbrink29@gmail.com'}
+        return {
+            'statusCode': 200,
+            'body': userProfile["userId"]
         }
-     }
-    '''
