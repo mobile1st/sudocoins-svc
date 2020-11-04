@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 
+
 def loadProfile(userId):
     """Fetches user preferences for the Profile page.
     Argument: userId. This may change to email or cognito sub id .
@@ -239,3 +240,4 @@ def getRates(currency):
     rate = ratesResponse['Item']["sudo"]
 
     return float(rate)
+

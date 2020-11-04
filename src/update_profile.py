@@ -11,18 +11,18 @@ def lambda_handler(event, context):
     """
     dynamodb = boto3.resource('dynamodb')
     profile_table = dynamodb.Table("Profile")
-    json_input = json.loads(event["body"])
-    # . json_input = event["body"] #. uncomment for testing
+    jsonInput = event
+
 
     data = profile_table.update_item(
         Key={
-            "userId": json_input["userId"]
+            "userId": jsonInput["userId"]
         },
         UpdateExpression="set currency=:c, lang=:l, gravatarEmail=:ge",
         ExpressionAttributeValues={
-            ":c": json_input["currency"],
-            ":l": json_input["language"],
-            ":ge": json_input["gravatarEmail"]
+            ":c": jsonInput["currency"],
+            ":l": jsonInput["language"],
+            ":ge":jsonInput["gravatarEmail"]
 
         },
         ReturnValues="ALL_NEW"
@@ -30,5 +30,5 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': json.dumps(data["Attributes"])
+        'body': "success"
     }
