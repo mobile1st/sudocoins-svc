@@ -14,9 +14,15 @@ def lambda_handler(event, context):
     :return: JSON object for the front end that contains profile and surveys
     """
     print("event=%s userId=%", event, context.identity.cognito_identity_id)
+
     sub = event['sub']
+
     if 'email' in event:
         email = event['email']
+    else:
+        email = ""
+
+    profileResp = {}
 
     try:
         profileResp = loadProfile(sub, email)
@@ -50,7 +56,7 @@ def lambda_handler(event, context):
             }
 
     except Exception as e:
-        data = {"profile": profileResp,"survey_tile": "Error fetching survey tile"}
+        data = {"profile": profileResp, "survey_tile": "Error fetching survey tile"}
 
         return {
             'statusCode': 400,
@@ -72,12 +78,13 @@ def loadProfile(sub, email):
     Argument: userId. This may change to email or cognito sub id .
     Returns: a dict mapping user attributes to their values.
     """
-    profileTableName = os.environ["PROFILE_TABLE"]
     dynamodb = boto3.resource('dynamodb')
-    profileTable = dynamodb.Table(profileTableName)
+    profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
 
     subResponse = subTable.get_item(Key={'sub': sub})
+
+    print(subResponse)
 
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
@@ -89,7 +96,7 @@ def loadProfile(sub, email):
 
         return profileObject['Item']
 
-    else:
+    elif email != "":
 
         profileQuery = profileTable.query(
             IndexName='email-index',
@@ -111,31 +118,33 @@ def loadProfile(sub, email):
 
             return profileQuery['Items'][0]
 
-        else:
-            created = datetime.utcnow().isoformat()
-            userId = str(uuid.uuid1())
+    created = datetime.utcnow().isoformat()
+    print(created)
+    userId = str(uuid.uuid1())
+    if email == "":
+        email = userId + "@sudocoins.com"
+    print(email)
+    subResponse = subTable.put_item(
+        Item={
+            "sub": sub,
+            "userId": userId
+        }
+    )
 
-            subResponse = subTable.put_item(
-                Item={
-                    "sub": sub,
-                    "userId": userId
-                }
-            )
+    profileObject = {
+        "active": True,
+        "email": email,
+        "signupDate": created,
+        "userId": userId,
+        "currency": "",
+        "gravatarEmail": email
+    }
 
-            profileObject = {
-                "active": True,
-                "email": email,
-                "signupDate": created,
-                "userId": userId,
-                "currency": "",
-                "gravatarEmail": email
-            }
+    profileResponse = profileTable.put_item(
+        Item=profileObject
+    )
 
-            profileResponse = profileTable.put_item(
-                Item=profileObject
-            )
-
-            return profileObject
+    return profileObject
 
 
 def getSurveyObject(userId, rate):
@@ -147,7 +156,7 @@ def getSurveyObject(userId, rate):
     configKey = "TakeSurveyPage"
     dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
-    url = "https://www.sudocoins.com/prod/SudoCoinsTakeSurvey?"
+    url = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
 
     try:
         response = configTable.get_item(Key={'configKey': configKey})
