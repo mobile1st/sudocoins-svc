@@ -70,7 +70,8 @@ def loadHistory(userId, rate):
     try:
         ledgerHistory = ledgerTable.query(
             KeyConditionExpression=Key("userId").eq(userId),
-            ScanIndexForward=False,
+            ScanIndexForward=True,
+            IndexName='sortedHistory',
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
         history = ledgerHistory["Items"]
