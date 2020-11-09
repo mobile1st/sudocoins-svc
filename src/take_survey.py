@@ -75,6 +75,7 @@ def takeSurvey(params, ip):
             'status': "Started",
             'lastUpdate': str(started),
             'ip': ip,
+            'createdAt': str(started)
         }
         dynamodb = boto3.resource('dynamodb')
         ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
