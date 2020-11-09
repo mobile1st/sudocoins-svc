@@ -11,6 +11,7 @@ def lambda_handler(event, context):
     try:
         profileResp = loadProfile(sub)
         print("load profile function complete")
+        print(profileResp)
 
     except Exception as e:
         print(e)
@@ -37,9 +38,10 @@ def lambda_handler(event, context):
             print(e)
             rate = .01
             profileResp["currency"] = 'usd'
+            print(profileResp)
 
         try:
-            historyStatus, history = loadHistory(profileResp["user_id"], rate)
+            historyStatus, history = loadHistory(profileResp["userId"], rate)
             print("history loaded")
         except Exception as e:
             print(e)

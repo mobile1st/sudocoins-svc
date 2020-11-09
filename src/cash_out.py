@@ -8,38 +8,36 @@ import uuid
 def lambda_handler(event, context):
     print(event)
     dynamodb = boto3.resource('dynamodb')
-    ledger_table = dynamodb.Table("Ledger")
-    payout_table = dynamodb.Table("Payouts")
+    ledgerTable = dynamodb.Table("Ledger")
+    payoutTable = dynamodb.Table("Payouts")
 
-    json_input = json.loads(event["body"])
+    jsonInput = json.loads(event)
 
-    # set time
-    created_at = datetime.utcnow().isoformat()
-    # tid
+    lastUpdate = datetime.utcnow().isoformat()
     transactionId = str(uuid.uuid1())
-    # payout object
+
     payout = {
         "paymentId": transactionId,
-        "UserId": json_input["UserId"],
-        "Amount": json_input["Amount"],
-        "CreatedAt": created_at,
-        "Type": json_input["Type"],
-        "Address": json_input["Address"],
-        "Status": "pending"
+        "userId": jsonInput["userId"],
+        "amount": jsonInput["amount"],
+        "lastUpdate": lastUpdate,
+        "type": jsonInput["type"],
+        "address": jsonInput["address"],
+        "Status": "Pending"
     }
     # withdraw record added to ledger table
     withdraw = {
-        "UserId": json_input["UserId"],
-        "Amount": json_input["Amount"],
-        "CreatedAt": created_at,
-        "Type": "Cash Out",
-        "Status": "Pending",
-        "TransactionId": transactionId
+        "userId": jsonInput["userId"],
+        "amount": jsonInput["amount"],
+        "lastUpdate": lastUpdate,
+        "type": "Cash Out",
+        "status": "Pending",
+        "transactionId": transactionId
     }
-    payout_response = payout_table.put_item(
+    payout_response = payoutTable.put_item(
         Item=payout
     )
-    ledger_response = ledger_table.put_item(
+    ledger_response = ledgerTable.put_item(
         Item=withdraw
     )
     return {

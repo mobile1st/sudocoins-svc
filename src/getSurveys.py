@@ -32,7 +32,7 @@ def lambda_handler(event, context):
         print(e)
 
     try:
-        if profileResp["currency"] == "" or "usd":
+        if (profileResp["currency"] == "") or (profileResp["currency"] == "usd"):
             rate = .01
             print("rate loaded in memory")
         else:

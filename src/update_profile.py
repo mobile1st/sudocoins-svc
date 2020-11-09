@@ -25,7 +25,7 @@ def lambda_handler(event, context):
             ":ge":jsonInput["gravatarEmail"]
 
         },
-        ReturnValues="ALL_NEW"
+        ReturnValues="UPDATED_NEW"
     )
 
     return {
