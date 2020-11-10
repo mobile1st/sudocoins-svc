@@ -3,9 +3,16 @@ import json
 import uuid
 from datetime import datetime
 import requests
+# from .exchange_rates import ExchangeRates
 
 
 def lambda_handler(event, context):
+    # todo use exchange rates
+    # dynamodb = boto3.resource('dynamodb')
+    # exchange = ExchangeRates(dynamodb)
+    # exchange.refresh_rate('btc')
+    #
+    # return {'statusCode': 200}
     """gets exchange rates and saves them to cache
     Arguments: none
     Returns: rates saved
