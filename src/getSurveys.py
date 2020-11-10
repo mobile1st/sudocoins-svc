@@ -176,7 +176,7 @@ def getSurveyObject(userId, rate):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": float(i["defaultCpi"]) * rate,
+                "incentive": round((float(i["defaultCpi"]) * rate), 8),
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)

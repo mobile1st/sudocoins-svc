@@ -30,6 +30,7 @@ def lambda_handler(event, context):
         try:
             if profileResp["currency"] == "" or "usd":
                 rate = .01
+                profileResp["currency"] = 'usd'
                 print("rate loaded in memory")
             else:
                 rate = getRates(profileResp["currency"])
@@ -41,7 +42,7 @@ def lambda_handler(event, context):
             print(profileResp)
 
         try:
-            historyStatus, history = loadHistory(profileResp["userId"], rate)
+            historyStatus, history = loadHistory(profileResp["userId"], rate, profileResp["currency"])
             print("history loaded")
         except Exception as e:
             print(e)
@@ -110,8 +111,8 @@ def getBalance(history, currency):
     else:
         if currency == "usd":
             return str(round(balance, 2))
-        else:
-            return balance
+        elif currency == 'btc':
+            return str(round(balance, 8))
 
 
 def getRates(currency):
@@ -125,7 +126,7 @@ def getRates(currency):
     return float(rate)
 
 
-def loadHistory(userId, rate):
+def loadHistory(userId, rate, currency):
     """Fetches the user history from the Ledger table.
     Arguments: userId.
     Returns: a list of of objects, each representing a user's transaction.
@@ -145,7 +146,10 @@ def loadHistory(userId, rate):
 
         for i in history:
             if 'amount' in i:
-                i['amount'] = (float(i['amount'])) * rate
+                if currency == 'usd':
+                    i['amount'] = round(((float(i['amount'])) * rate), 2)
+                elif currency == 'btc':
+                    i['amount'] = round(((float(i['amount'])) * rate), 8)
 
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
