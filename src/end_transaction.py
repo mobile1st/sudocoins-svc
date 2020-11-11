@@ -59,6 +59,10 @@ def updateLedger(transactionId, payment, data, userId, updated):
     else:
         ledgerStatus = data["queryStringParameters"]["c"]
 
+    # . pay only completes
+    if ledgerStatus != "Complete":
+        payment = ""
+
     data = ledgerTable.update_item(
         Key={
             'userId': userId,
@@ -154,9 +158,3 @@ def getSurveyRevenue(buyerName):
         print(e.response['Error']['Message'])
 
         return ""
-
-
-
-
-
-

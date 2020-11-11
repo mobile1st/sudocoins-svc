@@ -99,10 +99,9 @@ def getBalance(history, currency):
     for i in history:
         if 'type' in i.keys():
             if i["type"] == "Cash Out":
-
                 credit += float(i["amount"])
-            elif 'amount' in i.keys() and i['amount'] != "":
 
+            elif 'amount' in i.keys() and i['amount'] != "":
                 debit += float(i["amount"])
 
     balance = debit - credit
