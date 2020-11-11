@@ -2,8 +2,9 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
-from boto3.dynamodb.conditions import Key
 import uuid
+from decimal import *
+from .exchange_rates import ExchangeRates
 
 
 def lambda_handler(event, context):
@@ -16,6 +17,9 @@ def lambda_handler(event, context):
     print("event=%s userId=%", event, context.identity.cognito_identity_id)
 
     sub = event['sub']
+
+    dynamodb = boto3.resource('dynamodb')
+    exchange = ExchangeRates(dynamodb)
 
     if 'email' in event:
         email = event['email']
@@ -33,19 +37,21 @@ def lambda_handler(event, context):
 
     try:
         if (profileResp["currency"] == "") or (profileResp["currency"] == "usd"):
-            rate = .01
+            rate = Decimal(.01)
+            precision = Decimal(1.00)
             print("rate loaded in memory")
         else:
-            rate = getRates(profileResp["currency"])
+            rates, precision = exchange.get_rate(profileResp["currency"])
             print("rate loaded from db")
 
     except Exception as e:
         print(e)
-        rate = .01
+        rate = Decimal(.01)
+        precision = Decimal(1.00)
         profileResp["currency"] = 'usd'
 
     try:
-        surveyTiles = getSurveyObject(profileResp['userId'], rate)
+        surveyTiles = getSurveyObject(profileResp['userId'], rate, precision)
         print("survey list loaded")
         if surveyTiles is None:
             data = {'profile': profileResp, 'survey_tile': "Error fetching survey tile"}
@@ -147,7 +153,7 @@ def loadProfile(sub, email):
     return profileObject
 
 
-def getSurveyObject(userId, rate):
+def getSurveyObject(userId, rate, precision):
     """Fetches a list of open surveys for the user
     Arguments: userId
     Returns: list of survey urls and incentives
@@ -176,20 +182,10 @@ def getSurveyObject(userId, rate):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": round((float(i["defaultCpi"]) * rate), 8),
+                "incentive": (Decimal(i["defaultCpi"]) * rate).quantize(precision),
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
 
         return surveyTiles
 
-
-def getRates(currency):
-    ratesTableName = os.environ["RATES_TABLE"]
-    dynamodb = boto3.resource('dynamodb')
-    ratesTable = dynamodb.Table(ratesTableName)
-
-    ratesResponse = ratesTable.get_item(Key={'currency': currency})
-    rate = ratesResponse['Item']["sudo"]
-
-    return float(rate)

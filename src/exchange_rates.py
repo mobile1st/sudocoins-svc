@@ -1,4 +1,5 @@
 import requests
+from decimal import Decimal
 
 
 class ExchangeRates:
@@ -8,7 +9,7 @@ class ExchangeRates:
     def get_rate(self, currency):
         exchange = self.dynamodb.Table("exchangeRates")
         row = exchange.get_item(Key={'currency': currency})
-        return float(row['Item']["sudo"])
+        return Decimal(row['Item']["sudo"]), Decimal(row['Item']["precision"])
 
     def refresh_rate(self, currency):
         rate = self.fetch_rate(currency)
