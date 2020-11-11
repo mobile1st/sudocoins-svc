@@ -3,7 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 from decimal import *
-from .exchange_rates import ExchangeRates
+from exchange_rates import ExchangeRates
 
 
 def lambda_handler(event, context):
