@@ -94,6 +94,10 @@ def updateTransaction(transactionId, payment, data, updated, revenue):
     else:
         surveyStatus = data["queryStringParameters"]["c"]
 
+    if surveyStatus != "C":
+        revenue = 0
+        payment = 0
+
     data = transactionTable.update_item(
         Key={
             'transactionId': transactionId
@@ -126,7 +130,7 @@ def getPayout(transactionId):
     try:
         revenue = getSurveyRevenue(buyerName)
         revShare = configTable.get_item(Key={'configKey': 'revShare'})
-        revShare = float(revShare['Item']["configValue"]["type"]["survey"])
+        revShare = float(revShare["Item"]["configValue"]["type"]["survey"])
         payment = str(float(revenue) * revShare)
 
     except Exception as e:
