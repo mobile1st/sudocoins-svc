@@ -9,12 +9,18 @@ def lambda_handler(event, context):
     """
     dynamodb = boto3.resource('dynamodb')
     profileTable = dynamodb.Table("Profile")
+    subTable = dynamodb.Table("sub")
     jsonInput = event
 
+    sub = event["sub"]
+
+    subResponse = subTable.get_item(Key={'sub': sub})
+
+    userId = subResponse['Item']['userId']
 
     data = profileTable.update_item(
         Key={
-            "userId": jsonInput["userId"]
+            "userId": userId
         },
         UpdateExpression="set currency=:c",
         ExpressionAttributeValues={
@@ -24,6 +30,5 @@ def lambda_handler(event, context):
     )
 
     return {
-        'statusCode': 200,
-        'body': json.dumps(data["Attributes"])
+        'body': data["Attributes"]
     }

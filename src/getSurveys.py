@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 from datetime import datetime
 import uuid
 from decimal import *
-from .exchange_rates import ExchangeRates
+from exchange_rates import ExchangeRates
 
 
 def lambda_handler(event, context):
@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     try:
         if (profileResp["currency"] == "") or (profileResp["currency"] == "usd"):
             rate = Decimal(.01)
-            precision = Decimal(1.00)
+            precision = 2
             print("rate loaded in memory")
         else:
             rates, precision = exchange.get_rate(profileResp["currency"])
@@ -47,7 +47,7 @@ def lambda_handler(event, context):
     except Exception as e:
         print(e)
         rate = Decimal(.01)
-        precision = Decimal(1.00)
+        precision = 2
         profileResp["currency"] = 'usd'
 
     try:
@@ -182,7 +182,7 @@ def getSurveyObject(userId, rate, precision):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": (Decimal(i["defaultCpi"]) * rate).quantize(precision),
+                "incentive": (Decimal(i["defaultCpi"]) * rate).quantize(Decimal(10) ** -precision),
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
