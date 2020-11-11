@@ -2,7 +2,7 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
-from decimal import *
+from decimal import Decimal
 from exchange_rates import ExchangeRates
 
 
