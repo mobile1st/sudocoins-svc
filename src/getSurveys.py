@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 from decimal import *
 from exchange_rates import ExchangeRates
+import json
 
 
 def lambda_handler(event, context):
@@ -179,7 +180,8 @@ def getSurveyObject(userId, rate, precision):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": (Decimal(i["defaultCpi"]) * rate).quantize(Decimal(10) ** -precision),
+                "incentive": (Decimal(i["defaultCpi"]) * rate * Decimal(i['revShare'])).quantize(
+                    Decimal(10) ** -precision),
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)
