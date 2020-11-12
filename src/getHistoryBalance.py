@@ -140,7 +140,7 @@ def loadHistory(userId, rate, precision, currency):
         history = ledgerHistory["Items"]
         for i in history:
             print(i)
-            if 'amount' in i :
+            if 'amount' in i:
                 if i['amount'] == "":
                     i['amount'] = Decimal(0)
                 else:
