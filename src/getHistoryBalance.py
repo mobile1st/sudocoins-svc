@@ -34,12 +34,14 @@ def lambda_handler(event, context):
         }
     else:
         try:
+            print(profileResp)
             if profileResp["currency"] == "":
                 rate = Decimal('.01')
                 precision = Decimal('1.00')
                 profileResp["currency"] = 'usd'
                 print("rate loaded in memory")
             else:
+                print("try")
                 rate, precision = exchange.get_rate(profileResp["currency"])
                 print("rate loaded from db")
         except Exception as e:
