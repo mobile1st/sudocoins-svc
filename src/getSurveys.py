@@ -162,9 +162,12 @@ def getSurveyObject(userId, rate, precision):
     dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
     url = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
+
+    print("here we go")
+
     try:
         response = configTable.get_item(Key={'configKey': configKey})
-
+        print("response")
     except ClientError as e:
         print("Failed to query config error=%s", e.response['Error']['Message'])
         return None
@@ -181,7 +184,7 @@ def getSurveyObject(userId, rate, precision):
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
                 "incentive": (Decimal(i["defaultCpi"]) * rate * Decimal(i['revShare'])).quantize(
-                    Decimal('10') ** -precision),
+                    Decimal('10') ** ((-1) * int(precision))),
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)

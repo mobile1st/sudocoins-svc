@@ -139,7 +139,8 @@ def loadHistory(userId, rate, precision, currency):
         history = ledgerHistory["Items"]
         for i in history:
             if 'amount' in i:
-                i['amount'] = ((Decimal(i['amount'])) * rate).quantize(Decimal('10') ** -precision)
+                i['amount'] = ((Decimal(i['amount'])) * rate).quantize(
+                    Decimal('10') ** ((-1) * int(precision)))
 
 
     except ClientError as e:
