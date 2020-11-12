@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 
-class RevShare:
+class RevenueData:
 
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
@@ -15,6 +15,7 @@ class RevShare:
         else:
             surveyCode = data["queryStringParameters"]["c"]
 
+        print("trying getConfig")
         buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
 
         revenue = Decimal(buyerObject["Item"]["configValue"]["buyer"][buyerName]["defaultCpi"])
@@ -29,6 +30,5 @@ class RevShare:
             revShare = Decimal(0)
 
         payment = revenue * revShare
-
 
         return revenue, payment, userStatus
