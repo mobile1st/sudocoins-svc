@@ -36,12 +36,12 @@ def lambda_handler(event, context):
         print(e)
 
     try:
-        if (profileResp["currency"] == "") or (profileResp["currency"] == "usd"):
+        if profileResp["currency"] == "":
             rate = Decimal(.01)
             precision = 2
             print("rate loaded in memory")
         else:
-            rates, precision = exchange.get_rate(profileResp["currency"])
+            rate, precision = exchange.get_rate(profileResp["currency"])
             print("rate loaded from db")
 
     except Exception as e:
@@ -89,8 +89,6 @@ def loadProfile(sub, email):
     subTable = dynamodb.Table('sub')
 
     subResponse = subTable.get_item(Key={'sub': sub})
-
-    print(subResponse)
 
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
@@ -163,7 +161,6 @@ def getSurveyObject(userId, rate, precision):
     dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
     url = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
-
     try:
         response = configTable.get_item(Key={'configKey': configKey})
 

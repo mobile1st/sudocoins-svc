@@ -16,7 +16,8 @@ def lambda_handler(event, context):
     try:
         profileResp = loadProfile(sub)
         print("load profile function complete")
-        print(profileResp)
+
+
 
     except Exception as e:
         print(e)
@@ -34,16 +35,16 @@ def lambda_handler(event, context):
     else:
         try:
             if profileResp["currency"] == "":
-                rate = Decimal(.01)
+                rate = Decimal('.01')
                 precision = Decimal('1.00')
                 profileResp["currency"] = 'usd'
                 print("rate loaded in memory")
             else:
-                rate, precision = exchange.get_rates(profileResp["currency"])
+                rate, precision = exchange.get_rate(profileResp["currency"])
                 print("rate loaded from db")
         except Exception as e:
             print(e)
-            rate = .01
+            rate = Decimal('.01')
             precision = Decimal('1.00')
             profileResp["currency"] = 'usd'
             print(profileResp)
@@ -100,8 +101,8 @@ def getBalance(history, currency, precision):
     Arguments: list of ledger records, user's preferred currency
     Returns: the user's balance.
     """
-    debit = Decimal(0)
-    credit = Decimal(0)
+    debit = 0
+    credit = 0
 
     for i in history:
         if 'type' in i.keys():
@@ -116,7 +117,6 @@ def getBalance(history, currency, precision):
         return Decimal(0)
     else:
         return balance.quantize(Decimal(10) ** -precision)
-
 
 
 def loadHistory(userId, rate, precision, currency):
