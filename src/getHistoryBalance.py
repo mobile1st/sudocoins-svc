@@ -34,14 +34,12 @@ def lambda_handler(event, context):
         }
     else:
         try:
-            print(profileResp)
             if profileResp["currency"] == "":
                 rate = Decimal('.01')
                 precision = Decimal('1.00')
                 profileResp["currency"] = 'usd'
                 print("rate loaded in memory")
             else:
-                print("try")
                 rate, precision = exchange.get_rate(profileResp["currency"])
                 print("rate loaded from db")
         except Exception as e:
@@ -49,7 +47,6 @@ def lambda_handler(event, context):
             rate = Decimal('.01')
             precision = Decimal('1.00')
             profileResp["currency"] = 'usd'
-            print(profileResp)
 
         try:
             historyStatus, history = loadHistory(profileResp["userId"], rate, precision, profileResp["currency"])
@@ -118,7 +115,7 @@ def getBalance(history, currency, precision):
     if balance <= 0:
         return Decimal(0)
     else:
-        return balance.quantize(Decimal(10) ** -precision)
+        return balance.quantize(Decimal(10) ** ((-1)*int(precision)))
 
 
 def loadHistory(userId, rate, precision, currency):
@@ -130,7 +127,6 @@ def loadHistory(userId, rate, precision, currency):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(ledgerTableName)
     try:
-        print("here?")
         ledgerHistory = ledgerTable.query(
             KeyConditionExpression=Key("userId").eq(userId),
             ScanIndexForward=False,
@@ -139,7 +135,6 @@ def loadHistory(userId, rate, precision, currency):
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
         history = ledgerHistory["Items"]
         for i in history:
-            print(i)
             if 'amount' in i:
                 if i['amount'] == "":
                     i['amount'] = Decimal(0)
