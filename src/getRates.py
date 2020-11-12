@@ -3,6 +3,7 @@ import json
 import uuid
 from datetime import datetime
 import requests
+from decimal import Decimal
 # from .exchange_rates import ExchangeRates
 
 
@@ -24,7 +25,8 @@ def lambda_handler(event, context):
 
     data = {
         "currency": "btc",
-        "sudo": str((float(btcUsd) * .01))
+        "sudo": Decimal(btcUsd) * Decimal('.01'),
+        "precision": 8
     }
 
     ratesResponse = profileTable.put_item(
