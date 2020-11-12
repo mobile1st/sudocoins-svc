@@ -130,6 +130,7 @@ def loadHistory(userId, rate, precision, currency):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(ledgerTableName)
     try:
+        print("here?")
         ledgerHistory = ledgerTable.query(
             KeyConditionExpression=Key("userId").eq(userId),
             ScanIndexForward=False,
@@ -138,9 +139,13 @@ def loadHistory(userId, rate, precision, currency):
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
         history = ledgerHistory["Items"]
         for i in history:
-            if 'amount' in i:
-                i['amount'] = ((Decimal(i['amount'])) * rate).quantize(
-                    Decimal('10') ** ((-1) * int(precision)))
+            print(i)
+            if 'amount' in i :
+                if i['amount'] == "":
+                    i['amount'] = Decimal(0)
+                else:
+                    i['amount'] = ((Decimal(i['amount'])) * rate).quantize(
+                        Decimal('10') ** ((-1) * int(precision)))
 
 
     except ClientError as e:

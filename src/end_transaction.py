@@ -118,8 +118,8 @@ def getRevData(transactionId, data):
 
     except Exception as e:
         print(e)
-        payment = ""
-        revenue = ""
+        payment = Decimal(0)
+        revenue = Decimal(0)
         userStatus = ""
         print("revShare loaded from memory because of error")
 
