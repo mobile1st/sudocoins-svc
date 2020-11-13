@@ -20,6 +20,12 @@ class ExchangeRates:
             "sudo": str(rate)
         })
 
+    def getBalanceRates(self, currency):
+        exchange = self.dynamodb.Table("exchangeRates")
+        row = exchange.get_item(Key={'currency': currency})
+        return Decimal(row['Item']["sudo"]), row['Item']["precision"], Decimal(row['Item']["usdBtc"])
+
+
     @staticmethod
     def fetch_rate(currency):
         if currency.lower() == "btc":

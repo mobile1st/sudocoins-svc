@@ -4,6 +4,8 @@ import uuid
 from datetime import datetime
 import requests
 from decimal import Decimal
+
+
 # from .exchange_rates import ExchangeRates
 
 
@@ -19,18 +21,30 @@ def lambda_handler(event, context):
     Returns: rates saved
     """
     dynamodb = boto3.resource('dynamodb')
-    profileTable = dynamodb.Table("exchangeRates")
+    exchangeRatesTable = dynamodb.Table("exchangeRates")
 
     btcUsd = getBtc()
 
-    data = {
+    btcRates = {
         "currency": "btc",
         "sudo": Decimal(btcUsd) * Decimal('.01'),
+        "usdBtc": Decimal(btcUsd),
         "precision": 8
     }
 
-    ratesResponse = profileTable.put_item(
-        Item=data
+    usdRates = {
+        "currency": "usd",
+        "sudo": Decimal('.01'),
+        "usdBtc": Decimal(btcUsd),
+        "precision": 2
+    }
+
+    btcRatesResponse = exchangeRatesTable.put_item(
+        Item=btcRates
+    )
+
+    usdRatesResponse = exchangeRatesTable.put_item(
+        Item=usdRates
     )
 
     return {
