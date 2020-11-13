@@ -6,7 +6,6 @@ import uuid
 
 
 def lambda_handler(event, context):
-    print(event)
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table("Ledger")
     payoutTable = dynamodb.Table("Payouts")
