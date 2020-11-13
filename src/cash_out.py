@@ -3,6 +3,7 @@ from datetime import datetime
 import boto3
 from botocore.exceptions import ClientError
 import uuid
+from decimal import Decimal
 
 
 def lambda_handler(event, context):
@@ -17,23 +18,34 @@ def lambda_handler(event, context):
     lastUpdate = datetime.utcnow().isoformat()
     transactionId = str(uuid.uuid1())
 
+    if "rate" not in jsonInput:
+        rate = ".01"
+    else:
+        rate = jsonInput["rate"]
+
+    sudoAmount = convertAmount(jsonInput['amount'], rate, jsonInput['type'])
+
     payout = {
         "paymentId": transactionId,
         "userId": userId,
-        "amount": jsonInput["amount"],
+        "amount": sudoAmount,
         "lastUpdate": lastUpdate,
         "type": jsonInput["type"],
         "address": jsonInput["address"],
-        "Status": "Pending"
+        "Status": "Pending",
+        "usdBtcRate": rate,
+        "userInput": jsonInput["amount"]
     }
     # withdraw record added to ledger table
     withdraw = {
         "userId": userId,
-        "amount": jsonInput["amount"],
+        "amount": sudoAmount,
         "lastUpdate": lastUpdate,
         "type": "Cash Out",
         "status": "Pending",
-        "transactionId": transactionId
+        "transactionId": transactionId,
+        "usdBtcRate": rate,
+        "userInput": jsonInput["amount"]
     }
     payoutResponse = payoutTable.put_item(
         Item=payout
@@ -54,7 +66,6 @@ def loadProfile(sub):
     """
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
-    profileTable = dynamodb.Table('Profile')
 
     subResponse = subTable.get_item(Key={'sub': sub})
 
@@ -66,3 +77,15 @@ def loadProfile(sub):
     else:
 
         return None
+
+
+def convertAmount(amount, rate, type):
+    if type == "Bitcoin":
+        sudoAmount = (Decimal(amount) / (Decimal(rate) / Decimal(100))).quantize(1)
+        print(sudoAmount)
+        return sudoAmount
+
+    else:
+        sudoAmount = (Decimal(amount) * 100).quantize(1)
+        print(sudoAmount)
+        return sudoAmount
