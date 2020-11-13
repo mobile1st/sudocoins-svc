@@ -11,14 +11,16 @@ def lambda_handler(event, context):
     ledgerTable = dynamodb.Table("Ledger")
     payoutTable = dynamodb.Table("Payouts")
 
-    jsonInput = (event)
+    jsonInput = event
+    sub = jsonInput['sub']
+    userId = loadProfile(sub)
 
     lastUpdate = datetime.utcnow().isoformat()
     transactionId = str(uuid.uuid1())
 
     payout = {
         "paymentId": transactionId,
-        "userId": jsonInput["userId"],
+        "userId": userId,
         "amount": jsonInput["amount"],
         "lastUpdate": lastUpdate,
         "type": jsonInput["type"],
@@ -27,20 +29,41 @@ def lambda_handler(event, context):
     }
     # withdraw record added to ledger table
     withdraw = {
-        "userId": jsonInput["userId"],
+        "userId": userId,
         "amount": jsonInput["amount"],
         "lastUpdate": lastUpdate,
         "type": "Cash Out",
         "status": "Pending",
         "transactionId": transactionId
     }
-    payout_response = payoutTable.put_item(
+    payoutResponse = payoutTable.put_item(
         Item=payout
     )
-    ledger_response = ledgerTable.put_item(
+    ledgerResponse = ledgerTable.put_item(
         Item=withdraw
     )
     return {
         'statusCode': 200,
         'body': json.dumps('Cash out received')
     }
+
+
+def loadProfile(sub):
+    """Fetches user preferences for the Profile page.
+    Argument: userId. This may change to email or cognito sub id .
+    Returns: a dict mapping user attributes to their values.
+    """
+    dynamodb = boto3.resource('dynamodb')
+    subTable = dynamodb.Table('sub')
+    profileTable = dynamodb.Table('Profile')
+
+    subResponse = subTable.get_item(Key={'sub': sub})
+
+    if 'Item' in subResponse:
+        userId = subResponse['Item']['userId']
+
+        return userId
+
+    else:
+
+        return None
