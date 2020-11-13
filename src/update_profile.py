@@ -12,23 +12,53 @@ def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     profile_table = dynamodb.Table("Profile")
     jsonInput = event
+    sub = jsonInput["sub"]
+    userId = loadProfile(sub)
+
+    if userId is not None:
+        data = profile_table.update_item(
+            Key={
+                "userId": userId
+            },
+            UpdateExpression="set currency=:c, gravatarEmail=:ge",
+            ExpressionAttributeValues={
+                ":c": jsonInput["currency"],
+                ":ge": jsonInput["gravatarEmail"]
+
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        return {
+            'statusCode': 200,
+            'body': "success"
+        }
+
+    else:
+
+        return {
+            'statusCode': 200,
+            'body': "userId not found"
+        }
 
 
-    data = profile_table.update_item(
-        Key={
-            "userId": jsonInput["userId"]
-        },
-        UpdateExpression="set currency=:c, lang=:l, gravatarEmail=:ge",
-        ExpressionAttributeValues={
-            ":c": jsonInput["currency"],
-            ":l": jsonInput["language"],
-            ":ge":jsonInput["gravatarEmail"]
 
-        },
-        ReturnValues="UPDATED_NEW"
-    )
+def loadProfile(sub):
+    """Fetches user preferences for the Profile page.
+    Argument: userId. This may change to email or cognito sub id .
+    Returns: a dict mapping user attributes to their values.
+    """
+    dynamodb = boto3.resource('dynamodb')
+    subTable = dynamodb.Table('sub')
+    profileTable = dynamodb.Table('Profile')
 
-    return {
-        'statusCode': 200,
-        'body': "success"
-    }
+    subResponse = subTable.get_item(Key={'sub': sub})
+
+    if 'Item' in subResponse:
+        userId = subResponse['Item']['userId']
+
+        return userId
+
+    else:
+
+        return None

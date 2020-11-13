@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     ledgerTable = dynamodb.Table("Ledger")
     payoutTable = dynamodb.Table("Payouts")
 
-    jsonInput = json.loads(event)
+    jsonInput = (event)
 
     lastUpdate = datetime.utcnow().isoformat()
     transactionId = str(uuid.uuid1())
