@@ -183,8 +183,8 @@ def getSurveyObject(userId, rate, precision):
             buyer = {
                 "name": i["name"],
                 "iconLocation": i["iconLocation"],
-                "incentive": (Decimal(i["defaultCpi"]) * rate * Decimal(i['revShare'])).quantize(
-                    Decimal('10') ** ((-1) * int(precision))),
+                "incentive": str((Decimal(i["defaultCpi"]) * rate * Decimal(i['revShare'])).quantize(
+                    Decimal('10') ** ((-1) * int(precision)))),
                 "url": url + "buyerName=" + i["name"] + "&userId=" + userId
             }
             surveyTiles.append(buyer)

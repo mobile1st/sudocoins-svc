@@ -115,7 +115,7 @@ def getBalance(history, currency, precision):
     if balance <= 0:
         return Decimal(0)
     else:
-        return balance.quantize(Decimal(10) ** ((-1)*int(precision)))
+        return str(balance.quantize(Decimal(10) ** ((-1)*int(precision))))
 
 
 def loadHistory(userId, rate, precision, currency):
@@ -139,8 +139,9 @@ def loadHistory(userId, rate, precision, currency):
                 if i['amount'] == "":
                     i['amount'] = Decimal(0)
                 else:
-                    i['amount'] = ((Decimal(i['amount'])) * rate).quantize(
-                        Decimal('10') ** ((-1) * int(precision)))
+                    i['amount'] = str(((Decimal(i['amount'])) * rate).quantize(
+                        Decimal('10') ** ((-1) * int(precision))))
+                    print(i['amount'])
 
 
     except ClientError as e:
