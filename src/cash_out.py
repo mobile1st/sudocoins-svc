@@ -19,16 +19,16 @@ def lambda_handler(event, context):
     transactionId = str(uuid.uuid1())
 
     if "rate" not in jsonInput:
-        rate = ".01"
+        rate = "1"
     else:
         rate = jsonInput["rate"]
 
-    sudoAmount = convertAmount(jsonInput['amount'], rate, jsonInput['type'])
+    payoutAmount = convertAmount(jsonInput['amount'], rate, jsonInput['type'])
 
     payout = {
         "paymentId": transactionId,
         "userId": userId,
-        "amount": sudoAmount,
+        "amount": payoutAmount,
         "lastUpdate": lastUpdate,
         "type": jsonInput["type"],
         "address": jsonInput["address"],
@@ -39,7 +39,7 @@ def lambda_handler(event, context):
     # withdraw record added to ledger table
     withdraw = {
         "userId": userId,
-        "amount": sudoAmount,
+        "amount": payoutAmount,
         "lastUpdate": lastUpdate,
         "type": "Cash Out",
         "status": "Pending",
@@ -66,6 +66,7 @@ def loadProfile(sub):
     """
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
+    profileTable = dynamodb.Table('Profile')
 
     subResponse = subTable.get_item(Key={'sub': sub})
 
@@ -81,11 +82,13 @@ def loadProfile(sub):
 
 def convertAmount(amount, rate, type):
     if type == "Bitcoin":
-        sudoAmount = (Decimal(amount) / (Decimal(rate) / Decimal(100))).quantize(1)
-        print(sudoAmount)
-        return sudoAmount
+        payoutAmount = (Decimal(amount) * (Decimal(rate))).quantize(Decimal(10) ** (-8))
+        print(payoutAmount)
+
+        return str(payoutAmount)
 
     else:
-        sudoAmount = (Decimal(amount) * 100).quantize(1)
-        print(sudoAmount)
-        return sudoAmount
+        payoutAmount = str(Decimal(amount).quantize(Decimal(10) ** (-2)))
+        print(payoutAmount)
+
+        return str(payoutAmount)

@@ -38,8 +38,9 @@ def lambda_handler(event, context):
         try:
             if profileResp["currency"] == "":
                 rate = Decimal('.01')
-                precision = Decimal('1.00')
+                precision = 2
                 profileResp["currency"] = 'usd'
+                usdBtc = 1
                 print("rate loaded in memory")
             else:
                 rate, precision, usdBtc = exchange.getBalanceRates(profileResp["currency"])
@@ -47,8 +48,9 @@ def lambda_handler(event, context):
         except Exception as e:
             print(e)
             rate = Decimal('.01')
-            precision = Decimal('1.00')
+            precision = 2
             profileResp["currency"] = 'usd'
+            usdBtc = 1
 
         try:
             historyStatus, history = loadHistory(profileResp["userId"], rate, precision, profileResp["currency"])
@@ -58,20 +60,19 @@ def lambda_handler(event, context):
             history = {}
 
         try:
-            balance, btcBalance, usdBalance = getBalance(history, profileResp["currency"], precision, usdBtc)
+            balance = getBalance(history, precision)
             print("balance loaded")
+
         except Exception as e:
             print(e)
             balance = ""
-            usdBalance = ""
-            btcBalance = ""
+
 
         return {
             "history": history,
             "balance": balance,
-            "cashOutBalance": {
-                "usd": usdBalance,
-                "btc": btcBalance
+            "cashOut": {
+                "rate": usdBtc
             }
         }
 
@@ -103,7 +104,7 @@ def loadProfile(sub):
         return None
 
 
-def getBalance(history, currency, precision, usdBtc):
+def getBalance(history, precision):
     """Iterates through the user's history and computes the user's balance
     Arguments: list of ledger records, user's preferred currency
     Returns: the user's balance.
@@ -121,19 +122,11 @@ def getBalance(history, currency, precision, usdBtc):
 
     balance = debit - credit
     if balance <= 0:
-        balanace = Decimal(0)
+        balance = str(Decimal(0).quantize(Decimal(10) ** ((-1) * int(precision))))
     else:
-        balance = balance.quantize(Decimal(10) ** ((-1) * int(precision)))
+        balance = str(balance.quantize(Decimal(10) ** ((-1) * int(precision))))
 
-    if currency == "usd":
-        btcBalance = str((balance * usdBtc).quantize(Decimal(10) ** ((-1) * int(8))))
-        usdBalance = str(balance)
-
-    elif currency == "btc":
-        btcBalance = str(balance)
-        usdBalance = str((balance / usdBtc).quantize(Decimal(10) ** ((-1) * int(2))))
-
-    return str(balance), btcBalance, usdBalance
+    return balance
 
 
 def loadHistory(userId, rate, precision, currency):
@@ -169,3 +162,5 @@ def loadHistory(userId, rate, precision, currency):
 
     else:
         return 'success', history
+
+
