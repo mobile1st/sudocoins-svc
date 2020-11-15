@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
 from exchange_rates import ExchangeRates
+from datetime import datetime
 
 
 def lambda_handler(event, context):
@@ -114,12 +115,9 @@ def getBalance(history, precision):
 
             elif 'amount' in i.keys() and i['amount'] != "":
                 debit += Decimal(i["amount"])
-    print(debit)
-    print(credit)
 
     balance = debit - credit
-    print(balance)
-    print(type(balance))
+
     if balance <= 0:
         precision = 2
         balance = str(Decimal(0).quantize(Decimal(10) ** ((-1) * int(precision))))
@@ -152,6 +150,10 @@ def loadHistory(userId, rate, precision, currency):
                 else:
                     i['amount'] = str(((Decimal(i['amount'])) * rate).quantize(
                         Decimal('10') ** ((-1) * int(precision))))
+            if 'lastUpdate' in i:
+                utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
+                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                i['epochTime'] = epochTime
 
 
 
