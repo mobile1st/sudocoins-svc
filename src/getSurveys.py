@@ -141,7 +141,7 @@ def loadProfile(sub, email):
         "email": email,
         "signupDate": created,
         "userId": userId,
-        "currency": "",
+        "currency": "usd",
         "gravatarEmail": email
     }
 

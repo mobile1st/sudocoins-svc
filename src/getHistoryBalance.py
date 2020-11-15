@@ -17,14 +17,12 @@ def lambda_handler(event, context):
         profileResp = loadProfile(sub)
         print("load profile function complete")
 
-
-
     except Exception as e:
         print(e)
         return {
             "history": {},
             "balance": "",
-            "cashOutBalance": {}
+            "rate": ""
         }
 
     if profileResp is None:
@@ -32,7 +30,7 @@ def lambda_handler(event, context):
         return {
             "history": {},
             "balance": "",
-            "cashOutBalance": {}
+            "rate": ""
         }
     else:
         try:
@@ -67,13 +65,10 @@ def lambda_handler(event, context):
             print(e)
             balance = ""
 
-
         return {
             "history": history,
             "balance": balance,
-            "cashOut": {
-                "rate": usdBtc
-            }
+            "rate": usdBtc
         }
 
 
@@ -119,9 +114,14 @@ def getBalance(history, precision):
 
             elif 'amount' in i.keys() and i['amount'] != "":
                 debit += Decimal(i["amount"])
+    print(debit)
+    print(credit)
 
     balance = debit - credit
+    print(balance)
+    print(type(balance))
     if balance <= 0:
+        precision = 2
         balance = str(Decimal(0).quantize(Decimal(10) ** ((-1) * int(precision))))
     else:
         balance = str(balance.quantize(Decimal(10) ** ((-1) * int(precision))))
