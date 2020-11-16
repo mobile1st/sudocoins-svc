@@ -9,7 +9,7 @@ from buyerRedirect import BuyerRedirect
 
 def getSurveyObject(buyerName):
     """Fetches information about a particular survey to generate entry url
-    Arguments: buyer name
+    Argument: buyer name
     Returns: config for buyer to build survey entry url
     """
     dynamodb = boto3.resource('dynamodb')

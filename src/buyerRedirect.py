@@ -1,6 +1,6 @@
 import hashlib
 
-
+# generating urls
 class BuyerRedirect:
 
     def __init__(self, dynamodb):
