@@ -4,6 +4,7 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 import json
+from buyerRedirect import BuyerRedirect
 
 
 def getSurveyObject(buyerName):
@@ -94,14 +95,16 @@ def generateEntryUrl(params, transactionId, ip):
     """Generates entry url that redirects user to the buyer's platform
     Arguments: event params including userId and buyerName, transactionId generated, ip
     Returns: redirect url"""
+    dynamodb = boto3.resource('dynamodb')
     userId = params["userId"]
     buyerName = params["buyerName"]
     survey = getSurveyObject(buyerName)
     if survey is None:
         return None
 
-    entryUrl = "{0}?si={1}&ssi={2}&unique_user_id={3}&ip={4}".format(survey['url'], survey['appId'], transactionId,
-                                                                     userId, ip)
+    else:
+        redirect = BuyerRedirect(dynamodb)
+        entryUrl = redirect.getRedirect(userId, buyerName, survey)
 
     return entryUrl
 
