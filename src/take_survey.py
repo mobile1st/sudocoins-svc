@@ -1,4 +1,4 @@
-import uuid
+=import uuid
 from datetime import datetime
 import os
 import boto3
@@ -104,7 +104,7 @@ def generateEntryUrl(params, transactionId, ip):
 
     else:
         redirect = BuyerRedirect(dynamodb)
-        entryUrl = redirect.getRedirect(userId, buyerName, survey)
+        entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId)
 
     return entryUrl
 

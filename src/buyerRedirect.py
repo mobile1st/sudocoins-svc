@@ -1,6 +1,6 @@
 import hashlib
 
-# generating urls
+
 class BuyerRedirect:
 
     def __init__(self, dynamodb):
@@ -13,11 +13,9 @@ class BuyerRedirect:
 
             return entryUrl
 
-        elif buyerName in ['peanutLabs']:
-
+        elif buyerName in ["peanutLabs"]:
             checkSum = hashlib.md5((userId + survey['appId'] + survey['secretkey']).encode('utf-8'))
             peanutId = userId + "-" + survey['appId'] + "-" + checkSum.hexdigest()[:10]
-
             entryUrl = f"{survey['url']}?pub_id={survey['appId']}&sub_id={transactionId}&user_id={peanutId}"
 
             return entryUrl
