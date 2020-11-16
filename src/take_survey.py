@@ -1,4 +1,4 @@
-=import uuid
+import uuid
 from datetime import datetime
 import os
 import boto3
