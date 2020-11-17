@@ -30,7 +30,7 @@ class RevenueData:
 
             payment = revenue * revShare
 
-            return revenue, payment, userStatus
+            return revenue, payment, userStatus, revShare
 
         elif buyerName in ['peanutLabs']:
             surveyCode = data["queryStringParameters"]["c"]

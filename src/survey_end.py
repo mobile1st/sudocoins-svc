@@ -19,10 +19,14 @@ def lambda_handler(event, context):
         try:
             messageResponse = pushMsg(msgValue)
             print(messageResponse)
-
+            if msgValue['hashState'] == False:
+                msgValue["message"] = "There was an issue with your transaction. Please contact support."
+            else:
+                msgValue["message"] = "Welcome back! Your balance and history will be updated soon."
         except Exception as e:
             print(e)
-            msgValue["status"] = "Invalid transactionId"
+            msgValue['status'] = 'Invalid'
+            msgValue["message"] = "There was an issue with your transaction. Please contact support."
 
         try:
             token = encryptMsg(msgValue)
@@ -34,13 +38,12 @@ def lambda_handler(event, context):
     except Exception as e:
         response = {
             "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com'},
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=error'},
             "body": json.dumps({})
         }
 
     response = createRedirect(redirectUrl, token)
-    print(msgValue["hashState"])
-    print(msgValue["queryStringParameters"]['c'])
+
     return response
 
 
