@@ -10,6 +10,7 @@ from buyerRedirect import BuyerRedirect
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
     ip = event['requestContext']['identity']['sourceIp']
+
     try:
         data = takeSurvey(params, ip)
         if data is None:
@@ -17,7 +18,9 @@ def lambda_handler(event, context):
                 'statusCode': 400,
                 'body': json.dumps({"data": data})
             }
+        print("transaction record created")
     except Exception as e:
+        print("transaction record not created")
         print(e)
         pass
 
@@ -28,7 +31,7 @@ def lambda_handler(event, context):
                 'statusCode': 400,
                 'body': json.dumps({"entry urL": "error generating entry url"})
             }
-
+        print("entryUrl generated")
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
 
@@ -37,6 +40,7 @@ def lambda_handler(event, context):
     except Exception as e:
         print(e)
         """redirect user back to profile page with error message"""
+        response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps(body)}
         return e
 
 
@@ -44,12 +48,12 @@ def takeSurvey(params, ip):
     """Generates a transaction and ledger record for the user
     Arguments: event parameters including userId, buyerName, and ip
     Returns: validation that records were successfully created"""
+
     userId = params["userId"]
     buyerName = params["buyerName"]
     transactionId = uuid.uuid1()
     started = datetime.utcnow().isoformat()
-    #  surveyData = []
-    # create start transaction
+
     try:
         transactionData = {
             'transactionId': str(transactionId),
@@ -65,32 +69,12 @@ def takeSurvey(params, ip):
         transactionResponse = transactionTable.put_item(
             Item=transactionData
         )
-        #  surveyData.append(transactionData)
 
     except Exception as e:
         print(f'Create Transaction start record Failed: {e}')
-    '''
-    try:
-        ledgerData = {
-            "userId": userId,
-            'transactionId': str(transactionId),
-            'type': "Survey",
-            'status': "Started",
-            'lastUpdate': str(started),
-            'ip': ip,
-            'createdAt': str(started)
-        }
-        dynamodb = boto3.resource('dynamodb')
-        ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
-        ledgerResponse = ledgerTable.put_item(
-            Item=ledgerData
-        )
-        surveyData.append(ledgerData)
+        transactionData = None
 
-    except Exception as e:
-        print(f'Create Ledger record Failed: {e}')
-    '''
-    return transactionResponse
+    return transactionData
 
 
 def getSurveyObject(buyerName):
@@ -125,16 +109,15 @@ def getSurveyObject(buyerName):
     return None
 
 
-
-
-
 def generateEntryUrl(params, transactionId, ip):
     """Generates entry url that redirects user to the buyer's platform
     Arguments: event params including userId and buyerName, transactionId generated, ip
     Returns: redirect url"""
+
     dynamodb = boto3.resource('dynamodb')
     userId = params["userId"]
     buyerName = params["buyerName"]
+
     survey = getSurveyObject(buyerName)
     if survey is None:
         return None
