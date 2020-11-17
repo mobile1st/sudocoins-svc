@@ -11,6 +11,7 @@ from decimal import Decimal
 def lambda_handler(event, context):
     for record in event['Records']:
         payload = record['body']
+        print(payload)
         update(payload)
         print("record updated")
 
@@ -22,7 +23,7 @@ def lambda_handler(event, context):
 
 def update(payload):
     data = json.loads(payload)
-
+    # . data = payload
     #  cint or PL -- need to add more structure
     if 't' in data["queryStringParameters"]:
         transactionId = data["queryStringParameters"]['t']
@@ -41,7 +42,7 @@ def update(payload):
         revenue = Decimal(0)
 
     try:
-        updateTransaction(transactionId, payment, data, updated, revenue, revShare)
+        updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus)
         print("Transaction updated")
 
     except ClientError as e:
@@ -73,15 +74,14 @@ def updateLedger(transactionId, payment, userId, updated, userStatus):
             'status': userStatus,
             'lastUpdate': updated,
             'type': 'Survey'
-        },
-        ReturnValues="ALL_NEW"
+        }
     )
     print(updatedRecord)
 
     return updatedRecord
 
 
-def updateTransaction(transactionId, payment, data, updated, revenue, revShare):
+def updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
 
@@ -89,17 +89,18 @@ def updateTransaction(transactionId, payment, data, updated, revenue, revShare):
         Key={
             'transactionId': transactionId
         },
-        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev, revShare=:rs",
+        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev, revShare=:rs, surveyCode=:sc",
         ExpressionAttributeNames={
             "#status1": "status"
         },
         ExpressionAttributeValues={
             ":pay": payment,
-            ":s": data["queryStringParameters"]["c"],
+            ":s": userStatus,
             ":c": updated,
             ":r": data,
             ":rev": revenue,
-            ":rs": revShare
+            ":rs": revShare,
+            ":sc": data["queryStringParameters"]["c"]
         },
         ReturnValues="UPDATED_NEW"
     )
@@ -109,6 +110,7 @@ def updateTransaction(transactionId, payment, data, updated, revenue, revShare):
 def getRevData(transactionId, data):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
+
     transaction = transactionTable.get_item(Key={'transactionId': transactionId})
 
     buyerName = transaction['Item']['buyer']

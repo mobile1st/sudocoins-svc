@@ -53,14 +53,14 @@ def lambda_handler(event, context):
 
         try:
             ledgerStatus, ledger = loadLedger(profileResp["userId"], rate, precision)
-            print("history loaded")
+            print("ledger loaded")
         except Exception as e:
             print(e)
             ledger = {}
 
         try:
             transactionStatus, transactions = loadTransaction(profileResp["userId"])
-            print("history loaded")
+            print("transactions loaded")
         except Exception as e:
             print(e)
             transactions = {}
@@ -191,16 +191,15 @@ def loadTransaction(userId):
             KeyConditionExpression=Key("userId").eq(userId),
             ScanIndexForward=False,
             IndexName='userId-started-index',
-            FilterExpression=Attr("status").eq('Started'),
+            FilterExpression=Attr("payout").eq(0),
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
             ProjectionExpression="transactionId, started, #t, #s")
 
         transactions = transactionHistory["Items"]
 
         for i in transactions:
-
             if 'started' in i:
-                utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
+                utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                 i['epochTime'] = epochTime
 
