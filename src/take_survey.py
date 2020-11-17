@@ -7,6 +7,92 @@ import json
 from buyerRedirect import BuyerRedirect
 
 
+def lambda_handler(event, context):
+    params = event["queryStringParameters"]
+    ip = event['requestContext']['identity']['sourceIp']
+    try:
+        data = takeSurvey(params, ip)
+        if data is None:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"data": data})
+            }
+    except Exception as e:
+        print(e)
+        pass
+
+    try:
+        entryUrl = generateEntryUrl(params, data["transactionId"], ip)
+        if entryUrl is None:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"entry urL": "error generating entry url"})
+            }
+
+        body = {}
+        response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
+
+        return response
+
+    except Exception as e:
+        print(e)
+        """redirect user back to profile page with error message"""
+        return e
+
+
+def takeSurvey(params, ip):
+    """Generates a transaction and ledger record for the user
+    Arguments: event parameters including userId, buyerName, and ip
+    Returns: validation that records were successfully created"""
+    userId = params["userId"]
+    buyerName = params["buyerName"]
+    transactionId = uuid.uuid1()
+    started = datetime.utcnow().isoformat()
+    #  surveyData = []
+    # create start transaction
+    try:
+        transactionData = {
+            'transactionId': str(transactionId),
+            "userId": userId,
+            'status': "Started",
+            'type': 'Survey',
+            'ip': ip,
+            'started': str(started),
+            'buyer': buyerName
+        }
+        dynamodb = boto3.resource('dynamodb')
+        transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
+        transactionResponse = transactionTable.put_item(
+            Item=transactionData
+        )
+        #  surveyData.append(transactionData)
+
+    except Exception as e:
+        print(f'Create Transaction start record Failed: {e}')
+    '''
+    try:
+        ledgerData = {
+            "userId": userId,
+            'transactionId': str(transactionId),
+            'type': "Survey",
+            'status': "Started",
+            'lastUpdate': str(started),
+            'ip': ip,
+            'createdAt': str(started)
+        }
+        dynamodb = boto3.resource('dynamodb')
+        ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
+        ledgerResponse = ledgerTable.put_item(
+            Item=ledgerData
+        )
+        surveyData.append(ledgerData)
+
+    except Exception as e:
+        print(f'Create Ledger record Failed: {e}')
+    '''
+    return transactionResponse
+
+
 def getSurveyObject(buyerName):
     """Fetches information about a particular survey to generate entry url
     Argument: buyer name
@@ -39,56 +125,7 @@ def getSurveyObject(buyerName):
     return None
 
 
-def takeSurvey(params, ip):
-    """Generates a transaction and ledger record for the user
-    Arguments: event parameters including userId, buyerName, and ip
-    Returns: validation that records were successfully created"""
-    userId = params["userId"]
-    buyerName = params["buyerName"]
-    transactionId = uuid.uuid1()
-    started = datetime.utcnow().isoformat()
-    surveyData = []
-    # create start transaction
-    try:
-        transactionData = {
-            'transactionId': str(transactionId),
-            "userId": userId,
-            'status': "started",
-            'ip': ip,
-            'started': str(started),
-            'buyer': buyerName
-        }
-        dynamodb = boto3.resource('dynamodb')
-        transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
-        transactionResponse = transactionTable.put_item(
-            Item=transactionData
-        )
-        surveyData.append(transactionData)
 
-    except Exception as e:
-        print(f'Create Transaction start record Failed: {e}')
-
-    try:
-        ledgerData = {
-            "userId": userId,
-            'transactionId': str(transactionId),
-            'type': "Survey",
-            'status': "Started",
-            'lastUpdate': str(started),
-            'ip': ip,
-            'createdAt': str(started)
-        }
-        dynamodb = boto3.resource('dynamodb')
-        ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
-        ledgerResponse = ledgerTable.put_item(
-            Item=ledgerData
-        )
-        surveyData.append(ledgerData)
-
-    except Exception as e:
-        print(f'Create Ledger record Failed: {e}')
-
-    return surveyData
 
 
 def generateEntryUrl(params, transactionId, ip):
@@ -109,36 +146,5 @@ def generateEntryUrl(params, transactionId, ip):
     return entryUrl
 
 
-def lambda_handler(event, context):
-    params = event["queryStringParameters"]
-    ip = event['requestContext']['identity']['sourceIp']
-    try:
-        data = takeSurvey(params, ip)
-        if len(data) == 0:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"data": data})
-            }
-    except Exception as e:
-        print(e)
-        pass
-
-    try:
-        entryUrl = generateEntryUrl(params, data[0]["transactionId"], ip)
-        if entryUrl is None:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"entry urL": "error generating entry url"})
-            }
-
-        body = {}
-        response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
-
-        return response
-
-    except Exception as e:
-        print(e)
-        """redirect user back to profile page with error message"""
-        return e
 
 

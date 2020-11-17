@@ -1,7 +1,4 @@
 import boto3
-from botocore.exceptions import ClientError
-import uuid
-import json
 
 
 def lambda_handler(event, context):
@@ -26,12 +23,13 @@ def lambda_handler(event, context):
                 ":ge": jsonInput["gravatarEmail"]
 
             },
-            ReturnValues="UPDATED_NEW"
+            ReturnValues="ALL_NEW"
         )
+        data['Attributes']['sub'] = sub
 
         return {
             'statusCode': 200,
-            'body': "success"
+            'body': data['Attributes']
         }
 
     else:
@@ -40,7 +38,6 @@ def lambda_handler(event, context):
             'statusCode': 200,
             'body': "userId not found"
         }
-
 
 
 def loadProfile(sub):

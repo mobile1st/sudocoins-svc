@@ -22,11 +22,17 @@ def lambda_handler(event, context):
 
 def update(payload):
     data = json.loads(payload)
-    transactionId = data["queryStringParameters"]['t']
+
+    #  cint or PL -- need to add more structure
+    if 't' in data["queryStringParameters"]:
+        transactionId = data["queryStringParameters"]['t']
+    elif 'sub_id' in data["queryStringParameters"]:
+        transactionId = data["queryStringParameters"]['sub_id']
+
     updated = str(datetime.utcnow().isoformat())
 
     try:
-        payment, userId, revenue, userStatus = getRevData(transactionId, data)
+        payment, userId, revenue, userStatus, revShare = getRevData(transactionId, data)
         print("revData loaded")
 
     except ClientError as e:
@@ -35,7 +41,7 @@ def update(payload):
         revenue = Decimal(0)
 
     try:
-        updateTransaction(transactionId, payment, data, updated, revenue)
+        updateTransaction(transactionId, payment, data, updated, revenue, revShare)
         print("Transaction updated")
 
     except ClientError as e:
@@ -43,8 +49,9 @@ def update(payload):
         print("error updating Transaction table")
 
     try:
-        updateLedger(transactionId, payment, userId, updated, userStatus)
-        print("Ledger updated")
+        if payment > 0:
+            updateLedger(transactionId, payment, userId, updated, userStatus)
+            print("Ledger updated")
 
     except ClientError as e:
         print(e)
@@ -57,27 +64,24 @@ def updateLedger(transactionId, payment, userId, updated, userStatus):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(os.environ["LEDGER_TABLE"])
 
-    updatedRecord = ledgerTable.update_item(
-        Key={
+    updatedRecord = ledgerTable.put_item(
+
+        Item={
             'userId': userId,
-            'transactionId': transactionId
+            'transactionId': transactionId,
+            'amount': payment,
+            'status': userStatus,
+            'lastUpdate': updated,
+            'type': 'Survey'
         },
-        UpdateExpression="set amount=:pay, #status1=:s, lastUpdate=:c",
-        ExpressionAttributeValues={
-            ":pay": payment,
-            ":s": userStatus,
-            ":c": updated
-        },
-        ExpressionAttributeNames={
-            "#status1": "status"
-        },
-        ReturnValues="UPDATED_NEW"
+        ReturnValues="ALL_NEW"
     )
+    print(updatedRecord)
 
     return updatedRecord
 
 
-def updateTransaction(transactionId, payment, data, updated, revenue):
+def updateTransaction(transactionId, payment, data, updated, revenue, revShare):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
 
@@ -85,7 +89,7 @@ def updateTransaction(transactionId, payment, data, updated, revenue):
         Key={
             'transactionId': transactionId
         },
-        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev",
+        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev, revShare=:rs",
         ExpressionAttributeNames={
             "#status1": "status"
         },
@@ -94,7 +98,8 @@ def updateTransaction(transactionId, payment, data, updated, revenue):
             ":s": data["queryStringParameters"]["c"],
             ":c": updated,
             ":r": data,
-            ":rev": revenue
+            ":rev": revenue,
+            ":rs": revShare
         },
         ReturnValues="UPDATED_NEW"
     )
@@ -111,19 +116,20 @@ def getRevData(transactionId, data):
 
     try:
         revData = RevenueData(dynamodb)
-        revenue, payment, userStatus = revData.get_revShare(data, buyerName)
+        revenue, payment, userStatus, revShare = revData.get_revShare(data, buyerName)
         print("revShare data from class loaded")
 
-        return payment, userId, revenue, userStatus
+        return payment, userId, revenue, userStatus, revShare
 
     except Exception as e:
         print(e)
         payment = Decimal(0)
         revenue = Decimal(0)
         userStatus = ""
+        revShare = Decimal(0)
         print("revShare loaded from memory because of error")
 
-        return payment, userId, revenue, userStatus
+        return payment, userId, revenue, userStatus, revShare
 
 
 

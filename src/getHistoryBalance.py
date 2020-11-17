@@ -1,10 +1,10 @@
 import os
 import boto3
 from botocore.exceptions import ClientError
-from boto3.dynamodb.conditions import Key
 from decimal import Decimal
 from exchange_rates import ExchangeRates
 from datetime import datetime
+from boto3.dynamodb.conditions import Key, Attr
 
 
 def lambda_handler(event, context):
@@ -52,7 +52,21 @@ def lambda_handler(event, context):
             usdBtc = 1
 
         try:
-            historyStatus, history = loadHistory(profileResp["userId"], rate, precision, profileResp["currency"])
+            ledgerStatus, ledger = loadLedger(profileResp["userId"], rate, precision)
+            print("history loaded")
+        except Exception as e:
+            print(e)
+            ledger = {}
+
+        try:
+            transactionStatus, transactions = loadTransaction(profileResp["userId"])
+            print("history loaded")
+        except Exception as e:
+            print(e)
+            transactions = {}
+
+        try:
+            history = mergeHistory(ledger, transactions)
             print("history loaded")
         except Exception as e:
             print(e)
@@ -127,7 +141,7 @@ def getBalance(history, precision):
     return balance
 
 
-def loadHistory(userId, rate, precision, currency):
+def loadLedger(userId, rate, precision):
     """Fetches the user history from the Ledger table.
     Arguments: userId.
     Returns: a list of of objects, each representing a user's transaction.
@@ -142,8 +156,8 @@ def loadHistory(userId, rate, precision, currency):
             IndexName='sortedHistory',
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
             ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
-        history = ledgerHistory["Items"]
-        for i in history:
+        ledger = ledgerHistory["Items"]
+        for i in ledger:
             if 'amount' in i:
                 if i['amount'] == "":
                     i['amount'] = Decimal(0)
@@ -155,14 +169,51 @@ def loadHistory(userId, rate, precision, currency):
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                 i['epochTime'] = epochTime
 
-
-
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
 
         return 'error', {}
 
     else:
-        return 'success', history
+        return 'success', ledger
 
 
+def loadTransaction(userId):
+    """Fetches the user history from the Ledger table.
+    Arguments: userId.
+    Returns: a list of of objects, each representing a user's transaction.
+    """
+    dynamodb = boto3.resource('dynamodb')
+    transactionTable = dynamodb.Table('Transaction')
+
+    try:
+        transactionHistory = transactionTable.query(
+            KeyConditionExpression=Key("userId").eq(userId),
+            ScanIndexForward=False,
+            IndexName='userId-started-index',
+            FilterExpression=Attr("status").eq('Started'),
+            ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
+            ProjectionExpression="transactionId, started, #t, #s")
+
+        transactions = transactionHistory["Items"]
+
+        for i in transactions:
+
+            if 'started' in i:
+                utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
+                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                i['epochTime'] = epochTime
+
+    except ClientError as e:
+        print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
+        return 'error', {}
+
+    else:
+        return 'success', transactions
+
+
+def mergeHistory(ledger, transactions):
+    history = ledger + transactions
+    history = sorted(history, key=lambda k: k['epochTime'], reverse=True)
+
+    return history
