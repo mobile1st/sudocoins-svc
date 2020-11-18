@@ -10,11 +10,16 @@ class History:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
-
     def getHistory(self, userId, rate, precision):
+        print("a")
         ledger = loadLedger(userId, rate, precision)
+        print("b")
+        print(ledger)
         transactions = loadTransactions(userId)
+        print("c")
+        print(transactions)
         history = mergeHistory(ledger, transactions)
+        print("d")
         return history
 
 
@@ -48,7 +53,7 @@ def loadTransactions(userId):
         return 'error', {}
 
     else:
-        return 'success', transactions
+        return transactions
 
 
 def loadLedger(userId, rate, precision):
@@ -61,7 +66,7 @@ def loadLedger(userId, rate, precision):
             ScanIndexForward=False,
             IndexName='sortedHistory',
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
-            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
+            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount, payoutType, usdBtcRate, userInput")
         ledger = ledgerHistory["Items"]
 
         for i in ledger:
@@ -76,17 +81,24 @@ def loadLedger(userId, rate, precision):
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                 i['epochTime'] = epochTime
 
+            if 'payoutType' in i:
+                if i['payoutType'] == 'Bitcoin':
+                    bitcoin = str(
+                        (Decimal(i['usdBtcRate']) * Decimal(i['userInput'])).quantize(Decimal('10') ** ((-1) * int(8))))
+                    i['btcAmount'] = bitcoin
+
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", self, e.response['Error']['Message'])
 
         return 'error', {}
 
     else:
-        return 'success', ledger
+        return ledger
 
 
 def mergeHistory(ledger, transactions):
     history = ledger + transactions
+    print(history)
     history = sorted(history, key=lambda k: k['epochTime'], reverse=True)
 
     return history

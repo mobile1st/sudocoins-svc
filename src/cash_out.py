@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 import uuid
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
+from history import History
 
 
 def lambda_handler(event, context):
@@ -59,7 +60,8 @@ def lambda_handler(event, context):
     print("cash out submitted")
 
     try:
-        historyStatus, history = loadHistory(userId)
+        loadHistory = History(dynamodb)
+        history = loadHistory.getHistory(userId, Decimal('.01'), 2)
         print("history loaded")
 
     except Exception as e:
@@ -133,47 +135,5 @@ def getBalance(history):
         balance = str(balance.quantize(Decimal(10) ** ((-1) * int(precision))))
 
     return balance
-
-
-def loadHistory(userId):
-    """Fetches the user history from the Ledger table.
-    Arguments: userId.
-    Returns: a list of of objects, each representing a user's transaction.
-    """
-    dynamodb = boto3.resource('dynamodb')
-    ledgerTable = dynamodb.Table('Ledger')
-
-    rate = Decimal('.01')
-    precision = 2
-
-    try:
-        ledgerHistory = ledgerTable.query(
-            KeyConditionExpression=Key("userId").eq(userId),
-            ScanIndexForward=False,
-            IndexName='sortedHistory',
-            ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
-            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount")
-        history = ledgerHistory["Items"]
-        for i in history:
-            if 'amount' in i:
-                if i['amount'] == "":
-                    i['amount'] = Decimal(0)
-                else:
-                    i['amount'] = str(((Decimal(i['amount'])) * rate).quantize(
-                        Decimal('10') ** ((-1) * int(precision))))
-            if 'lastUpdate' in i:
-                utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
-                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                i['epochTime'] = epochTime
-
-
-
-    except ClientError as e:
-        print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
-
-        return 'error', {}
-
-    else:
-        return 'success', history
 
 
