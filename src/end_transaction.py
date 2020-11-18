@@ -33,7 +33,7 @@ def update(payload):
     updated = str(datetime.utcnow().isoformat())
 
     try:
-        payment, userId, revenue, userStatus, revShare = getRevData(transactionId, data)
+        payment, userId, revenue, userStatus, revShare, cut = getRevData(transactionId, data)
         print("revData loaded")
 
     except ClientError as e:
@@ -42,7 +42,7 @@ def update(payload):
         revenue = Decimal(0)
 
     try:
-        updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus)
+        updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus, cut)
         print("Transaction updated")
 
     except ClientError as e:
@@ -81,7 +81,7 @@ def updateLedger(transactionId, payment, userId, updated, userStatus):
     return updatedRecord
 
 
-def updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus):
+def updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus, cut):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
 
@@ -98,7 +98,7 @@ def updateTransaction(transactionId, payment, data, updated, revenue, revShare, 
             ":s": userStatus,
             ":c": updated,
             ":r": data,
-            ":rev": revenue,
+            ":rev": revenue*cut,
             ":rs": revShare,
             ":sc": data["queryStringParameters"]["c"]
         },
@@ -118,10 +118,10 @@ def getRevData(transactionId, data):
 
     try:
         revData = RevenueData(dynamodb)
-        revenue, payment, userStatus, revShare = revData.get_revShare(data, buyerName)
+        revenue, payment, userStatus, revShare, cut = revData.get_revShare(data, buyerName)
         print("revShare data from class loaded")
 
-        return payment, userId, revenue, userStatus, revShare
+        return payment, userId, revenue, userStatus, revShare, cut
 
     except Exception as e:
         print(e)
@@ -129,9 +129,10 @@ def getRevData(transactionId, data):
         revenue = Decimal(0)
         userStatus = ""
         revShare = Decimal(0)
+        cut = Decimal(0)
         print("revShare loaded from memory because of error")
 
-        return payment, userId, revenue, userStatus, revShare
+        return payment, userId, revenue, userStatus, revShare, cut
 
 
 

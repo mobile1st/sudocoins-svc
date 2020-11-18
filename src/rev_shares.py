@@ -24,13 +24,16 @@ class RevenueData:
             if data["queryStringParameters"]["c"] in surveyStatus:
                 userStatus = surveyStatus[surveyCode]["userStatus"]
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
+                if 'cut' in surveyStatus[surveyCode]:
+                    cut = Decimal(surveyStatus[surveyCode]['cut'])
             else:
                 userStatus = data["queryStringParameters"]["c"]
                 revShare = Decimal(0)
+                cut = Decimal(0)
 
             payment = revenue * revShare
 
-            return revenue, payment, userStatus, revShare
+            return revenue, payment, userStatus, revShare, cut
 
         elif buyerName in ['peanutLabs']:
             surveyCode = data["queryStringParameters"]["c"]
@@ -41,10 +44,13 @@ class RevenueData:
             if data["queryStringParameters"]["c"] in surveyStatus:
                 userStatus = surveyStatus[surveyCode]["userStatus"]
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
+                if 'cut' in surveyStatus[surveyCode]:
+                    cut = Decimal(surveyStatus[surveyCode]['cut'])
             else:
                 userStatus = data["queryStringParameters"]["c"]
                 revShare = Decimal(0)
+                cut = Decimal(0)
 
             payment = revenue * revShare
 
-            return revenue, payment, userStatus, revShare
+            return revenue, payment, userStatus, revShare, cut
