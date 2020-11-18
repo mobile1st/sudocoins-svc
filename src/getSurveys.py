@@ -20,6 +20,8 @@ def lambda_handler(event, context):
     sub = event['sub']
 
     dynamodb = boto3.resource('dynamodb')
+    #  dax = AmazonDaxClient.resource(
+    #         endpoint_url='')
     exchange = ExchangeRates(dynamodb)
 
     if 'email' in event:
@@ -86,6 +88,10 @@ def loadProfile(sub, email):
     Returns: a dict mapping user attributes to their values.
     """
     dynamodb = boto3.resource('dynamodb')
+    '''
+    AmazonDaxClient.resource(
+        endpoint_url='dax.abcdef.us-east-1.amazon.com')
+    '''
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
 

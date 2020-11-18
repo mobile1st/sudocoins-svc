@@ -103,16 +103,6 @@ def loadProfile(sub):
 
 
 def convertAmount(amount, rate, type):
-    '''
-    if type == "Bitcoin":
-        payoutAmount = (Decimal(amount) * (Decimal(rate)) * Decimal(100)).quantize(Decimal(10) ** (-8))
-        print(payoutAmount)
-
-        return str(payoutAmount)
-
-    else:
-        payoutAmount = str((Decimal(amount)*Decimal('100')))
-    '''
     payoutAmount = str((Decimal(amount) * Decimal('100')))
     return str(payoutAmount)
 
