@@ -6,7 +6,6 @@ import base64
 
 
 def lambda_handler(event, context):
-
     try:
         redirectUrl, hostUrl, expectedParams = getUrls()
         msgValue = {
@@ -20,25 +19,26 @@ def lambda_handler(event, context):
             messageResponse = pushMsg(msgValue)
             print(messageResponse)
             if msgValue['hashState'] == False:
-                msgValue["message"] = "There was an issue with your transaction. Please contact support."
+                msgValue["message"] = "invalid"
             else:
-                msgValue["message"] = "Welcome back! Your balance and history will be updated soon."
+                msgValue["message"] = "valid"
         except Exception as e:
             print(e)
             msgValue['status'] = 'Invalid'
-            msgValue["message"] = "There was an issue with your transaction. Please contact support."
+            msgValue["message"] = "invalid"
 
         try:
-            token = encryptMsg(msgValue)
+            # . token = encryptMsg(msgValue)
+            token = msgValue["message"]
 
         except Exception as e:
             print(e)
-            token = ""
+            token = 'invalid'
 
     except Exception as e:
         response = {
             "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=error'},
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
             "body": json.dumps({})
         }
 
