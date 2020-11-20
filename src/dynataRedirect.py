@@ -9,17 +9,24 @@ def lambda_handler(event, context):
     try:
         redirectUrl, expectedParams = getUrls()
 
-        if 'referer' in event["headers"]:
+        if event["headers"] is None:
+            referer = ""
+        elif 'referer' in event['headers']:
             referer = event["headers"]["referer"]
         else:
             referer = ""
+
+        if event["queryStringParameters"] is None:
+            queryString = {}
+        else:
+            queryString = event["queryStringParameters"]
 
         print(referer)
 
         msgValue = {
             "referer": referer,
-            "queryStringParameters": event["queryStringParameters"],
-            "missingParams": missingParams(event["queryStringParameters"], expectedParams)
+            "queryStringParameters": queryString,
+            "missingParams": missingParams(queryString, expectedParams)
         }
 
         token = "valid"
