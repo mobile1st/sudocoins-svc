@@ -2,7 +2,7 @@ import json
 import os
 import boto3
 import hashlib
-import base64
+
 
 
 def lambda_handler(event, context):
@@ -12,28 +12,25 @@ def lambda_handler(event, context):
             "referer": event["headers"]["referer"],
             "queryStringParameters": event["queryStringParameters"],
             "hashState": verifyHash(hostUrl, event["queryStringParameters"]),
-            "missingParams": missingParams(event["queryStringParameters"], expectedParams)
+            "missingParams": missingParams(event["queryStringParameters"], expectedParams),
+            "buyerName": "cint"
         }
 
         try:
             messageResponse = pushMsg(msgValue)
             print(messageResponse)
-            if msgValue['hashState'] == False:
+
+            if not msgValue['hashState']:
                 msgValue["message"] = "invalid"
             else:
                 msgValue["message"] = "valid"
-        except Exception as e:
-            print(e)
-            msgValue['status'] = 'Invalid'
-            msgValue["message"] = "invalid"
-
-        try:
-            # . token = encryptMsg(msgValue)
             token = msgValue["message"]
 
         except Exception as e:
             print(e)
-            token = 'invalid'
+            msgValue['status'] = 'Invalid'
+            msgValue["message"] = "invalid"
+            token = msgValue["message"]
 
     except Exception as e:
         response = {
@@ -55,13 +52,6 @@ def createRedirect(redirectUrl, token):
         "body": json.dumps(data)
     }
     return response
-
-
-def encryptMsg(msgValue):
-    kmsClient = boto3.client('kms')
-    secret = json.dumps(msgValue, indent=2).encode('utf-8')
-    token = encrypt(kmsClient, secret, os.environ["keyId"])
-    return token
 
 
 def pushMsg(msgValue):
@@ -113,13 +103,4 @@ def checkSha(url, hash):
     else:
         return False
 
-
-def encrypt(client, secret, keyId):
-    ciphertext = client.encrypt(
-        KeyId=keyId,
-        Plaintext=bytes(secret),
-    )
-    token = base64.b64encode(ciphertext["CiphertextBlob"]).decode("utf-8")
-
-    return token
 

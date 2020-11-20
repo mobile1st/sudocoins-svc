@@ -107,10 +107,18 @@ Resources:
       FunctionName: getHistoryBalance
       CodeUri: ./src
 
-  setConsentFunction:
+  dynataRedirectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: setConsent.lambda_handler
+      Handler: dynataRedirect.lambda_handler
       Runtime: python3.8
-      FunctionName: setConsent
+      FunctionName: dynataRedirect
+      CodeUri: ./src
+
+  dynataCallbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dynataCallback.lambda_handler
+      Runtime: python3.8
+      FunctionName: dynataCallback
       CodeUri: ./src
