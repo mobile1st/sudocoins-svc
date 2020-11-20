@@ -105,7 +105,7 @@ def loadProfile(sub, email, fbook):
 
         profileObject = profileTable.get_item(
             Key={'userId': userId},
-            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail, facebookUrl"
+            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail, facebookUrl, consent"
         )
 
         return profileObject['Item']
@@ -118,7 +118,7 @@ def loadProfile(sub, email, fbook):
             ExpressionAttributeValues={
                 ':email': email
             },
-            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail, facebookUrl"
+            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail, facebookUrl, consent"
         )
 
         if profileQuery['Count'] > 0:
@@ -152,7 +152,8 @@ def loadProfile(sub, email, fbook):
         "userId": userId,
         "currency": "usd",
         "gravatarEmail": email,
-        "facebookUrl": fbook
+        "facebookUrl": fbook,
+        "consent": ""
     }
 
     profileResponse = profileTable.put_item(

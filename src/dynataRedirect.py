@@ -3,8 +3,9 @@ import os
 import boto3
 
 
-
 def lambda_handler(event, context):
+    print(event)
+
     try:
         redirectUrl, expectedParams = getUrls()
 
@@ -12,6 +13,8 @@ def lambda_handler(event, context):
             referer = event["headers"]["referer"]
         else:
             referer = ""
+
+        print(referer)
 
         msgValue = {
             "referer": referer,
@@ -24,14 +27,13 @@ def lambda_handler(event, context):
         response = createRedirect(redirectUrl, token)
 
         print(msgValue)
-        print(event)
 
         return response
 
 
 
     except Exception as e:
-        print(event)
+        print(e)
         response = {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
