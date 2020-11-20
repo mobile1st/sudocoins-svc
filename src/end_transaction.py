@@ -23,12 +23,12 @@ def lambda_handler(event, context):
 
 def update(payload):
     data = json.loads(payload)
-    # . data = payload
-    #  cint or PL -- need to add more structure
-    if 't' in data["queryStringParameters"]:
+    if data["buyerName"] == 'cint':
         transactionId = data["queryStringParameters"]['t']
-    elif 'sub_id' in data["queryStringParameters"]:
+        surveyCode = data["queryStringParameters"]['c']
+    elif data["buyerName"] == 'peanutLabs':
         transactionId = data["queryStringParameters"]['sub_id']
+        surveyCode = data["queryStringParameters"]['status']
 
     updated = str(datetime.utcnow().isoformat())
 
@@ -42,7 +42,7 @@ def update(payload):
         revenue = Decimal(0)
 
     try:
-        updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus, cut)
+        updateTransaction(transactionId, payment, surveyCode, updated, revenue, revShare, userStatus, cut, data)
         print("Transaction updated")
 
     except ClientError as e:
@@ -81,7 +81,7 @@ def updateLedger(transactionId, payment, userId, updated, userStatus):
     return updatedRecord
 
 
-def updateTransaction(transactionId, payment, data, updated, revenue, revShare, userStatus, cut):
+def updateTransaction(transactionId, payment, surveyCode, updated, revenue, revShare, userStatus, cut, data):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
 
@@ -101,7 +101,7 @@ def updateTransaction(transactionId, payment, data, updated, revenue, revShare, 
             ":r": data,
             ":rev": revenue*cut,
             ":rs": revShare,
-            ":sc": data["queryStringParameters"]["c"]
+            ":sc": surveyCode
         },
         ReturnValues="UPDATED_NEW"
     )
@@ -114,11 +114,12 @@ def getRevData(transactionId, data):
 
     transaction = transactionTable.get_item(Key={'transactionId': transactionId})
 
-    buyerName = transaction['Item']['buyer']
+    buyerName = data['buyerName']
     userId = transaction['Item']['userId']
 
     try:
         revData = RevenueData(dynamodb)
+        print("about to call get_Revshare")
         revenue, payment, userStatus, revShare, cut = revData.get_revShare(data, buyerName)
         print("revShare data from class loaded")
 

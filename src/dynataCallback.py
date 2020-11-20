@@ -1,11 +1,14 @@
 import json
 import hashlib
 import boto3
+import os
 
 
 def lambda_handler(event, context):
     print(event)
-    key = '952db934745d57dcbd7a1610ad3b7e4e'
+    key = os.environ["keyId"]
+    #key = '952db934745d57dcbd7a1610ad3b7e4e'
+    print(key)
 
     try:
         data = event['queryStringParameters']
@@ -22,10 +25,11 @@ def lambda_handler(event, context):
         }
 
     try:
-
+        print("step 2")
         confirmHash = (hashlib.md5((transactionId + key).encode('utf-8'))).hexdigest()
-
+        print("step 3")
         if txnHash == confirmHash:
+            print("yeah?")
             hashState = True
 
             msgValue = {
@@ -43,6 +47,7 @@ def lambda_handler(event, context):
                 "body": 1
             }
         else:
+            print("step 4")
             return {
                 "isBase64Encoded": False,
                 "statusCode": 200,
