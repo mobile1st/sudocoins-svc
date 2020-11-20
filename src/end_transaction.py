@@ -89,7 +89,8 @@ def updateTransaction(transactionId, payment, data, updated, revenue, revShare, 
         Key={
             'transactionId': transactionId
         },
-        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev, revShare=:rs, surveyCode=:sc",
+        UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev, revShare=:rs, "
+                         "surveyCode=:sc",
         ExpressionAttributeNames={
             "#status1": "status"
         },

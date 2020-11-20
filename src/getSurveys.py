@@ -20,8 +20,6 @@ def lambda_handler(event, context):
     sub = event['sub']
 
     dynamodb = boto3.resource('dynamodb')
-    #  dax = AmazonDaxClient.resource(
-    #         endpoint_url='')
     exchange = ExchangeRates(dynamodb)
 
     if 'email' in event:
@@ -29,10 +27,15 @@ def lambda_handler(event, context):
     else:
         email = ""
 
+    if 'facebookUrl' in event:
+        fbook = event['facebookUrl']
+    else:
+        fbook = ""
+
     profileResp = {}
 
     try:
-        profileResp = loadProfile(sub, email)
+        profileResp = loadProfile(sub, email, fbook)
         print("load profile function complete")
 
     except Exception as e:
@@ -82,7 +85,7 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, email):
+def loadProfile(sub, email, fbook):
     """Fetches user preferences for the Profile page.
     Argument: userId. This may change to email or cognito sub id .
     Returns: a dict mapping user attributes to their values.
@@ -102,7 +105,7 @@ def loadProfile(sub, email):
 
         profileObject = profileTable.get_item(
             Key={'userId': userId},
-            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail"
+            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail, facebookUrl"
         )
 
         return profileObject['Item']
@@ -115,7 +118,7 @@ def loadProfile(sub, email):
             ExpressionAttributeValues={
                 ':email': email
             },
-            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail"
+            ProjectionExpression="active , email, signupDate, userId, currency, gravatarEmail, facebookUrl"
         )
 
         if profileQuery['Count'] > 0:
@@ -130,11 +133,11 @@ def loadProfile(sub, email):
             return profileQuery['Items'][0]
 
     created = datetime.utcnow().isoformat()
-    print(created)
     userId = str(uuid.uuid1())
+
     if email == "":
         email = userId + "@sudocoins.com"
-    print(email)
+
     subResponse = subTable.put_item(
         Item={
             "sub": sub,
@@ -148,7 +151,8 @@ def loadProfile(sub, email):
         "signupDate": created,
         "userId": userId,
         "currency": "usd",
-        "gravatarEmail": email
+        "gravatarEmail": email,
+        "facebookUrl": fbook
     }
 
     profileResponse = profileTable.put_item(

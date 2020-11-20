@@ -10,16 +10,12 @@ class History:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
+
     def getHistory(self, userId, rate, precision):
-        print("a")
         ledger = loadLedger(userId, rate, precision)
-        print("b")
-        print(ledger)
         transactions = loadTransactions(userId)
-        print("c")
-        print(transactions)
         history = mergeHistory(ledger, transactions)
-        print("d")
+
         return history
 
 
@@ -31,29 +27,23 @@ def loadTransactions(userId):
     dynamodb = boto3.resource('dynamodb')
     transactionTable = dynamodb.Table('Transaction')
 
-    try:
-        transactionHistory = transactionTable.query(
-            KeyConditionExpression=Key("userId").eq(userId),
-            ScanIndexForward=False,
-            IndexName='userId-started-index',
-            FilterExpression=Attr("payout").eq(0),
-            ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
-            ProjectionExpression="transactionId, started, #t, #s")
+    transactionHistory = transactionTable.query(
+        KeyConditionExpression=Key("userId").eq(userId),
+        ScanIndexForward=False,
+        IndexName='userId-started-index',
+        FilterExpression=Attr("payout").eq(0),
+        ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
+        ProjectionExpression="transactionId, started, #t, #s")
 
-        transactions = transactionHistory["Items"]
+    transactions = transactionHistory["Items"]
 
-        for i in transactions:
-            if 'started' in i:
-                utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
-                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                i['epochTime'] = epochTime
+    for i in transactions:
+        if 'started' in i:
+            utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
+            epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+            i['epochTime'] = epochTime
 
-    except ClientError as e:
-        print("Failed to query ledger for userId=%s error=%s", userId, e.response['Error']['Message'])
-        return 'error', {}
-
-    else:
-        return transactions
+    return transactions
 
 
 def loadLedger(userId, rate, precision):
@@ -90,7 +80,7 @@ def loadLedger(userId, rate, precision):
     except ClientError as e:
         print("Failed to query ledger for userId=%s error=%s", self, e.response['Error']['Message'])
 
-        return 'error', {}
+        return {}
 
     else:
         return ledger
