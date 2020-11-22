@@ -1,10 +1,9 @@
-import uuid
-from datetime import datetime
 import os
 import boto3
 from botocore.exceptions import ClientError
 import json
 from buyerRedirect import BuyerRedirect
+import history
 
 
 def lambda_handler(event, context):
@@ -12,25 +11,18 @@ def lambda_handler(event, context):
     ip = event['requestContext']['identity']['sourceIp']
 
     try:
-        data = takeSurvey(params, ip)
-        if data is None:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"data": data})
-            }
-        print("transaction record created")
+        dynamodb = boto3.resource('dynamodb')
+        transaction = history.History(dynamodb)
+        data = transaction.insertTransactionRecord(params['userId'], params['buyerName'], ip)
+        print("transaction record inserted")
+
     except Exception as e:
-        print("transaction record not created")
         print(e)
+        print("error during insertTransactionRecord")
         pass
 
     try:
         entryUrl = generateEntryUrl(params, data["transactionId"], ip)
-        if entryUrl is None:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"entry urL": "error generating entry url"})
-            }
         print("entryUrl generated")
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
@@ -39,42 +31,10 @@ def lambda_handler(event, context):
 
     except Exception as e:
         print(e)
-        """redirect user back to profile page with error message"""
-        response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps(body)}
-        return e
+        print("error. Redirecting user back to profile page")
+        response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps({})}
 
-
-def takeSurvey(params, ip):
-    """Generates a transaction and ledger record for the user
-    Arguments: event parameters including userId, buyerName, and ip
-    Returns: validation that records were successfully created"""
-
-    userId = params["userId"]
-    buyerName = params["buyerName"]
-    transactionId = uuid.uuid1()
-    started = datetime.utcnow().isoformat()
-
-    try:
-        transactionData = {
-            'transactionId': str(transactionId),
-            "userId": userId,
-            'status': "Started",
-            'type': 'Survey',
-            'ip': ip,
-            'started': str(started),
-            'buyer': buyerName
-        }
-        dynamodb = boto3.resource('dynamodb')
-        transactionTable = dynamodb.Table(os.environ["TRANSACTION_TABLE"])
-        transactionResponse = transactionTable.put_item(
-            Item=transactionData
-        )
-
-    except Exception as e:
-        print(f'Create Transaction start record Failed: {e}')
-        transactionData = None
-
-    return transactionData
+        return response
 
 
 def getSurveyObject(buyerName):

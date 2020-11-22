@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
 import uuid
+import os
 
 
 class History:
@@ -11,12 +12,17 @@ class History:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
-
     def updateProfile(self, userId):
         profileTable = self.dynamodb.Table("Profile")
         history = self.getHistory(userId)
-        balance = self.getBalance(self, history)
+        print("grabbed history")
+        print(history)
+        balance = self.getBalance(history)
+        print("got balance")
+        print(balance)
         topHistory = history[0:10]
+        print("top 10 history")
+        print(topHistory)
         profileTable.update_item(
             Key={
                 "userId": userId
@@ -29,7 +35,6 @@ class History:
             },
             ReturnValues="ALL_NEW"
         )
-
 
     def getBalance(self, history):
         precision = 2  # 2 decimals for usd
@@ -54,22 +59,25 @@ class History:
 
         return balance
 
-
-    def getHistory(self, userId, rate, precision):
+    def getHistory(self, userId):
+        rate = '.01'
+        precision = 2
+        print("about to get ledger")
         ledger = self.getLedger(userId, rate, precision)
+        print(ledger)
+        print("about to get transaction")
         transactions = self.getTransactions(userId)
+        print(transactions)
         history = self.mergeHistory(ledger, transactions)
-
+        print(history)
         return history
-
 
     def mergeHistory(self, ledger, transactions):
         history = ledger + transactions
-        print(history)
+
         history = sorted(history, key=lambda k: k['epochTime'], reverse=True)
-
+        print("history sorted")
         return history
-
 
     def getTransactions(self, userId):
         transactionTable = self.dynamodb.Table('Transaction')
@@ -92,10 +100,8 @@ class History:
 
         return transactions
 
-
-
     def getLedger(self, userId, rate, precision):
-        ledgerTable = self.dynamodb.Table('Transaction')
+        ledgerTable = self.dynamodb.Table('Ledger')
 
         try:
             ledgerHistory = ledgerTable.query(
@@ -126,7 +132,8 @@ class History:
                         i['btcAmount'] = bitcoin
 
         except ClientError as e:
-            print("Failed to query ledger for userId=%s error=%s", self, e.response['Error']['Message'])
+            print("Failed to query ledger")
+            print(e)
 
             return {}
 
@@ -158,7 +165,6 @@ class History:
 
         return updatedRecord
 
-
     def updateTransaction(self, transactionId, payment, surveyCode,
                           updated, revenue, revShare, userStatus, cut, data, userId):
         transactionTable = self.dynamodb.Table('Transaction')
@@ -187,7 +193,6 @@ class History:
 
         return updatedRecord
 
-
     def insertTransactionRecord(self, userId, buyerName, ip):
         transactionTable = self.dynamodb.Table('Transaction')
 
@@ -201,13 +206,16 @@ class History:
             'type': 'Survey',
             'ip': ip,
             'started': str(started),
-            'buyer': buyerName
+            'buyer': buyerName,
+            "payout": 0
         }
 
         transactionTable.put_item(
             Item=transactionData
         )
 
+        print("transaction record created")
+        print("about to update profile")
         self.updateProfile(userId)
 
         return transactionData
