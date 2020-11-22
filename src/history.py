@@ -60,7 +60,7 @@ class History:
         return balance
 
     def getHistory(self, userId):
-        rate = '.01'
+        rate = Decimal('.01')
         precision = 2
         print("about to get ledger")
         ledger = self.getLedger(userId, rate, precision)

@@ -56,7 +56,7 @@ def lambda_handler(event, context):
             loadHistory = History(dynamodb)
             print("start")
             print(profileResp["userId"])
-            history = loadHistory.getHistory(profileResp["userId"], Decimal('.01'), 2)
+            history = loadHistory.getHistory(profileResp["userId"])
         except Exception as e:
             print(e)
             print("fail")
@@ -64,7 +64,7 @@ def lambda_handler(event, context):
 
 
         try:
-            balance = getBalance(history, precision)
+            balance = loadHistory.getBalance(history)
             print("balance loaded")
 
         except Exception as e:
