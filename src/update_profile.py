@@ -7,13 +7,13 @@ def lambda_handler(event, context):
     Returns: fields updated
     """
     dynamodb = boto3.resource('dynamodb')
-    profile_table = dynamodb.Table("Profile")
+    profileTable = dynamodb.Table("Profile")
     jsonInput = event
     sub = jsonInput["sub"]
     userId = loadProfile(sub)
 
     if userId is not None:
-        data = profile_table.update_item(
+        data = profileTable.update_item(
             Key={
                 "userId": userId
             },

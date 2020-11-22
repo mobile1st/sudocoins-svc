@@ -22,6 +22,7 @@ def lambda_handler(event, context):
     """
     dynamodb = boto3.resource('dynamodb')
     exchangeRatesTable = dynamodb.Table("exchangeRates")
+    configTable = dynamodb.Table("Config")
 
     btcUsd = getBtc()
 
@@ -39,13 +40,24 @@ def lambda_handler(event, context):
         "precision": 2
     }
 
-    btcRatesResponse = exchangeRatesTable.put_item(
+    exchangeRatesTable.put_item(
         Item=btcRates
     )
 
-    usdRatesResponse = exchangeRatesTable.put_item(
+    exchangeRatesTable.put_item(
         Item=usdRates
     )
+
+    configTable.update_item(
+            Key={
+                "configKey": "TakeSurveyPage"
+            },
+            UpdateExpression="set rate=:r",
+            ExpressionAttributeValues={
+                ":r": Decimal(btcUsd)
+
+            }
+        )
 
     return {
         'statusCode': 200,
