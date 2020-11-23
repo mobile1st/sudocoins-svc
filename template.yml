@@ -130,3 +130,11 @@ Resources:
       Runtime: python3.8
       FunctionName: setConsent
       CodeUri: ./src
+
+  getProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getProfile.lambda_handler
+      Runtime: python3.8
+      FunctionName: getProfile
+      CodeUri: ./src

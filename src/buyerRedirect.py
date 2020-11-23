@@ -6,6 +6,7 @@ class BuyerRedirect:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
+
     def getRedirect(self, userId, buyerName, survey, ip, transactionId):
 
         if buyerName in ["test", "cint"]:

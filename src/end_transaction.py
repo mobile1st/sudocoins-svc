@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 from rev_shares import RevenueData
 from decimal import Decimal
+from history import History
 
 
 def lambda_handler(event, context):
@@ -23,9 +24,13 @@ def lambda_handler(event, context):
 
 def update(payload):
     data = json.loads(payload)
+    dynamodb = boto3.resource('dynamodb')
+    history = History(dynamodb)
+
     if data["buyerName"] == 'cint':
         transactionId = data["queryStringParameters"]['t']
         surveyCode = data["queryStringParameters"]['c']
+
     elif data["buyerName"] == 'peanutLabs':
         transactionId = data["queryStringParameters"]['sub_id']
         surveyCode = data["queryStringParameters"]['status']
@@ -42,7 +47,8 @@ def update(payload):
         revenue = Decimal(0)
 
     try:
-        updateTransaction(transactionId, payment, surveyCode, updated, revenue, revShare, userStatus, cut, data)
+        history.updateTransaction(transactionId, payment, surveyCode, updated,
+                                  revenue, revShare, userStatus, cut, data, userId)
         print("Transaction updated")
 
     except ClientError as e:
@@ -51,7 +57,7 @@ def update(payload):
 
     try:
         if payment > 0:
-            updateLedger(transactionId, payment, userId, updated, userStatus)
+            history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
 
     except ClientError as e:

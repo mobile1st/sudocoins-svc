@@ -11,6 +11,13 @@ class ExchangeRates:
         row = exchange.get_item(Key={'currency': currency})
         return Decimal(row['Item']["sudo"]), row['Item']["precision"]
 
+    def getUsdBtcRate(self, currency):
+        exchange = self.dynamodb.Table("exchangeRates")
+        row = exchange.get_item(Key={'currency': currency})
+        return Decimal(row['Item']["usdBtc"])
+
+
+
     def refresh_rate(self, currency):
         rate = self.fetch_rate(currency)
 
