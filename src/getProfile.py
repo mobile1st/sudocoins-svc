@@ -6,7 +6,7 @@ from decimal import *
 
 def lambda_handler(event, context):
     print(event)
-    print(context.identity.cognito_identity_id)
+
     sub = event['sub']
     if 'email' in event:
         email = event['email']
@@ -18,34 +18,37 @@ def lambda_handler(event, context):
         facebook = ""
 
     try:
+        print("about to load profile")
         profile, history, balance = loadProfile(sub, email, facebook)
         print("profile loaded")
 
     except Exception as e:
+        print("issue loading profile")
         profile = {}
-        history = {}
-        balance = str("0.00")
+        profile['history'] = {}
+        profile['balance'] = ""
         print(e)
 
     try:
+        print("about to get config")
         config = getConfig()
+        print("config loaded")
         rate = getRate(config)
+        print("about to get surveys from config")
         surveys = getSurveys(profile['userId'], config)
+        print("surveys loaded")
 
     except Exception as e:
         rate = '1'
         surveys = {}
         print('failed to load surveys')
 
-
     print("about to return the entire response")
     return {
         'statusCode': 200,
         'body': {
             "profile": profile,
-            "survey": surveys,
-            "history": history,
-            "balance": balance,
+            "surveys": surveys,
             "rate": rate
         }
     }
@@ -64,6 +67,9 @@ def loadProfile(sub, email, facebook):
     subResponse = subTable.get_item(Key={'sub': sub})
 
     if 'Item' in subResponse:
+
+        print("founder userId matching sub")
+
         userId = subResponse['Item']['userId']
 
         profileObject = profileTable.get_item(
@@ -72,7 +78,7 @@ def loadProfile(sub, email, facebook):
                                  "gravatarEmail, facebookUrl, consent, history, balance"
         )
 
-        return profileObject['Item']
+        return profileObject['Item'], profileObject['Item']['history'], profileObject['Item']['balance']
 
     elif email != "":
 
