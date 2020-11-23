@@ -12,6 +12,9 @@ def lambda_handler(event, context):
     ledgerTable = dynamodb.Table("Ledger")
     payoutTable = dynamodb.Table("Payouts")
 
+    dynamodb = boto3.resource('dynamodb')
+    loadHistory = History(dynamodb)
+
     jsonInput = event
     sub = jsonInput['sub']
     userId = loadProfile(sub)
@@ -22,9 +25,9 @@ def lambda_handler(event, context):
     if "rate" not in jsonInput:
         rate = "1"
     else:
-        rate = jsonInput["rate"]
+        rate = str(jsonInput["rate"])
 
-    payoutAmount = convertAmount(jsonInput['amount'], rate, jsonInput['type'])
+    payoutAmount = convertAmount(jsonInput['amount'], jsonInput['type'])
 
     payout = {
         "paymentId": transactionId,
@@ -50,6 +53,7 @@ def lambda_handler(event, context):
         "userInput": jsonInput["amount"],
         "payoutType": jsonInput['type']
     }
+
     payoutResponse = payoutTable.put_item(
         Item=payout
     )
@@ -60,8 +64,7 @@ def lambda_handler(event, context):
     print("cash out submitted")
 
     try:
-        loadHistory = History(dynamodb)
-        history = loadHistory.getHistory(userId, Decimal('.01'), 2)
+        history = loadHistory.getHistory(userId)
         print("history loaded")
 
     except Exception as e:
@@ -104,7 +107,7 @@ def loadProfile(sub):
         return None
 
 
-def convertAmount(amount, rate, type):
+def convertAmount(amount, type):
     payoutAmount = str((Decimal(amount) * Decimal('100')))
     return str(payoutAmount)
 

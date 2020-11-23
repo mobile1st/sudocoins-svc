@@ -26,6 +26,8 @@ class RevenueData:
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
                 if 'cut' in surveyStatus[surveyCode]:
                     cut = Decimal(surveyStatus[surveyCode]['cut'])
+                else:
+                    cut = Decimal(0)
             else:
                 userStatus = data["queryStringParameters"]["c"]
                 revShare = Decimal(0)
