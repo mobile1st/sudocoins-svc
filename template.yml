@@ -83,6 +83,14 @@ Resources:
       FunctionName: getRates
       CodeUri: ./src
 
+  getUserIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getUserId.lambda_handler
+      Runtime: python3.8
+      FunctionName: getUserId
+      CodeUri: ./src
+
   getSurveysFunction:
     Type: AWS::Serverless::Function
     Properties:

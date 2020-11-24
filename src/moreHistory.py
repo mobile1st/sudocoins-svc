@@ -1,6 +1,7 @@
 import boto3
 from history import History
 
+
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
