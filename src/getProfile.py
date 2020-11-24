@@ -19,7 +19,7 @@ def lambda_handler(event, context):
 
     try:
         print("about to load profile")
-        profile, history, balance = loadProfile(sub, email, facebook)
+        profile = loadProfile(sub, email, facebook)
         print("profile loaded")
 
     except Exception as e:
@@ -78,7 +78,7 @@ def loadProfile(sub, email, facebook):
                                  "gravatarEmail, facebookUrl, consent, history, balance"
         )
 
-        return profileObject['Item'], profileObject['Item']['history'], profileObject['Item']['balance']
+        return profileObject['Item']
 
     elif email != "":
 
@@ -136,7 +136,7 @@ def loadProfile(sub, email, facebook):
             Item=profile
         )
 
-        return profile, history, balance
+        return profile
 
 
 def getConfig():
