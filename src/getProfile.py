@@ -24,8 +24,8 @@ def lambda_handler(event, context):
 
     except Exception as e:
         print("issue loading profile")
-        profile = {}
-        profile['history'] = {}
+        profile = []
+        profile['history'] = []
         profile['balance'] = ""
         print(e)
 
@@ -40,7 +40,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
         rate = '1'
-        surveys = {}
+        surveys = []
         print('failed to load surveys')
 
     print("about to return the entire response")
