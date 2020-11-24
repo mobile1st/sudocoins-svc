@@ -14,5 +14,6 @@ def lambda_handler(event, context):
     loadHistory = History(dynamodb)
     moreHistory = loadHistory.getHistory(userId)
 
+
     return moreHistory[10:]
 
