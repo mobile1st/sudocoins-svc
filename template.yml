@@ -67,14 +67,6 @@ Resources:
       FunctionName: contact
       CodeUri: ./src
 
-  setProfileFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: setProfile.lambda_handler
-      Runtime: python3.8
-      FunctionName: setProfile
-      CodeUri: ./src
-
   exchangeRatesFunction:
     Type: AWS::Serverless::Function
     Properties:
