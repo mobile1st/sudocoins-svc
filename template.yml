@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
+
   SudoCoinsLoadProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -9,6 +10,7 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsLoadProfile
       CodeUri: ./src
+
   SudoCoinsSurveyEndFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -16,6 +18,7 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsSurveyEnd
       CodeUri: ./src
+
   SudoCoinsTakeSurveyFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -23,6 +26,7 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsTakeSurvey
       CodeUri: ./src
+
   SudoCoinsEndTransactionFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -30,6 +34,7 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsEndTransaction
       CodeUri: ./src
+
   CashOutFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -37,6 +42,7 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsCashOut
       CodeUri: ./src
+
   UpdateProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -44,6 +50,7 @@ Resources:
       Runtime: python3.8
       FunctionName: UpdateProfile
       CodeUri: ./src
+
   SetCurrencyFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -51,6 +58,7 @@ Resources:
       Runtime: python3.8
       FunctionName: setCurrency
       CodeUri: ./src
+
   contactFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -58,6 +66,7 @@ Resources:
       Runtime: python3.8
       FunctionName: contact
       CodeUri: ./src
+
   setProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -65,6 +74,7 @@ Resources:
       Runtime: python3.8
       FunctionName: setProfile
       CodeUri: ./src
+
   exchangeRatesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -72,6 +82,7 @@ Resources:
       Runtime: python3.8
       FunctionName: getRates
       CodeUri: ./src
+
   getUserIdFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -79,6 +90,7 @@ Resources:
       Runtime: python3.8
       FunctionName: getUserId
       CodeUri: ./src
+
   getSurveysFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -86,6 +98,7 @@ Resources:
       Runtime: python3.8
       FunctionName: getSurveys
       CodeUri: ./src
+
   getHistoryBalanceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -93,6 +106,7 @@ Resources:
       Runtime: python3.8
       FunctionName: getHistoryBalance
       CodeUri: ./src
+
   dynataRedirectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -100,6 +114,7 @@ Resources:
       Runtime: python3.8
       FunctionName: dynataRedirect
       CodeUri: ./src
+
   dynataCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -107,6 +122,7 @@ Resources:
       Runtime: python3.8
       FunctionName: dynataCallback
       CodeUri: ./src
+
   setConsentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -114,6 +130,7 @@ Resources:
       Runtime: python3.8
       FunctionName: setConsent
       CodeUri: ./src
+
   getProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
