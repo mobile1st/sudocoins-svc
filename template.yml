@@ -122,3 +122,11 @@ Resources:
       Runtime: python3.8
       FunctionName: getProfile
       CodeUri: ./src
+
+  moreHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: moreHistory.lambda_handler
+      Runtime: python3.8
+      FunctionName: moreHistory
+      CodeUri: ./src
