@@ -78,6 +78,11 @@ def loadProfile(sub, email, facebook):
                                  "gravatarEmail, facebookUrl, consent, history, balance"
         )
 
+        if 'history' not in profileObject['Item']:
+            profileObject['Item']['history'] = []
+        if 'balance' not in profileObject['Item']:
+            profileObject['Item']['balance'] = ""
+
         return profileObject['Item']
 
     elif email != "":
@@ -100,6 +105,11 @@ def loadProfile(sub, email, facebook):
                     "userId": userId
                 }
             )
+
+            if 'history' not in profileObject['Items'][0]:
+                profileObject['Items'][0]['history'] = []
+            if 'balance' not in profileObject['Items'][0]:
+                profileObject['Items'][0]['balance'] = ""
 
             return profileQuery['Items'][0]
     else:
@@ -125,12 +135,9 @@ def loadProfile(sub, email, facebook):
             "gravatarEmail": email,
             "facebookUrl": facebook,
             "consent": "",
-            "history": {},
+            "history": [],
             "balance": str("0.00")
         }
-
-        history = profile['history']
-        balance = profile['balance']
 
         profileTable.put_item(
             Item=profile
