@@ -41,10 +41,17 @@ class Wyre:
         headers = {
             'X-Api-Signature': token,
             'Content-Type': 'application/json',
-            'X-API-Key': apiKey
+            'X-API-Key': self.apiKey
         }
 
         response = requests.request("POST", url, headers=headers, data=payload)
+
+        return response
+
+
+    def getRates(self):
+        url = 'https://api.sendwyre.com/v3/rates'
+        response = requests.request("GET", url)
 
         return response
 
@@ -53,9 +60,3 @@ class Wyre:
 
 
 
-
-
-
-
-
-print(response.text.encode('utf8'))
