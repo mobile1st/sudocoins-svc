@@ -2,15 +2,15 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
+from .configuration import Configuration
 
 
-def loadProfile(userId):
+def loadProfile(dynamodb, userId):
     """Fetches user preferences for the Profile page.
     Argument: userId. This may change to email or cognito sub id .
     Returns: a dict mapping user attributes to their values.
     """
     profileTableName = os.environ["PROFILE_TABLE"]
-    dynamodb = boto3.resource('dynamodb')
     profileTable = dynamodb.Table(profileTableName)
 
     try:
@@ -58,13 +58,12 @@ def loadProfile(userId):
         }
 
 
-def loadHistory(userId, rate):
+def loadHistory(dynamodb, userId, rate):
     """Fetches the user history from the Ledger table.
     Arguments: userId.
     Returns: a list of of objects, each representing a user's transaction.
     """
     ledgerTableName = os.environ["LEDGER_TABLE"]
-    dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table(ledgerTableName)
 
     try:
@@ -116,14 +115,13 @@ def getBalance(history, currency):
             return balance
 
 
-def getSurveyObject(userId, rate):
+def getSurveyObject(dynamodb, userId, rate):
     """Fetches a list of open surveys for the user
     Arguments: userId
     Returns: list of survey urls and incentives
     """
     configTableName = os.environ["CONFIG_TABLE"]
     configKey = "TakeSurveyPage"
-    dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table(configTableName)
     url = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
 
@@ -155,10 +153,21 @@ def getSurveyObject(userId, rate):
 
 def lambda_handler(event, context):
     print("event=%s userId=%", event, context.identity.cognito_identity_id)
+    dynamodb = boto3.resource('dynamodb')
+    config = Configuration(dynamodb)
+
+    # begin testing configuration access
+    try:
+        print('config for test buyer=%s', config.buyer('test'))
+        print('config publicBuyers=%s', config.public_buyers())
+    except Exception as e:
+        print('Config read exception: %s', e)
+    # end testing configuration access
+
     jsonInput = event
 
     try:
-        profileResp = loadProfile(jsonInput["user_id"])
+        profileResp = loadProfile(dynamodb, jsonInput["user_id"])
         print("profile loaded")
     except Exception as e:
         print(e)
@@ -171,7 +180,7 @@ def lambda_handler(event, context):
             }
         }
     try:
-        rate = getRates(profileResp["profile"]["currency"])
+        rate = getRates(dynamodb, profileResp["profile"]["currency"])
         print("rate loaded")
     except Exception as e:
         print(e)
@@ -179,7 +188,7 @@ def lambda_handler(event, context):
         profileResp["profile"]["currency"] = 'usd'
 
     try:
-        historyStatus, history = loadHistory(jsonInput["user_id"], rate)
+        historyStatus, history = loadHistory(dynamodb, jsonInput["user_id"], rate)
         print("history loaded")
     except Exception as e:
         print(e)
@@ -193,7 +202,7 @@ def lambda_handler(event, context):
         profileResp["profile"]["balance"] = ""
 
     try:
-        surveyTile = getSurveyObject(jsonInput["user_id"], rate)
+        surveyTile = getSurveyObject(dynamodb, jsonInput["user_id"], rate)
         print("survey list loaded")
         if surveyTile is None:
             data = {
@@ -231,9 +240,8 @@ def lambda_handler(event, context):
     }
 
 
-def getRates(currency):
+def getRates(dynamodb, currency):
     ratesTableName = os.environ["RATES_TABLE"]
-    dynamodb = boto3.resource('dynamodb')
     ratesTable = dynamodb.Table(ratesTableName)
 
     ratesResponse = ratesTable.get_item(Key={'currency': currency})
