@@ -2,8 +2,8 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
-from .configuration import Configuration
 
+# todo delete this file if deprecated
 
 def loadProfile(dynamodb, userId):
     """Fetches user preferences for the Profile page.
@@ -154,15 +154,6 @@ def getSurveyObject(dynamodb, userId, rate):
 def lambda_handler(event, context):
     print("event=%s userId=%", event, context.identity.cognito_identity_id)
     dynamodb = boto3.resource('dynamodb')
-    config = Configuration(dynamodb)
-
-    # begin testing configuration access
-    try:
-        print('config for test buyer=%s', config.buyer('test'))
-        print('config publicBuyers=%s', config.public_buyers())
-    except Exception as e:
-        print('Config read exception: %s', e)
-    # end testing configuration access
 
     jsonInput = event
 
