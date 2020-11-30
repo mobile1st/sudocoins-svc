@@ -49,9 +49,8 @@ class Wyre:
         return response
 
 
-
     def getRates(self):
-        url = 'https://api.sendwyre.com/v3/rates'
+        url = 'https://api.sendwyre.com/v3/rates?pretty&as=priced'
         response = requests.request("GET", url)
 
         return response
