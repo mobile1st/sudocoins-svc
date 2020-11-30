@@ -2,6 +2,7 @@ import boto3
 import requests
 from decimal import Decimal
 from wyre import Wyre
+import json
 
 
 def lambda_handler(event, context):
@@ -43,7 +44,8 @@ def getBtc():
 
 def getWyreRates():
     wyre = Wyre()
-    wyreRates = wyre.getRates()
+    wyreRates = json.loads(wyre.getRates().text.encode('utf8'))
+    print(wyreRates)
     rates = {}
     currencies = {
         "BTC": "Bitcoin",
@@ -70,8 +72,9 @@ def getWyreRates():
 
     for i in currencies:
         tmp = "USD" + i
+        print(tmp)
         rates[i] = {
-            "rate": wyreRates[tmp][i],
+            "rate": str(wyreRates[tmp][i]),
             "name": currencies[i]
         }
 
