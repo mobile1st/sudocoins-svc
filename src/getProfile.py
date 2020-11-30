@@ -2,20 +2,20 @@ import boto3
 from datetime import datetime
 import uuid
 from decimal import *
-from configuration import Configuration
+# from configuration import Configuration
 
 
 def lambda_handler(event, context):
     print(event)
     dynamodb = boto3.resource('dynamodb')
-    config = Configuration(dynamodb)
 
     # begin testing configuration access
-    try:
-        print('config for test buyer=%s', config.buyer('test'))
-        print('config publicBuyers=%s', config.public_buyers())
-    except Exception as e:
-        print('Config read exception: ', e)
+    # config = Configuration(dynamodb)
+    # try:
+    #     print('config for test buyer=%s', config.buyer('test'))
+    #     print('config publicBuyers=%s', config.public_buyers())
+    # except Exception as e:
+    #     print('Config read exception: ', e)
     # end testing configuration access
 
     sub = event['sub']
