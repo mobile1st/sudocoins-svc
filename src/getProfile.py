@@ -2,7 +2,7 @@ import boto3
 from datetime import datetime
 import uuid
 from decimal import *
-from .configuration import Configuration
+from src.configuration import Configuration
 
 
 def lambda_handler(event, context):
