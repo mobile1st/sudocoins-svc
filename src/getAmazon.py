@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 
 
 def lambda_handler(event, context):
-
     url = event['url']
 
     cleanUrl = parseUrl(url)
