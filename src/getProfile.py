@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         print('config for test buyer=%s', config.buyer('test'))
         print('config publicBuyers=%s', config.public_buyers())
     except Exception as e:
-        print('Config read exception: %s', e)
+        print('Config read exception: ', e)
     # end testing configuration access
 
     sub = event['sub']
