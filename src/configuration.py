@@ -23,12 +23,13 @@ class Configuration:
 
         buyers, public_buyers = self._load_take_survey_key_disk()
         if buyers is not None and public_buyers is not None:
-            self.take_survey_config = buyers, public_buyers
+            self.take_survey_config = (buyers, public_buyers)
             print('Configuration loaded form disk')
             return self.take_survey_config
 
         print('Configuration not on disk, loading from database')
-        self.take_survey_config = self._load_take_survey_key_db()
+        buyers, public_buyers = self._load_take_survey_key_db()
+        self.take_survey_config = (buyers, public_buyers)
         print('Configuration loaded form database')
         return self.take_survey_config
 
