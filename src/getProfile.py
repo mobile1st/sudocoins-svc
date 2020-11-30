@@ -2,10 +2,21 @@ import boto3
 from datetime import datetime
 import uuid
 from decimal import *
+from .configuration import Configuration
 
 
 def lambda_handler(event, context):
     print(event)
+    dynamodb = boto3.resource('dynamodb')
+    config = Configuration(dynamodb)
+
+    # begin testing configuration access
+    try:
+        print('config for test buyer=%s', config.buyer('test'))
+        print('config publicBuyers=%s', config.public_buyers())
+    except Exception as e:
+        print('Config read exception: %s', e)
+    # end testing configuration access
 
     sub = event['sub']
     if 'email' in event:
@@ -19,7 +30,7 @@ def lambda_handler(event, context):
 
     try:
         print("about to load profile")
-        profile = loadProfile(sub, email, facebook)
+        profile = loadProfile(dynamodb, sub, email, facebook)
         print("profile loaded")
 
     except Exception as e:
@@ -31,7 +42,7 @@ def lambda_handler(event, context):
 
     try:
         print("about to get config")
-        config = getConfig()
+        config = getConfig(dynamodb)
         print("config loaded")
         rate = getRate(config)
         print("about to get surveys from config")
@@ -54,12 +65,11 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, email, facebook):
+def loadProfile(dynamodb, sub, email, facebook):
     """Fetches user preferences for the Profile page.
     Argument: userId. This may change to email or cognito sub id .
     Returns: a dict mapping user attributes to their values.
     """
-    dynamodb = boto3.resource('dynamodb')
 
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
@@ -146,8 +156,7 @@ def loadProfile(sub, email, facebook):
         return profile
 
 
-def getConfig():
-    dynamodb = boto3.resource('dynamodb')
+def getConfig(dynamodb):
     configTable = dynamodb.Table('Config')
     configKey = "TakeSurveyPage"
 
