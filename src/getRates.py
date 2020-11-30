@@ -1,60 +1,24 @@
 import boto3
-import json
-import uuid
-from datetime import datetime
 import requests
 from decimal import Decimal
-
-
-# from .exchange_rates import ExchangeRates
+from wyre import Wyre
 
 
 def lambda_handler(event, context):
-    # todo use exchange rates
-    # dynamodb = boto3.resource('dynamodb')
-    # exchange = ExchangeRates(dynamodb)
-    # exchange.refresh_rate('btc')
-    #
-    # return {'statusCode': 200}
-    """gets exchange rates and saves them to cache
-    Arguments: none
-    Returns: rates saved
-    """
-    dynamodb = boto3.resource('dynamodb')
-    exchangeRatesTable = dynamodb.Table("exchangeRates")
-    configTable = dynamodb.Table("Config")
 
     btcUsd = getBtc()
+    wyreRates = getWyreRates()
 
-    btcRates = {
-        "currency": "btc",
-        "sudo": Decimal(btcUsd) * Decimal('.01'),
-        "usdBtc": Decimal(btcUsd),
-        "precision": 8
-    }
-
-    usdRates = {
-        "currency": "usd",
-        "sudo": Decimal('.01'),
-        "usdBtc": Decimal(btcUsd),
-        "precision": 2
-    }
-
-    exchangeRatesTable.put_item(
-        Item=btcRates
-    )
-
-    exchangeRatesTable.put_item(
-        Item=usdRates
-    )
-
+    dynamodb = boto3.resource('dynamodb')
+    configTable = dynamodb.Table("Config")
     configTable.update_item(
             Key={
                 "configKey": "TakeSurveyPage"
             },
-            UpdateExpression="set rate=:r",
+            UpdateExpression="set rate=:r, rates=:rs",
             ExpressionAttributeValues={
-                ":r": Decimal(btcUsd)
+                ":r": Decimal(btcUsd),
+                ":rs": wyreRates
 
             }
         )
@@ -75,3 +39,67 @@ def getBtc():
     btcRate = response.content.decode("utf-8")
 
     return btcRate
+
+
+def getWyreRates():
+    wyre = Wyre()
+    wyreRates = wyre.getRates()
+    rates = {}
+    currencies = {
+        "BTC": "Bitcoin",
+        "ETH": "Ethereum",
+        "DAI": "DAI",
+        "USDC": "USD Coin",
+        "USDT": "Tether",
+        "BUSD": "Binance USD",
+        "GUSD": "Gemini Dollar",
+        "PAX": "Paxos Standard",
+        "USDS": "Stably Dollar",
+        "AAVE": "Aave",
+        "COMP": "Compound",
+        "LINK": "Chainlink",
+        "WBTC": "Wrapped Bitcoin",
+        "BAT": "Basic Attention Token",
+        "CRV": "Curve",
+        "MKR": "Maker",
+        "SNX": "Synthetix",
+        "UMA": "UMA",
+        "UNI": "Uniswap",
+        "YFI": "yearn.finance"
+        }
+
+    for i in currencies:
+        tmp = "USD" + i
+        rates[i] = {
+            "rate": wyreRates[tmp][i],
+            "name": currencies[i]
+        }
+
+
+    return rates
+
+
+'''
+exchangeRatesTable = dynamodb.Table("exchangeRates")
+
+    btcRates = {
+        "currency": "btc",
+        "sudo": Decimal(btcUsd) * Decimal('.01'),
+        "usdBtc": Decimal(btcUsd),
+        "precision": 8
+    }
+
+    usdRates = {
+        "currency": "usd",
+        "sudo": Decimal('.01'),
+        "usdBtc": Decimal(btcUsd),
+        "precision": 2
+    }
+exchangeRatesTable.put_item(
+    Item=btcRates
+)
+
+exchangeRatesTable.put_item(
+    Item=usdRates
+)
+'''
