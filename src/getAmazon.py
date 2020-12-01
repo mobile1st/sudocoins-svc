@@ -1,21 +1,26 @@
 import requests
 from bs4 import BeautifulSoup
+import random
+from scraper_api import ScraperAPIClient
+# import lxml
 
 
 def lambda_handler(event, context):
     url = event['url']
-
     cleanUrl = parseUrl(url)
-
-    price, title, rating, imgUrl = loadAmazon(cleanUrl)
+    client = ScraperAPIClient('23697b4011e85f37992063c81f9e03ff')
+    result = client.get(url = 'https://www.amazon.com/dp/B087CSW37P', country_code = "US").text
+    soup = BeautifulSoup(result, "html.parser")
+    price = soup.find("div", class_="a-section").find("span", class_="a-size-medium a-color-price")
 
     return {
         'statusCode': 200,
         'body': {
-            "price": price,
-            "title": title,
-            "rating": rating,
-            "imgUrl": imgUrl
+            # "price": price,
+            # "title": title,
+            # "rating": rating,
+            # "imgUrl": imgUrl
+            "price": price.text
         }
     }
 
@@ -29,7 +34,7 @@ def loadAmazon(url):
                 'Safari/537.36',
                 'Accept-Language': 'en-US, en;q=0.5'})
     page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.content, "lxml")
+    soup = BeautifulSoup(page.text, "html.parser")
     price = soup.find("span", attrs={'id': 'price_inside_buybox'}).string.strip()
     title = soup.find("span", attrs={'id': 'productTitle'}).string.strip()
     rating = soup.find("span", attrs={'class': 'a-icon-alt'}).string.strip()
