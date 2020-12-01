@@ -44,7 +44,6 @@ def loadAmazon(url):
     return price, title, rating, imgUrl
 
 
-
 def parseUrl(url):
     productPrefix = url.find('/dp/')
     productStart = productPrefix + 4
