@@ -135,7 +135,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: getAmazon.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.6
       FunctionName: getAmazon
       CodeUri: ./src
 
