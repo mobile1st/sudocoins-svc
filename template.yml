@@ -3,14 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
 
-  SudoCoinsLoadProfileFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: profile.lambda_handler
-      Runtime: python3.8
-      FunctionName: SudoCoinsLoadProfile
-      CodeUri: ./src
-
   SudoCoinsSurveyEndFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -75,22 +67,6 @@ Resources:
       FunctionName: getRates
       CodeUri: ./src
 
-  getSurveysFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: getSurveys.lambda_handler
-      Runtime: python3.8
-      FunctionName: getSurveys
-      CodeUri: ./src
-
-  getHistoryBalanceFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: getHistoryBalance.lambda_handler
-      Runtime: python3.8
-      FunctionName: getHistoryBalance
-      CodeUri: ./src
-
   dynataRedirectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -137,4 +113,4 @@ Resources:
       Handler: checkout.lambda_handler
       Runtime: python3.8
       FunctionName: checkout
-      CodeUri: ./src
+      CodeUri: ./src/ecommerce
