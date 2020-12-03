@@ -1,7 +1,7 @@
 import boto3
 import requests
 from decimal import Decimal
-from wyre import Wyre
+from ecommerce.wyre import Wyre
 import json
 
 

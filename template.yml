@@ -65,7 +65,7 @@ Resources:
       Handler: getRates.lambda_handler
       Runtime: python3.8
       FunctionName: getRates
-      CodeUri: ./src
+      CodeUri: ./src/ecommerce
 
   dynataRedirectFunction:
     Type: AWS::Serverless::Function
@@ -113,4 +113,52 @@ Resources:
       Handler: checkout.lambda_handler
       Runtime: python3.8
       FunctionName: checkout
+      CodeUri: ./src/ecommerce
+
+  getGiftCardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getGiftCard.lambda_handler
+      Runtime: python3.8
+      FunctionName: getGiftCard
+      CodeUri: ./src/ecommerce
+
+  setShippingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: setShipping.lambda_handler
+      Runtime: python3.8
+      FunctionName: setShipping
+      CodeUri: ./src/ecommerce
+
+  checkOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: checkOrder.lambda_handler
+      Runtime: python3.8
+      FunctionName: checkOrder
+      CodeUri: ./src/ecommerce
+
+  processOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: processOrder.lambda_handler
+      Runtime: python3.8
+      FunctionName: processOrder
+      CodeUri: ./src/ecommerce
+
+  addWallet:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: addWallet.lambda_handler
+      Runtime: python3.8
+      FunctionName: addWallet
+      CodeUri: ./src/ecommerce
+
+  wyreCallback:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: wyreCallback.lambda_handler
+      Runtime: python3.8
+      FunctionName: wyreCallback
       CodeUri: ./src/ecommerce
