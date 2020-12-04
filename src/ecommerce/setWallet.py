@@ -1,5 +1,6 @@
 import boto3
 from wyre import Wyre
+import json
 
 
 def lambda_handler(event, context):
@@ -7,7 +8,7 @@ def lambda_handler(event, context):
 
     for record in event['Records']:
         payload = record['body']
-        print(payload)
+        #. payload = json.loads(payload)
 
         walletId, walletAdrress = callWyre(payload['currency'], payload['orderId'])
 
@@ -26,7 +27,9 @@ def callWyre(currency, orderId):
     }
 
     wyre = Wyre()
-    response = wyre.createWallet(payload)
+    response = json.loads(wyre.createWallet(payload).text.encode('utf8'))
+    print("response incomming")
+    print(response)
 
     walletId = response['srn']
 
