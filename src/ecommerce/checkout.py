@@ -40,12 +40,12 @@ def lambda_handler(event, context):
             "currency": event['body']['currency'],
             "rate": event['body']['rate'],
             "shippingState": "false",
-            "shippingAddress": ""
+            "shippingAddress": "",
+            "ip": ip
 
         }
 
         wyreBody = {
-            "userId": userId,
             "orderId": orderId,
             "currency": event['body']['currency']
         }
@@ -85,7 +85,7 @@ def getUserId(sub):
 def pushMsg(msgValue):
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName='createWallet.fifo')
-    record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='newWallet')
+    queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='newWallet')
 
 
 def createOrder(orderRecord):
