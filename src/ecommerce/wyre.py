@@ -34,7 +34,7 @@ class Wyre:
     def createWallet(self, body):
         path = 'wallets'
         timestamp = self.getEpoch()
-        url = self.url + path + "?" + 'timestamp=' + timestamp
+        url = self.baseUrl + path + "?" + 'timestamp=' + timestamp
         payload = json.dumps(body)
         token = self.generateToken(self.apiKey, url, payload, self.token)
 
