@@ -2,6 +2,8 @@ import boto3
 from datetime import datetime
 import uuid
 from decimal import *
+
+
 # from configuration import Configuration
 
 
@@ -19,6 +21,7 @@ def lambda_handler(event, context):
     # end testing configuration access
 
     sub = event['sub']
+
     if 'email' in event:
         email = event['email']
     else:
@@ -28,6 +31,7 @@ def lambda_handler(event, context):
     else:
         facebook = ""
 
+    global profile
     try:
         print("about to load profile")
         profile = loadProfile(dynamodb, sub, email, facebook)
@@ -35,7 +39,8 @@ def lambda_handler(event, context):
 
     except Exception as e:
         print("issue loading profile")
-        profile = []
+        # profile.update(history = [])
+        # profile.update(balance = "")
         profile['history'] = []
         profile['balance'] = ""
         print(e)
@@ -75,6 +80,9 @@ def loadProfile(dynamodb, sub, email, facebook):
     subTable = dynamodb.Table('sub')
 
     subResponse = subTable.get_item(Key={'sub': sub})
+    print("subResponse")
+    print(subResponse)
+    print("")
 
     if 'Item' in subResponse:
 
@@ -91,7 +99,7 @@ def loadProfile(dynamodb, sub, email, facebook):
         if 'history' not in profileObject['Item']:
             profileObject['Item']['history'] = []
         if 'balance' not in profileObject['Item']:
-            profileObject['Item']['balance'] = ""
+            profileObject['Item']['balance'] = '0.00'
 
         return profileObject['Item']
 
@@ -107,6 +115,10 @@ def loadProfile(dynamodb, sub, email, facebook):
                                  "gravatarEmail, facebookUrl, consent, history, balance"
         )
 
+        print("profilequery")
+        print(profileQuery)
+        print("")
+
         if profileQuery['Count'] > 0:
             userId = profileQuery['Items'][0]['userId']
             subTable.put_item(
@@ -119,41 +131,45 @@ def loadProfile(dynamodb, sub, email, facebook):
             if 'history' not in profileObject['Items'][0]:
                 profileObject['Items'][0]['history'] = []
             if 'balance' not in profileObject['Items'][0]:
-                profileObject['Items'][0]['balance'] = ""
+                profileObject['Items'][0]['balance'] = "0.00"
 
             return profileQuery['Items'][0]
-    else:
-        created = datetime.utcnow().isoformat()
-        userId = str(uuid.uuid1())
+        else:
+            created = datetime.utcnow().isoformat()
+            userId = str(uuid.uuid1())
 
-        if email == "":
-            email = userId + "@sudocoins.com"
+            if email == "":
+                email = userId + "@sudocoins.com"
 
-        subTable.put_item(
-            Item={
-                "sub": sub,
-                "userId": userId
+            print("sub data")
+            print(sub)
+            print(userId)
+
+            subTable.put_item(
+                Item={
+                    "sub": sub,
+                    "userId": userId
+                }
+            )
+
+            profile = {
+                "active": True,
+                "email": email,
+                "signupDate": created,
+                "userId": userId,
+                "currency": "usd",
+                "gravatarEmail": email,
+                "facebookUrl": facebook,
+                "consent": "",
+                "history": [],
+                "balance": "0.00"
             }
-        )
 
-        profile = {
-            "active": True,
-            "email": email,
-            "signupDate": created,
-            "userId": userId,
-            "currency": "usd",
-            "gravatarEmail": email,
-            "facebookUrl": facebook,
-            "consent": "",
-            "history": [],
-            "balance": str("0.00")
-        }
+            profileTable.put_item(
+                Item=profile
+            )
 
-        profileTable.put_item(
-            Item=profile
-        )
-
-        return profile
+            return profile
 
 
 def getConfig(dynamodb):
