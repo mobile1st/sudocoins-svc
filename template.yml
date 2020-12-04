@@ -147,12 +147,12 @@ Resources:
       FunctionName: processOrder
       CodeUri: ./src/ecommerce
 
-  addWallet:
+  setWallet:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: addWallet.lambda_handler
+      Handler: setWallet.lambda_handler
       Runtime: python3.8
-      FunctionName: addWallet
+      FunctionName: setWallet
       CodeUri: ./src/ecommerce
 
   wyreCallback:
