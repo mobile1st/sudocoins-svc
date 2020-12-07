@@ -12,10 +12,10 @@ def lambda_handler(event, context):
     # begin testing configuration access
     config = Configuration(dynamodb)
     try:
-        print('config for test buyer=%s', config.buyer('test'))
-        print('config publicBuyers=%s', config.public_buyers())
+        print('config buyer(''test'')=', vars(config.buyer('test')))
+        print('config publicBuyers=', config.public_buyers())
     except Exception as e:
-        print('Config read exception: ', e)
+        print('config read exception.', e)
     # end testing configuration access
 
     sub = event['sub']
