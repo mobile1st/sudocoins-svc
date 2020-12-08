@@ -96,7 +96,7 @@ class History:
             if 'started' in i:
                 utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                i['epochTime'] = epochTime
+                i['epochTime'] = str(epochTime)
 
         return transactions
 
