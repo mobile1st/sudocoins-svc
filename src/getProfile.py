@@ -3,30 +3,35 @@ from datetime import datetime
 import uuid
 from decimal import *
 import json
+
+
 # from configuration import Configuration
 
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
-    jsonInput = json.loads(event['body'])
-    # . jsonInput = event['body']
+    # . jsonInput = json.loads(event['body'])
+    jsonInput = event
 
+    # begin testing configuration access
     # config = Configuration(dynamodb)
     # try:
-    #     print('config buyer(''test'')=', vars(config.buyer('test')))
-    #     print('config publicBuyers=', config.public_buyers())
+    #     print('config for test buyer=%s', config.buyer('test'))
+    #     print('config publicBuyers=%s', config.public_buyers())
     # except Exception as e:
-    #     print('config read exception.', e)
+    #     print('Config read exception: ', e)
     # end testing configuration access
 
     if 'sub' in jsonInput:
         sub = jsonInput['sub']
     else:
         sub = ""
+
     if 'email' in jsonInput:
         email = jsonInput['email']
     else:
         email = ""
+
     if 'facebookUrl' in jsonInput:
         facebook = jsonInput['facebookUrl']
     else:
@@ -72,11 +77,11 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': json.dumps({
+        'body': {
             "profile": profile,
             "tiles": tiles,
             "rate": str(rate)
-        })
+        }
     }
 
 

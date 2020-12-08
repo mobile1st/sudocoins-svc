@@ -96,7 +96,7 @@ class History:
             if 'started' in i:
                 utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                i['epochTime'] = str(epochTime)
+                i['epochTime'] = int(epochTime)
 
         return transactions
 
@@ -122,7 +122,7 @@ class History:
                 if 'lastUpdate' in i:
                     utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
                     epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                    i['epochTime'] = epochTime
+                    i['epochTime'] = int(epochTime)
 
                 if 'payoutType' in i:
                     if i['payoutType'] == 'Bitcoin':
