@@ -8,7 +8,11 @@ class Configuration:
         self.take_survey_config = None
 
     def buyer(self, name):
+<<<<<<< HEAD
         buyers = self._get_take_survey_key()
+=======
+        buyers, _ = self._get_take_survey_key()
+>>>>>>> 45d37e8f1c613fba5c5a9c403fa78aa83b30777c
         return buyers[name]
 
     def public_buyers(self):
@@ -42,7 +46,11 @@ class Configuration:
         row = config.get_item(Key={'configKey': 'TakeSurveyPage'})
         take_survey = row["Item"]["configValue"]
         buyers = {}
+<<<<<<< HEAD
         for name, cfg in take_survey["buyer"]:
+=======
+        for name, cfg in take_survey["buyer"].items():
+>>>>>>> 45d37e8f1c613fba5c5a9c403fa78aa83b30777c
             buyers[name] = BuyerConfiguration(cfg)
 
         return buyers, take_survey["publicBuyers"]
@@ -50,6 +58,7 @@ class Configuration:
 
 class BuyerConfiguration:
     def __init__(self, settings):
+<<<<<<< HEAD
         self.surveyStatus = settings['surveyStatus']
         self.secretKey = settings['secretKey']
         self.revShare = settings['revShare']
@@ -63,4 +72,19 @@ class BuyerConfiguration:
         self.iconLocation = settings['iconLocation']
         self.parameters = settings['parameters']
         self.updatedAt = settings['updatedAt']
+=======
+        self.surveyStatus = settings.get('surveyStatus')
+        self.secretKey = settings.get('secretKey')
+        self.revShare = settings.get('revShare')
+        self.defaultCpi = settings.get('defaultCpi')
+        self.buyerId = settings.get('buyerId')
+        self.url = settings.get('url')
+        self.createdAt = settings.get('createdAt')
+        self.maxCpi = settings.get('maxCpi')
+        self.appId = settings.get('appId')
+        self.name = settings.get('name')
+        self.iconLocation = settings.get('iconLocation')
+        self.parameters = settings.get('parameters')
+        self.updatedAt = settings.get('updatedAt')
+>>>>>>> 45d37e8f1c613fba5c5a9c403fa78aa83b30777c
 

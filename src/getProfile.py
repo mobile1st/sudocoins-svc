@@ -2,97 +2,76 @@ import boto3
 from datetime import datetime
 import uuid
 from decimal import *
-import json
-
-
-# from configuration import Configuration
 
 
 def lambda_handler(event, context):
-    dynamodb = boto3.resource('dynamodb')
-    jsonInput = json.loads(event['body'])
-    # . jsonInput = event['body']
+    print(event)
 
-    # begin testing configuration access
-    # config = Configuration(dynamodb)
-    # try:
-    #     print('config for test buyer=%s', config.buyer('test'))
-    #     print('config publicBuyers=%s', config.public_buyers())
-    # except Exception as e:
-    #     print('Config read exception: ', e)
-    # end testing configuration access
-
-    if 'sub' in jsonInput:
-        sub = jsonInput['sub']
-    else:
-        sub = ""
-
-    if 'email' in jsonInput:
-        email = jsonInput['email']
+    sub = event['sub']
+    if 'email' in event:
+        email = event['email']
     else:
         email = ""
-
-    if 'facebookUrl' in jsonInput:
-        facebook = jsonInput['facebookUrl']
+    if 'facebookUrl' in event:
+        facebook = event['facebookUrl']
     else:
         facebook = ""
 
-    global profile
-
     try:
-        if sub != "":
-            print("about to load profile")
-            profile = loadProfile(dynamodb, sub, email, facebook)
-            print("profile loaded")
-            userId = profile['userId']
-        else:
-            profile = {}
-            userId = ""
+        print("about to load profile")
+        profile = loadProfile(sub, email, facebook)
+        print("profile loaded")
 
     except Exception as e:
         print("issue loading profile")
-        # profile.update(history = [])
-        # profile.update(balance = "")
-        profile = {}
-        userId = ""
+        profile = []
+        profile['history'] = []
+        profile['balance'] = ""
         print(e)
 
     try:
         print("about to get config")
-        config = getConfig(dynamodb)
+        config = getConfig()
         print("config loaded")
-
         rate = getRate(config)
-
-        print("about to get tiles from config")
-        tiles = getTiles(userId, config)
-        print("tiles loaded")
+        print("about to get surveys from config")
+        surveys = getSurveys(profile['userId'], config)
+        print("surveys loaded")
 
     except Exception as e:
         rate = '1'
-        tiles = []
-        print('failed to load tiles')
+        surveys = []
+        print('failed to load surveys')
 
     print("about to return the entire response")
-
     return {
         'statusCode': 200,
-        'body': json.dumps({
+        'body': {
             "profile": profile,
-            "tiles": tiles,
-            "rate": str(rate)
-        })
+            "surveys": surveys,
+            "rate": rate
+        }
     }
 
 
-def loadProfile(dynamodb, sub, email, facebook):
+def loadProfile(sub, email, facebook):
+    """Fetches user preferences for the Profile page.
+    Argument: userId. This may change to email or cognito sub id .
+    Returns: a dict mapping user attributes to their values.
+    """
+    dynamodb = boto3.resource('dynamodb')
+
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
+
     subResponse = subTable.get_item(Key={'sub': sub})
 
     if 'Item' in subResponse:
+
         print("founder userId matching sub")
+
         userId = subResponse['Item']['userId']
+
         profileObject = profileTable.get_item(
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
@@ -101,9 +80,8 @@ def loadProfile(dynamodb, sub, email, facebook):
 
         if 'history' not in profileObject['Item']:
             profileObject['Item']['history'] = []
-
         if 'balance' not in profileObject['Item']:
-            profileObject['Item']['balance'] = '0.00'
+            profileObject['Item']['balance'] = ""
 
         return profileObject['Item']
 
@@ -131,46 +109,47 @@ def loadProfile(dynamodb, sub, email, facebook):
             if 'history' not in profileObject['Items'][0]:
                 profileObject['Items'][0]['history'] = []
             if 'balance' not in profileObject['Items'][0]:
-                profileObject['Items'][0]['balance'] = "0.00"
+                profileObject['Items'][0]['balance'] = ""
 
             return profileQuery['Items'][0]
-        else:
-            created = datetime.utcnow().isoformat()
-            userId = str(uuid.uuid1())
+    else:
+        created = datetime.utcnow().isoformat()
+        userId = str(uuid.uuid1())
 
-            if email == "":
-                email = userId + "@sudocoins.com"
+        if email == "":
+            email = userId + "@sudocoins.com"
 
-            subTable.put_item(
-                Item={
-                    "sub": sub,
-                    "userId": userId
-                }
-            )
-
-            profile = {
-                "active": True,
-                "email": email,
-                "signupDate": created,
-                "userId": userId,
-                "currency": "usd",
-                "gravatarEmail": email,
-                "facebookUrl": facebook,
-                "consent": "",
-                "history": [],
-                "balance": "0.00"
+        subTable.put_item(
+            Item={
+                "sub": sub,
+                "userId": userId
             }
+        )
 
-            profileTable.put_item(
-                Item=profile
-            )
+        profile = {
+            "active": True,
+            "email": email,
+            "signupDate": created,
+            "userId": userId,
+            "currency": "usd",
+            "gravatarEmail": email,
+            "facebookUrl": facebook,
+            "consent": "",
+            "history": [],
+            "balance": str("0.00")
+        }
 
-            return profile
+        profileTable.put_item(
+            Item=profile
+        )
+
+        return profile
 
 
-def getConfig(dynamodb):
+def getConfig():
+    dynamodb = boto3.resource('dynamodb')
     configTable = dynamodb.Table('Config')
-    configKey = "HomePage"
+    configKey = "TakeSurveyPage"
 
     response = configTable.get_item(Key={'configKey': configKey})
     config = response['Item']
@@ -179,37 +158,30 @@ def getConfig(dynamodb):
 
 
 def getRate(config):
-    rate = str(config['rate'])
+    rate = config['rate']
     return rate
 
 
-def getTiles(userId, config):
+def getSurveys(userId, config):
     rate = Decimal('.01')
     precision = 2
 
+    url = "https://cesyiqf0x6.execute-api.us-west-2.amazonaws.com/prod/SudoCoinsTakeSurvey?"
+
     buyerObject = []
     for i in config['configValue']['publicBuyers']:
-        buyerObject.append(config['configValue']["buyers"][i])
+        buyerObject.append(config['configValue']["buyer"][i])
 
-    tiles = []
+    surveys = []
     for i in buyerObject:
         buyer = {
             "name": i["name"],
-            "type": i['type'],
-            "title": i["title"],
-            "imgUrl": i["imgUrl"]
+            "iconLocation": i["iconLocation"],
+            "incentive": str((Decimal(i["defaultCpi"]) * rate * Decimal(i['revShare'])).quantize(
+                Decimal('10') ** ((-1) * int(precision)))),
+            "url": url + "buyerName=" + i["name"] + "&userId=" + userId
         }
+        surveys.append(buyer)
 
-        if userId == "":
-            url = i["urlGuest"]
-            buyer["url"] = url
-
-        else:
-            url = i['urlAuth']
-            buyer["url"] = url
-
-        tiles.append(buyer)
-
-    return tiles
-
+    return surveys
 
