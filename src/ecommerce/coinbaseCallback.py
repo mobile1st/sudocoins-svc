@@ -6,10 +6,12 @@ from decimal import *
 
 def lambda_handler(event, context):
     print(event)
+    coinbaseEvent = event['body']['event']
 
-    # parse event. Will it provide walletId or srn? Do we need to do a lookup?
-    # save status
-    # updateOrder(status)
+    orderId = coinbaseEvent['data']['metadata']['customer_id']
+    orderStatus = coinbaseEvent['type']
+
+    updateOrder(orderId, orderStatus)
 
     return {
         "statusCode": 200,
@@ -17,19 +19,17 @@ def lambda_handler(event, context):
     }
 
 
-def updateOrder(status):
+def updateOrder(orderId, orderStatus):
     dynamodb = boto3.resource('dynamodb')
     ordersTable = dynamodb.Table('orders')
-    '''
+
     ordersTable.update_item(
         Key={
             "orderId": orderId
         },
-        UpdateExpression="set walletId=:wid, walletAdrress=:wad",
+        UpdateExpression="set statusCode=:sc",
         ExpressionAttributeValues={
-            ":wid": walletId,
-            ":wad": walletAddress
+            ":sc": orderStatus
         },
         ReturnValues="ALL_NEW"
     )
-    '''

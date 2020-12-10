@@ -43,8 +43,7 @@ def lambda_handler(event, context):
         orderRecord = {
             "userId": userId,
             "orderId": orderId,
-            "statusCode": 1,
-            "statusMessage": "charge:created",
+            "statusCode": "charge:created",
             "created": charge['created_at'],
             "expires": charge['expires_at'],
             "amountUsd": event['amountUsd'],
