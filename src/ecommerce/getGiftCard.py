@@ -6,6 +6,7 @@ def lambda_handler(event, context):
 
     try:
         buyerName = event['buyerName']
+        print(buyerName)
         dynamodb = boto3.resource('dynamodb')
         buyer, currencies = getConfig(dynamodb, buyerName)
         giftCard = {
@@ -23,10 +24,10 @@ def lambda_handler(event, context):
         return response
 
     except Exception as e:
+        print(e)
         response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
+            "statusCode": 200,
+            "body": "No buyer with name" + event['buyerName']
         }
 
         return response

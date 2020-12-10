@@ -128,10 +128,10 @@ def loadProfile(dynamodb, sub, email, facebook):
                 }
             )
 
-            if 'history' not in profileObject['Items'][0]:
-                profileObject['Items'][0]['history'] = []
-            if 'balance' not in profileObject['Items'][0]:
-                profileObject['Items'][0]['balance'] = "0.00"
+            if 'history' not in profileQuery['Items'][0]:
+                profileQuery['Items'][0]['history'] = []
+            if 'balance' not in profileQuery['Items'][0]:
+                profileQuery['Items'][0]['balance'] = "0.00"
 
             return profileQuery['Items'][0]
         else:
@@ -186,9 +186,6 @@ def getRate(config):
 
 def getTiles(userId, config):
     try:
-        rate = Decimal('.01')
-        precision = 2
-
         buyerObject = []
         for i in config['configValue']['publicBuyers']:
             buyerObject.append(config['configValue']["buyers"][i])

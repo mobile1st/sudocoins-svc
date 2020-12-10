@@ -1,2 +1,3 @@
 requests
 scraperapi-sdk
+coinbase-commerce

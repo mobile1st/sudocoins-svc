@@ -1,61 +1,66 @@
 import boto3
-from datetime import datetime
 import uuid
-from decimal import *
-import json
+from coinbase_commerce.client import Client
+import os
 
 
 def lambda_handler(event, context):
     print(event)
+    API_KEY = os.environ["keyId"]
+    client = Client(api_key=API_KEY)
 
     try:
         if 'sub' in event:
             sub = event['sub']
             userId = getUserId(sub)
-            if 'sourceIp' in event['requestContext']['identity']:
-                ip = event['requestContext']['identity']
         else:
-            if 'sourceIp' in event['requestContext']['identity']:
-                userId = event['requestContext']['identity']['sourceIp']
-                ip = event['requestContext']['identity']['sourceIp']
-            else:
-                userId = str(uuid.uuid1())
-                ip = ""
+            userId = str(uuid.uuid1())
+
+        if 'ip' in event:
+            ip = event['ip']
+        else:
+            ip = ""
 
         orderId = str(uuid.uuid1())
-        created = str(datetime.utcnow().isoformat())
-        amountCurrency = ((Decimal(event['body']['amountUsd'])) * (Decimal(event['body']['rate']))).quantize(
-            Decimal('10') ** ((-1) * int(8)))
+
+        charge = client.charge.create(name=event['title'],
+                                      description=event['description'],
+                                      pricing_type='fixed_price',
+                                      local_price={
+                                          "amount": event['amountUsd'],
+                                          "currency": "USD"
+                                      },
+                                      metadata={
+                                          "customer_id": orderId,
+                                          "customer_name": event['userId']
+
+                                      },
+                                      redirect_url='https://sudocoins.com',
+                                      cancel_url='https://sudocoins.com')
 
         orderRecord = {
             "userId": userId,
             "orderId": orderId,
-            "statusCode": 2,
-            "statusMessage": "Payment needed",
-            "created": created,
-            "started": created,
-            "end": created + datetime.timedelta(minutes=15),
-            "amountUsd": event['body']['amountUsd'],
-            "amountCurrency": amountCurrency,
-            "currency": event['body']['currency'],
-            "rate": event['body']['rate'],
+            "statusCode": 1,
+            "statusMessage": "charge:created",
+            "created": charge['created_at'],
+            "expires": charge['expires_at'],
+            "amountUsd": event['amountUsd'],
             "shippingState": "false",
-            "shippingAddress": "",
-            "ip": ip
+            "ip": ip,
+            "chargeId": charge['id'],
+            "coinbase": charge
 
-        }
-
-        wyreBody = {
-            "orderId": orderId,
-            "currency": event['body']['currency']
         }
 
         createOrder(orderRecord)
-        pushMsg(wyreBody)
+
 
         response = {
             "statusCode": 200,
-            "body": "Order created. Redirect to Payment page."
+            "body": {
+                "purchaseUrl": charge['hosted_url']
+            }
         }
 
         return response
@@ -80,12 +85,6 @@ def getUserId(sub):
         userId = subResponse['Item']['userId']
 
         return userId
-
-
-def pushMsg(msgValue):
-    sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName='createWallet.fifo')
-    queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='newWallet')
 
 
 def createOrder(orderRecord):
