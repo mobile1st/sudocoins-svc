@@ -62,7 +62,7 @@ def lambda_handler(event, context):
         config = getConfig(dynamodb)
         print("config loaded")
 
-        rate, rates = getRate(config)
+        rate = getRate(config)
 
         print("about to get tiles from config")
         tiles = getTiles(userId, config)
@@ -80,8 +80,7 @@ def lambda_handler(event, context):
         'body': {
             "profile": profile,
             "tiles": tiles,
-            "rate": str(rate),
-            "rates": rates
+            "rate": str(rate)
         }
     }
 
@@ -181,8 +180,8 @@ def getConfig(dynamodb):
 
 def getRate(config):
     rate = str(config['rate'])
-    rates = config['rates']
-    return rate, rates
+
+    return rate
 
 
 def getTiles(userId, config):
@@ -196,7 +195,6 @@ def getTiles(userId, config):
 
         tiles = []
         for i in buyerObject:
-            print(i)
             if i['type'] == "survey":
                 buyer = {
                     "name": i["name"],
@@ -209,8 +207,7 @@ def getTiles(userId, config):
                     "name": i["name"],
                     "type": i['type'],
                     "title": i["title"],
-                    "imgUrl": i["imgUrl"],
-                    "paymentOptions": i['options']
+                    "imgUrl": i["imgUrl"]
                 }
 
             if userId == "":
