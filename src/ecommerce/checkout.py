@@ -51,7 +51,8 @@ def lambda_handler(event, context):
             "shippingState": "false",
             "ip": ip,
             "chargeId": charge['id'],
-            "coinbase": charge
+            "coinbase": charge,
+            "email": event['email']
 
         }
 
