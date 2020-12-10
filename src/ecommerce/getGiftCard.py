@@ -11,7 +11,8 @@ def lambda_handler(event, context):
         buyer, currencies = getConfig(dynamodb, buyerName)
         giftCard = {
             "name": buyer['name'],
-            "description": buyer["title"],
+            "description": buyer["description"],
+            "title": buyer['productTitle'],
             "type": buyer['type'],
             "amounts": buyer['amounts'],
             "currencies": currencies
