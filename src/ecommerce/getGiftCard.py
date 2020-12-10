@@ -5,16 +5,19 @@ import json
 def lambda_handler(event, context):
 
     try:
-        buyerName = event['pathParameters']['buyerName']
+        buyerName = event['buyerName']
         dynamodb = boto3.resource('dynamodb')
-        buyer, rates = getConfig(dynamodb, buyerName)
+        buyer, currencies = getConfig(dynamodb, buyerName)
         giftCard = {
-            "buyer": buyer,
-            "rates": rates
+            "name": buyer['name'],
+            "description": buyer["title"],
+            "type": buyer['type'],
+            "amounts": buyer['amounts'],
+            "currencies": currencies
         }
         response = {
             "statusCode": 200,
-            "body": json.dumps(giftCard)
+            "body": giftCard
         }
 
         return response
@@ -36,6 +39,6 @@ def getConfig(dynamodb, buyerName):
 
     config = response['Item']
     buyer = config['configValue']['buyers'][buyerName]
-    rates = config['rates']
+    rates = config['currencies']
 
     return buyer, rates
