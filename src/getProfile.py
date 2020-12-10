@@ -62,7 +62,7 @@ def lambda_handler(event, context):
         config = getConfig(dynamodb)
         print("config loaded")
 
-        rate = getRate(config)
+        rate, rates = getRate(config)
 
         print("about to get tiles from config")
         tiles = getTiles(userId, config)
@@ -80,7 +80,8 @@ def lambda_handler(event, context):
         'body': {
             "profile": profile,
             "tiles": tiles,
-            "rate": str(rate)
+            "rate": str(rate),
+            "rates": rates
         }
     }
 
@@ -180,36 +181,51 @@ def getConfig(dynamodb):
 
 def getRate(config):
     rate = str(config['rate'])
-    return rate
+    rates = config['rates']
+    return rate, rates
 
 
 def getTiles(userId, config):
-    rate = Decimal('.01')
-    precision = 2
+    try:
+        rate = Decimal('.01')
+        precision = 2
 
-    buyerObject = []
-    for i in config['configValue']['publicBuyers']:
-        buyerObject.append(config['configValue']["buyers"][i])
+        buyerObject = []
+        for i in config['configValue']['publicBuyers']:
+            buyerObject.append(config['configValue']["buyers"][i])
 
-    tiles = []
-    for i in buyerObject:
-        buyer = {
-            "name": i["name"],
-            "type": i['type'],
-            "title": i["title"],
-            "imgUrl": i["imgUrl"]
-        }
+        tiles = []
+        for i in buyerObject:
+            print(i)
+            if i['type'] == "survey":
+                buyer = {
+                    "name": i["name"],
+                    "type": i['type'],
+                    "title": i["title"],
+                    "imgUrl": i["imgUrl"]
+                }
+            elif i['type'] == 'giftCard':
+                buyer = {
+                    "name": i["name"],
+                    "type": i['type'],
+                    "title": i["title"],
+                    "imgUrl": i["imgUrl"],
+                    "paymentOptions": i['options']
+                }
 
-        if userId == "":
-            url = i["urlGuest"]
-            buyer["url"] = url
+            if userId == "":
+                url = i["urlGuest"]
+                buyer["url"] = url
 
-        else:
-            url = i['urlAuth']
-            buyer["url"] = url
+            else:
+                url = i['urlAuth']
+                buyer["url"] = url
 
-        tiles.append(buyer)
+            tiles.append(buyer)
 
-    return tiles
+        return tiles
+
+    except Exception as e:
+        print(e)
 
 

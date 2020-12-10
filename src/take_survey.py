@@ -70,9 +70,6 @@ def getSurveyObject(buyerName):
 
 
 def generateEntryUrl(params, transactionId, ip):
-    """Generates entry url that redirects user to the buyer's platform
-    Arguments: event params including userId and buyerName, transactionId generated, ip
-    Returns: redirect url"""
 
     dynamodb = boto3.resource('dynamodb')
     userId = params["userId"]

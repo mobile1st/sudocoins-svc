@@ -1,9 +1,9 @@
 from decimal import Decimal
+import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
 import uuid
-
 
 
 class History:
