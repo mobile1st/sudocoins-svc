@@ -7,7 +7,6 @@ import os
 def lambda_handler(event, context):
     print(event)
     key = os.environ["keyId"]
-    #key = '952db934745d57dcbd7a1610ad3b7e4e'
     print(key)
 
     try:

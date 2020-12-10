@@ -199,24 +199,31 @@ def getTiles(userId, config):
                 buyer = {
                     "name": i["name"],
                     "type": i['type'],
-                    "title": i["title"],
-                    "imgUrl": i["imgUrl"]
+                    "title": i["title"]
                 }
+
+                if userId == "":
+                    url = i["urlGuest"]
+                    buyer["url"] = url
+
+                else:
+                    url = i['urlAuth']
+                    buyer["url"] = url + "userId=" + userId + "&buyerName=" + buyer['name']
+
             elif i['type'] == 'giftCard':
                 buyer = {
                     "name": i["name"],
                     "type": i['type'],
-                    "title": i["title"],
-                    "imgUrl": i["imgUrl"]
+                    "title": i["title"]
                 }
 
-            if userId == "":
-                url = i["urlGuest"]
-                buyer["url"] = url
+                if userId == "":
+                    url = i["urlGuest"]
+                    buyer["url"] = url
 
-            else:
-                url = i['urlAuth']
-                buyer["url"] = url
+                else:
+                    url = i['urlAuth']
+                    buyer["url"] = url
 
             tiles.append(buyer)
 
