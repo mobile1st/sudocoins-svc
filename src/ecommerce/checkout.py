@@ -32,11 +32,13 @@ def lambda_handler(event, context):
                                       },
                                       metadata={
                                           "customer_id": orderId,
-                                          "customer_name": event['userId']
+                                          "customer_name": userId
 
                                       },
                                       redirect_url='https://sudocoins.com',
                                       cancel_url='https://sudocoins.com')
+
+        print(charge)
 
         orderRecord = {
             "userId": userId,
@@ -54,7 +56,6 @@ def lambda_handler(event, context):
         }
 
         createOrder(orderRecord)
-
 
         response = {
             "statusCode": 200,
