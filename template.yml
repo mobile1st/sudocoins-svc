@@ -123,42 +123,10 @@ Resources:
       FunctionName: getGiftCard
       CodeUri: ./src/ecommerce
 
-  setShippingFunction:
+  coinbaseCallback:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: setShipping.lambda_handler
+      Handler: coinbaseCallback.lambda_handler
       Runtime: python3.8
-      FunctionName: setShipping
-      CodeUri: ./src/ecommerce
-
-  checkOrder:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: checkOrder.lambda_handler
-      Runtime: python3.8
-      FunctionName: checkOrder
-      CodeUri: ./src/ecommerce
-
-  processOrder:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: processOrder.lambda_handler
-      Runtime: python3.8
-      FunctionName: processOrder
-      CodeUri: ./src/ecommerce
-
-  setWallet:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: setWallet.lambda_handler
-      Runtime: python3.8
-      FunctionName: setWallet
-      CodeUri: ./src/ecommerce
-
-  wyreCallback:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: wyreCallback.lambda_handler
-      Runtime: python3.8
-      FunctionName: wyreCallback
+      FunctionName: coinbaseCallback
       CodeUri: ./src/ecommerce
