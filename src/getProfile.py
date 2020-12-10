@@ -211,7 +211,7 @@ def getTiles(userId, config):
                 buyer = {
                     "name": i["name"],
                     "type": i['type'],
-                    "title": i["title"]
+                    "title": i["tileTitle"]
                 }
 
                 if userId == "":
