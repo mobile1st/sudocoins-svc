@@ -22,6 +22,7 @@ def lambda_handler(event, context):
             ip = ""
 
         orderId = str(uuid.uuid1())
+        print(orderId)
 
         charge = client.charge.create(name=event['title'],
                                       description=event['description'],
@@ -47,6 +48,7 @@ def lambda_handler(event, context):
             "created": charge['created_at'],
             "expires": charge['expires_at'],
             "amountUsd": event['amountUsd'],
+            "productName": event['buyerName'],
             "shippingState": "false",
             "ip": ip,
             "chargeId": charge['id'],

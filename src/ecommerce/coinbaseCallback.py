@@ -2,16 +2,24 @@ import boto3
 from datetime import datetime
 import uuid
 from decimal import *
+import json
 
 
 def lambda_handler(event, context):
     print(event)
-    coinbaseEvent = event['body']['event']
+    try:
+        coinbase = json.loads(event['body'])
+        print(coinbase)
+        coinbaseEvent = coinbase['event']
+        print(coinbaseEvent)
 
-    orderId = coinbaseEvent['data']['metadata']['customer_id']
-    orderStatus = coinbaseEvent['type']
+        orderId = coinbaseEvent['data']['metadata']['customer_id']
+        orderStatus = coinbaseEvent['type']
 
-    updateOrder(orderId, orderStatus)
+        updateOrder(orderId, orderStatus)
+
+    except Exception as e:
+        print(e)
 
     return {
         "statusCode": 200,
