@@ -12,6 +12,7 @@ def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     # . jsonInput = json.loads(event['body'])
     jsonInput = event
+    print(event)
 
     # begin testing configuration access
     # config = Configuration(dynamodb)
@@ -89,6 +90,8 @@ def loadProfile(dynamodb, sub, email, facebook):
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': sub})
+    print(subResponse)
+    print(email)
 
     if 'Item' in subResponse:
         print("founder userId matching sub")
@@ -134,38 +137,38 @@ def loadProfile(dynamodb, sub, email, facebook):
                 profileQuery['Items'][0]['balance'] = "0.00"
 
             return profileQuery['Items'][0]
-        else:
-            created = datetime.utcnow().isoformat()
-            userId = str(uuid.uuid1())
+    else:
+        created = datetime.utcnow().isoformat()
+        userId = str(uuid.uuid1())
 
-            if email == "":
-                email = userId + "@sudocoins.com"
+        if email == "":
+            email = userId + "@sudocoins.com"
 
-            subTable.put_item(
-                Item={
-                    "sub": sub,
-                    "userId": userId
-                }
-            )
-
-            profile = {
-                "active": True,
-                "email": email,
-                "signupDate": created,
-                "userId": userId,
-                "currency": "usd",
-                "gravatarEmail": email,
-                "facebookUrl": facebook,
-                "consent": "",
-                "history": [],
-                "balance": "0.00"
+        subTable.put_item(
+            Item={
+                "sub": sub,
+                "userId": userId
             }
+        )
 
-            profileTable.put_item(
-                Item=profile
-            )
+        profile = {
+            "active": True,
+            "email": email,
+            "signupDate": created,
+            "userId": userId,
+            "currency": "usd",
+            "gravatarEmail": email,
+            "facebookUrl": facebook,
+            "consent": "",
+            "history": [],
+            "balance": "0.00"
+        }
 
-            return profile
+        profileTable.put_item(
+            Item=profile
+        )
+
+        return profile
 
 
 def getConfig(dynamodb):

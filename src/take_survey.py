@@ -25,12 +25,21 @@ def lambda_handler(event, context):
             subResponse = subTable.get_item(Key={'sub': params['sub']})
             userId = subResponse['Item']['userId']
         else:
-            response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps({})}
+            response = {
+                "statusCode": 302,
+                "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+                "body": json.dumps({})
+            }
             return response
 
     except Exception as e:
         print(e)
-        response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps({})}
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+            "body": json.dumps({})
+        }
+
         return response
 
     try:
@@ -41,8 +50,13 @@ def lambda_handler(event, context):
 
     except Exception as e:
         print(e)
-        print("error during insertTransactionRecord")
-        pass
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+            "body": json.dumps({})
+        }
+
+        return response
 
     try:
         entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip)
@@ -54,9 +68,11 @@ def lambda_handler(event, context):
 
     except Exception as e:
         print(e)
-        print("error. Redirecting user back to profile page")
-        response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps({})}
-
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+            "body": json.dumps({})
+        }
         return response
 
 
