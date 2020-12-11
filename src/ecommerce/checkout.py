@@ -49,7 +49,6 @@ def lambda_handler(event, context):
             "expires": charge['expires_at'],
             "amountUsd": event['amountUsd'],
             "productName": event['buyerName'],
-            "shippingState": "false",
             "ip": ip,
             "chargeId": charge['id'],
             "coinbase": charge,
