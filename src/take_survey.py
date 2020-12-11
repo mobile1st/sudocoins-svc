@@ -8,12 +8,35 @@ import history
 
 def lambda_handler(event, context):
     params = event["queryStringParameters"]
-    ip = event['requestContext']['identity']['sourceIp']
+
+    try:
+        ip = event['requestContext']['identity']['sourceIp']
+    except Exception as e:
+        ip = ""
+
+    print(ip)
+
+    try:
+        if 'userId' in params:
+            userId = params['userId']
+        elif 'sub' in params:
+            dynamodb = boto3.resource('dynamodb')
+            subTable = dynamodb.Table('sub')
+            subResponse = subTable.get_item(Key={'sub': params['sub']})
+            userId = subResponse['Item']['userId']
+        else:
+            response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps({})}
+            return response
+
+    except Exception as e:
+        print(e)
+        response = {"statusCode": 302, "headers": {'Location': 'sudocoins.com/?msg=error'}, "body": json.dumps({})}
+        return response
 
     try:
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
-        data = transaction.insertTransactionRecord(params['userId'], params['buyerName'], ip)
+        data = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
         print("transaction record inserted")
 
     except Exception as e:
@@ -22,7 +45,7 @@ def lambda_handler(event, context):
         pass
 
     try:
-        entryUrl = generateEntryUrl(params, data["transactionId"], ip)
+        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip)
         print("entryUrl generated")
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
@@ -69,11 +92,8 @@ def getSurveyObject(buyerName):
     return None
 
 
-def generateEntryUrl(params, transactionId, ip):
-
+def generateEntryUrl(userId, buyerName, transactionId, ip):
     dynamodb = boto3.resource('dynamodb')
-    userId = params["userId"]
-    buyerName = params["buyerName"]
 
     survey = getSurveyObject(buyerName)
     if survey is None:
