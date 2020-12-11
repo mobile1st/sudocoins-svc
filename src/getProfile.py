@@ -201,7 +201,7 @@ def getTiles(userId, config):
 
                 if userId == "":
                     url = i["urlGuest"]
-                    buyer["url"] = url
+                    buyer["url"] = url + "buyerName=" + buyer['name']
 
                 else:
                     url = i['urlAuth']
