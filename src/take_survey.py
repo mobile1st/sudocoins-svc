@@ -7,12 +7,29 @@ import history
 
 
 def lambda_handler(event, context):
-    params = event["queryStringParameters"]
+    print(event)
+
+    try:
+        params = event["queryStringParameters"]
+    except Exception as e:
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+            "body": json.dumps({})
+        }
+
+        return response
 
     try:
         ip = event['requestContext']['identity']['sourceIp']
     except Exception as e:
         ip = ""
+
+    try:
+        headers = event['headers']
+        cc = parseAccLang(headers)
+    except Exception as e:
+        cc = ""
 
     print(ip)
 
@@ -59,7 +76,7 @@ def lambda_handler(event, context):
         return response
 
     try:
-        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip)
+        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, cc)
         print("entryUrl generated")
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
@@ -108,7 +125,7 @@ def getSurveyObject(buyerName):
     return None
 
 
-def generateEntryUrl(userId, buyerName, transactionId, ip):
+def generateEntryUrl(userId, buyerName, transactionId, ip, cc):
     dynamodb = boto3.resource('dynamodb')
 
     survey = getSurveyObject(buyerName)
@@ -117,10 +134,22 @@ def generateEntryUrl(userId, buyerName, transactionId, ip):
 
     else:
         redirect = BuyerRedirect(dynamodb)
-        entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId)
+        entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, cc)
 
     return entryUrl
 
 
+def parseAccLang(headers):
+    acceptLanguage = headers['accept-language'][0]
+    part1 = acceptLanguage.split(',')[0]
+    country = part1.split('-')
+    cc = {}
+    if len(country) == 2:
+        cc['lang'] = country[0]
+        cc['cc'] = country[1]
+    else:
+        cc['lang'] = country[0]
+
+    return cc
 
 
