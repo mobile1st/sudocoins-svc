@@ -15,6 +15,7 @@ def lambda_handler(event, context):
             "title": buyer['productTitle'],
             "type": buyer['type'],
             "amounts": buyer['amounts'],
+            "cashBack": buyer['cashBack'],
             "currencies": currencies
         }
         response = {
