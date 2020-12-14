@@ -28,7 +28,6 @@ def lambda_handler(event, context):
         confirmHash = (hashlib.md5((transactionId + key).encode('utf-8'))).hexdigest()
         print("step 3")
         if txnHash == confirmHash:
-            print("yeah?")
             hashState = True
 
             msgValue = {
@@ -62,14 +61,6 @@ def lambda_handler(event, context):
             "headers": {},
             "body": 0
         }
-
-
-def pushMsg(msgValue):
-    sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-    record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
-
-    return record
 
 
 def pushMsg(msgValue):
