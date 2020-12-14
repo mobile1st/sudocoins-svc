@@ -296,7 +296,7 @@ class History:
             i["status"] = i['statusCode'][7:]
             i['amount'] = i['amountUsd']*100
             i['transactionId'] = i['orderId']
-            i['type'] = 'Gift Card'
+            i['type'] = 'Gift Card order'
 
         return orders
 
