@@ -129,7 +129,7 @@ Resources:
       Handler: coinbaseCallback.lambda_handler
       Runtime: python3.8
       FunctionName: coinbaseCallback
-      CodeUri: ./src/ecommerce
+      CodeUri: ./src
 
   verifyEmailFunction:
     Type: AWS::Serverless::Function

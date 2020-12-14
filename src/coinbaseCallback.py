@@ -3,13 +3,15 @@ import json
 import os
 import hmac
 import hashlib
+import history
 
 
 def lambda_handler(event, context):
     print(event)
 
     try:
-        state = checkSig(event)
+        #. state = checkSig(event)
+        state = True #. delete after testing
         if state:
             pass
 
@@ -28,11 +30,15 @@ def lambda_handler(event, context):
         }
 
     try:
+        '''
         coinbase = json.loads(event['body'])
         coinbaseEvent = coinbase['event']
 
         orderId = coinbaseEvent['data']['metadata']['customer_id']
         orderStatus = coinbaseEvent['type']
+        '''
+        orderId = "3d17ee4a-25-11eb-8acc-6542e93cfe93"
+        orderStatus = 'charge:confirmed'
 
         updateOrder(orderId, orderStatus)
 
