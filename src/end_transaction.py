@@ -27,11 +27,11 @@ def update(payload):
     dynamodb = boto3.resource('dynamodb')
     history = History(dynamodb)
 
-    if data["buyerName"] == 'cint':
+    if data["buyerName"] == 'cint' or data["buyerName"] == 'test':
         transactionId = data["queryStringParameters"]['t']
         surveyCode = data["queryStringParameters"]['c']
 
-    elif data["buyerName"] == 'peanutLabs':
+    elif data["buyerName"] == 'peanutLabs' or data["buyerName"] == 'dynata':
         transactionId = data["queryStringParameters"]['sub_id']
         surveyCode = data["queryStringParameters"]['status']
 
