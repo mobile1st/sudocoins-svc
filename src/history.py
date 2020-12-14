@@ -61,18 +61,26 @@ class History:
     def getHistory(self, userId):
         rate = Decimal('.01')
         precision = 2
+
         print("about to get ledger")
         ledger = self.getLedger(userId, rate, precision)
         print(ledger)
+
         print("about to get transaction")
         transactions = self.getTransactions(userId)
         print(transactions)
-        history = self.mergeHistory(ledger, transactions)
+
+        print("about to get orders")
+        orders = self.getOrders(userId)
+        print(orders)
+
+        print("about to merge")
+        history = self.mergeHistory(ledger, transactions, orders)
         print(history)
         return history
 
-    def mergeHistory(self, ledger, transactions):
-        history = ledger + transactions
+    def mergeHistory(self, ledger, transactions, orders):
+        history = ledger + transactions + orders
 
         history = sorted(history, key=lambda k: k['epochTime'], reverse=True)
         print("history sorted")
@@ -218,5 +226,78 @@ class History:
         self.updateProfile(userId)
 
         return transactionData
+
+
+    def createOrder(self, orderRecord):
+        ordersTable = self.dynamodb.Table('orders')
+        ordersTable.put_item(
+            Item=orderRecord
+        )
+
+
+    def updateOrder(self, orderId, orderStatus):
+        ordersTable = self.dynamodb.Table('orders')
+        response = ordersTable.update_item(
+            Key={
+                "orderId": orderId
+            },
+            UpdateExpression="set statusCode=:sc",
+            ExpressionAttributeValues={
+                ":sc": orderStatus
+            },
+            ReturnValues="ALL_NEW"
+        )
+
+        userId = response['Attributes']['userId']
+
+        if orderStatus == "charge:confirmed":
+            name = response['Attributes']['productName']
+            cashBack = response['Attributes']['cashBack']
+            transactionId = response['Attributes']['oderId']
+            amount = (Decimal(response['Attributes']['amountUsd']) * Decimal(cashBack)).quantize(
+                Decimal(10) ** ((-1) * 2))
+
+            ledgerTable = self.dynamodb.Table('Ledger')
+            ledgerTable.put_item(
+                Item={
+                    'userId': userId,
+                    'transactionId': transactionId,
+                    'amount': amount*100,
+                    'status': "Completed",
+                    'lastUpdate': datetime.utcnow().isoformat(),
+                    'type': 'Gift Card Cash Back',
+                    "name": name
+                }
+            )
+
+            self.updateProfile(userId)
+
+        else:
+            self.updateProfile(userId)
+
+
+
+    def getOrders(self, userId):
+        ordersTable = self.dynamodb.Table('orders')
+
+        orderHistory = ordersTable.query(
+            KeyConditionExpression=Key("userId").eq(userId),
+            ScanIndexForward=False,
+            IndexName='userId-index',
+            ProjectionExpression="orderId, created, amountUsd, statusCode")
+
+        orders = orderHistory["Items"]
+
+        for i in orders:
+            if 'created' in i:
+                utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
+                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                i['epochTime'] = int(epochTime)
+            i["status"] = i['statusCode'][7:]
+            i['amount'] = i['amountUsd']*100
+            i['transactionId'] = i['orderId']
+            i['type'] = 'Gift Card'
+
+        return orders
 
 

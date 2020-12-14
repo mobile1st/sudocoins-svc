@@ -52,7 +52,8 @@ def lambda_handler(event, context):
             "ip": ip,
             "chargeId": charge['id'],
             "coinbase": charge,
-            "email": event['email']
+            "email": event['email'],
+            "cashBack": event['buyerName']
 
         }
 
