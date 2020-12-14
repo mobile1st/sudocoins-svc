@@ -131,22 +131,6 @@ Resources:
       FunctionName: coinbaseCallback
       CodeUri: ./src
 
-  verifyEmailFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: verifyEmail.lambda_handler
-      Runtime: python3.8
-      FunctionName: verifyEmail
-      CodeUri: ./src
-
-  confirmEmailFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: confirmEmail.lambda_handler
-      Runtime: python3.8
-      FunctionName: confirmEmail
-      CodeUri: ./src
-
   lucidRedirectFunction:
     Type: AWS::Serverless::Function
     Properties:
