@@ -45,7 +45,7 @@ def lambda_handler(event, context):
             "userId": userId,
             "orderId": orderId,
             "statusCode": "charge:created",
-            "created": charge['created_at'],
+            "created": datetime.utcnow().isoformat(),
             "expires": charge['expires_at'],
             "amountUsd": event['amountUsd'],
             "productName": event['buyerName'],

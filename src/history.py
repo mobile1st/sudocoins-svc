@@ -279,18 +279,19 @@ class History:
 
     def getOrders(self, userId):
         ordersTable = self.dynamodb.Table('orders')
+        print(ordersTable)
 
         orderHistory = ordersTable.query(
             KeyConditionExpression=Key("userId").eq(userId),
             ScanIndexForward=False,
             IndexName='userId-index',
             ProjectionExpression="orderId, created, amountUsd, statusCode")
-
+        print(orderHistory)
         orders = orderHistory["Items"]
 
         for i in orders:
             if 'created' in i:
-                utcTime = datetime.strptime(i['started'], "%Y-%m-%dT%H:%M:%S.%f")
+                utcTime = datetime.strptime(i['created'], "%Y-%m-%dT%H:%M:%S.%f")
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                 i['epochTime'] = int(epochTime)
             i["status"] = i['statusCode'][7:]
