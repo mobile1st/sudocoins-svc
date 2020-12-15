@@ -2,6 +2,7 @@ import boto3
 import uuid
 from coinbase_commerce.client import Client
 import os
+from datetime import datetime
 
 
 def lambda_handler(event, context):
@@ -53,7 +54,7 @@ def lambda_handler(event, context):
             "chargeId": charge['id'],
             "coinbase": charge,
             "email": event['email'],
-            "cashBack": event['buyerName']
+            "cashBack": event['cashBack']
 
         }
 
