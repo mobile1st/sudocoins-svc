@@ -7,11 +7,13 @@ import history
 
 
 def lambda_handler(event, context):
+    print("start function")
     print(event)
+    dynamodb = boto3.resource('dynamodb')
+    order = history.History(dynamodb)
 
     try:
-        #. state = checkSig(event)
-        state = True #. delete after testing
+        state = checkSig(event)
         if state:
             pass
 
@@ -30,7 +32,7 @@ def lambda_handler(event, context):
         }
 
     try:
-        '''
+
         coinbase = json.loads(event['body'])
         coinbaseEvent = coinbase['event']
 
@@ -39,8 +41,9 @@ def lambda_handler(event, context):
         '''
         orderId = "3d17ee4a-25-11eb-8acc-6542e93cfe93"
         orderStatus = 'charge:confirmed'
-
-        updateOrder(orderId, orderStatus)
+        '''
+        print("about to update order")
+        order.updateOrder(orderId, orderStatus)
 
     except Exception as e:
         print(e)
@@ -50,6 +53,8 @@ def lambda_handler(event, context):
         "body": "success"
     }
 
+
+'''
 
 def updateOrder(orderId, orderStatus):
     dynamodb = boto3.resource('dynamodb')
@@ -65,6 +70,7 @@ def updateOrder(orderId, orderStatus):
         },
         ReturnValues="ALL_NEW"
     )
+'''
 
 
 def checkSig(event):

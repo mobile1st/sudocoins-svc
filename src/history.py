@@ -16,6 +16,7 @@ class History:
         history = self.getHistory(userId)
         print("grabbed history")
         print(history)
+        print("getting balance")
         balance = self.getBalance(history)
         print("got balance")
         print(balance)
@@ -44,6 +45,9 @@ class History:
             if 'type' in i.keys():
                 if i["type"] == "Cash Out":
                     credit += Decimal(i["amount"])
+
+                elif i['type'] == "Gift Card Order":
+                    pass
 
                 elif 'amount' in i.keys() and i['amount'] != "":
                     debit += Decimal(i["amount"])
@@ -227,13 +231,11 @@ class History:
 
         return transactionData
 
-
     def createOrder(self, orderRecord):
         ordersTable = self.dynamodb.Table('orders')
         ordersTable.put_item(
             Item=orderRecord
         )
-
 
     def updateOrder(self, orderId, orderStatus):
         ordersTable = self.dynamodb.Table('orders')
@@ -247,22 +249,26 @@ class History:
             },
             ReturnValues="ALL_NEW"
         )
+        print("updated item:")
+        print(response)
 
         userId = response['Attributes']['userId']
 
         if orderStatus == "charge:confirmed":
             name = response['Attributes']['productName']
             cashBack = response['Attributes']['cashBack']
-            transactionId = response['Attributes']['oderId']
+            transactionId = response['Attributes']['orderId']
             amount = (Decimal(response['Attributes']['amountUsd']) * Decimal(cashBack)).quantize(
                 Decimal(10) ** ((-1) * 2))
-
+            print("amount:")
+            print(type(amount))
+            print(amount * 100)
             ledgerTable = self.dynamodb.Table('Ledger')
-            ledgerTable.put_item(
+            record = ledgerTable.put_item(
                 Item={
                     'userId': userId,
                     'transactionId': transactionId,
-                    'amount': amount*100,
+                    'amount': amount * 100,
                     'status': "Completed",
                     'lastUpdate': datetime.utcnow().isoformat(),
                     'type': 'Gift Card Cash Back',
@@ -273,9 +279,8 @@ class History:
             self.updateProfile(userId)
 
         else:
+            pass
             self.updateProfile(userId)
-
-
 
     def getOrders(self, userId):
         ordersTable = self.dynamodb.Table('orders')
@@ -295,9 +300,9 @@ class History:
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                 i['epochTime'] = int(epochTime)
             i["status"] = i['statusCode'][7:]
-            i['amount'] = i['amountUsd']*100
+            i['amount'] = str(Decimal(i['amountUsd']))
             i['transactionId'] = i['orderId']
-            i['type'] = 'Gift Card order'
+            i['type'] = 'Gift Card Order'
 
         return orders
 
