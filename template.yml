@@ -138,3 +138,11 @@ Resources:
       Runtime: python3.8
       FunctionName: lucidRedirect
       CodeUri: ./src
+
+  nextStepFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: nextStep.lambda_handler
+      Runtime: python3.8
+      FunctionName: nextStep
+      CodeUri: ./src

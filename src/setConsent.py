@@ -1,55 +1,62 @@
 import boto3
 
 
-def lambda_handler(event, context):
-    """Updates the profile for a registered users.
-    Arguments: currency, language, gravatarEmail
-    Returns: fields updated
-    """
+def lambda_handler(event):
     dynamodb = boto3.resource('dynamodb')
     profile_table = dynamodb.Table("Profile")
-
-    jsonInput = event
-
-    sub = jsonInput["sub"]
-    userId = loadProfile(sub)
-
-    if userId is not None:
-        data = profile_table.update_item(
+    sub = event["sub"]
+    if 'userId' in event and 'dynataConsent' in event:
+        profile_table.update_item(
             Key={
-                "userId": userId
+                "userId": event['userId']
             },
-            UpdateExpression="set consent=:c",
+            UpdateExpression="set dynataConsent=:dc",
             ExpressionAttributeValues={
-                ":c": jsonInput["consent"]
-
+                ":dc": True
             },
             ReturnValues="ALL_NEW"
         )
-        data['Attributes']['sub'] = sub
+
 
         return {
             'statusCode': 200,
-            'body': data['Attributes']
+            'body': "Consent Saved. Proceed to survey"
         }
+
 
     else:
+        userId = loadProfile(sub)
 
-        return {
-            'statusCode': 200,
-            'body': "userId not found"
-        }
+        if userId is not None:
+            data = profile_table.update_item(
+                Key={
+                    "userId": userId
+                },
+                UpdateExpression="set consent=:c",
+                ExpressionAttributeValues={
+                    ":c": event["consent"]
+
+                },
+                ReturnValues="ALL_NEW"
+            )
+            data['Attributes']['sub'] = sub
+
+            return {
+                'statusCode': 200,
+                'body': data['Attributes']
+            }
+
+        else:
+
+            return {
+                'statusCode': 200,
+                'body': "userId not found"
+            }
 
 
 def loadProfile(sub):
-    """Fetches user preferences for the Profile page.
-    Argument: userId. This may change to email or cognito sub id .
-    Returns: a dict mapping user attributes to their values.
-    """
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
-    profileTable = dynamodb.Table('Profile')
-
     subResponse = subTable.get_item(Key={'sub': sub})
 
     if 'Item' in subResponse:
