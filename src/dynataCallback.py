@@ -37,6 +37,7 @@ def lambda_handler(event, context):
             }
 
             pushMsg(msgValue)
+            print("message pushed")
 
             return {
                 "isBase64Encoded": False,

@@ -19,7 +19,7 @@ class BuyerRedirect:
         elif buyerName in ["peanutLabs"]:
             checkSum = hashlib.md5((userId + survey['appId'] + survey['secretkey']).encode('utf-8'))
             peanutId = userId + "-" + survey['appId'] + "-" + checkSum.hexdigest()[:10]
-            entryUrl = f"{survey['url']}?userId={peanutId}"
+            entryUrl = f"{survey['url']}?userId={peanutId}&sub_id={transactionId}"
 
             return entryUrl
 
