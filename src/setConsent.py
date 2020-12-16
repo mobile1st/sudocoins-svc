@@ -1,7 +1,7 @@
 import boto3
 
 
-def lambda_handler(event):
+def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     profile_table = dynamodb.Table("Profile")
     sub = event["sub"]

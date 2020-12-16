@@ -1,7 +1,7 @@
 import boto3
 
 
-def lambda_handler(event):
+def lambda_handler(event, context):
     jsonInput = event
     sub = jsonInput["sub"]
 
