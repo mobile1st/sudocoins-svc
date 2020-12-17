@@ -12,6 +12,7 @@ def lambda_handler(event, context):
     try:
         params = event["queryStringParameters"]
     except Exception as e:
+        print(e)
         response = {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
@@ -31,6 +32,7 @@ def lambda_handler(event, context):
     except Exception as e:
         cc = ""
 
+    print("IP:")
     print(ip)
 
     try:
@@ -76,6 +78,7 @@ def lambda_handler(event, context):
         return response
 
     try:
+        print(params['buyerName'])
         entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, cc)
         print("entryUrl generated")
         body = {}
@@ -94,10 +97,6 @@ def lambda_handler(event, context):
 
 
 def getSurveyObject(buyerName):
-    """Fetches information about a particular survey to generate entry url
-    Argument: buyer name
-    Returns: config for buyer to build survey entry url
-    """
     dynamodb = boto3.resource('dynamodb')
     configTableName = os.environ["CONFIG_TABLE"]
     configTable = dynamodb.Table(configTableName)
@@ -126,17 +125,20 @@ def getSurveyObject(buyerName):
 
 
 def generateEntryUrl(userId, buyerName, transactionId, ip, cc):
-    dynamodb = boto3.resource('dynamodb')
+    try:
+        dynamodb = boto3.resource('dynamodb')
+        survey = getSurveyObject(buyerName)
+        if survey is None:
+            return None
 
-    survey = getSurveyObject(buyerName)
-    if survey is None:
-        return None
+        else:
+            print("in the else")
+            redirect = BuyerRedirect(dynamodb)
+            entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, cc)
 
-    else:
-        redirect = BuyerRedirect(dynamodb)
-        entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, cc)
-
-    return entryUrl
+        return entryUrl
+    except Exception as e:
+        print(e)
 
 
 def parseAccLang(headers):
