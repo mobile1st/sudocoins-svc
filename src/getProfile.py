@@ -108,6 +108,20 @@ def loadProfile(dynamodb, sub, email, facebook):
         if 'balance' not in profileObject['Item']:
             profileObject['Item']['balance'] = '0.00'
 
+        if 'facebookUrl' in profileObject['Item']:
+            if facebook == profileObject['Item']['facebookUrl']:
+                pass
+            else:
+                profileTable.update_item(
+                    Key={
+                        "userId": userId
+                    },
+                    UpdateExpression="set facebookUrl=:fb",
+                    ExpressionAttributeValues={
+                        ":fb": facebook
+                    }
+                )
+
         return profileObject['Item']
 
     elif email != "":
@@ -135,6 +149,19 @@ def loadProfile(dynamodb, sub, email, facebook):
                 profileQuery['Items'][0]['history'] = []
             if 'balance' not in profileQuery['Items'][0]:
                 profileQuery['Items'][0]['balance'] = "0.00"
+            if 'facebookUrl' in profileObject['Item']:
+                if facebook == profileObject['Item']['facebookUrl']:
+                    pass
+                else:
+                    profileTable.update_item(
+                        Key={
+                            "userId": userId
+                        },
+                        UpdateExpression="set facebookUrl=:fb",
+                        ExpressionAttributeValues={
+                            ":fb": facebook
+                        }
+                    )
 
             return profileQuery['Items'][0]
     else:
