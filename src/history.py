@@ -199,6 +199,9 @@ class History:
             },
             ReturnValues="UPDATED_NEW"
         )
+        print("updatedRecord:")
+        print(updatedRecord)
+
 
         self.updateProfile(userId)
 
@@ -284,7 +287,6 @@ class History:
 
     def getOrders(self, userId):
         ordersTable = self.dynamodb.Table('orders')
-        print(ordersTable)
 
         orderHistory = ordersTable.query(
             KeyConditionExpression=Key("userId").eq(userId),

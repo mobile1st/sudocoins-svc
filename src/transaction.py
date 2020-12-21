@@ -38,9 +38,12 @@ class Transaction:
         return None
 
     def endDynata(self, data):
+        print("start dynata")
         history = History(self.dynamodb)
         transactionId = data["queryStringParameters"]['sub_id']
+        print(transactionId)
         surveyCode = data["queryStringParameters"]['status']
+        print(surveyCode)
         updated = str(datetime.utcnow().isoformat())
         buyerName = data['buyerName']
         userId = data["queryStringParameters"]['endUserId']
@@ -48,6 +51,8 @@ class Transaction:
         revData = RevenueData(self.dynamodb)
         revenue, payment, userStatus, revShare, cut = revData.get_revShare(data, buyerName)
         print("revShare data from class loaded")
+        print(revenue)
+        print(userStatus)
 
         history.updateTransaction(transactionId, payment, surveyCode, updated,
                                   revenue, revShare, userStatus, cut, data, userId)
