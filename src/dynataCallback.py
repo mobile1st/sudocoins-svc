@@ -41,7 +41,7 @@ def lambda_handler(event, context):
                 msgValue = {
                     "queryStringParameters": event["queryStringParameters"],
                     "hashState": hashState,
-                    "buyerName": "directlink"
+                    "buyerName": "dynata"
                 }
 
             pushMsg(msgValue)

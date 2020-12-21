@@ -112,15 +112,19 @@ def loadProfile(dynamodb, sub, email, facebook):
             if facebook == profileObject['Item']['facebookUrl']:
                 pass
             else:
-                profileTable.update_item(
+                print("hit")
+                profileObject = profileTable.update_item(
                     Key={
                         "userId": userId
                     },
                     UpdateExpression="set facebookUrl=:fb",
                     ExpressionAttributeValues={
                         ":fb": facebook
-                    }
+                    },
+                    ReturnValues="ALL_NEW"
                 )
+
+                return profileObject['Attributes']
 
         return profileObject['Item']
 
@@ -153,15 +157,18 @@ def loadProfile(dynamodb, sub, email, facebook):
                 if facebook == profileObject['Item']['facebookUrl']:
                     pass
                 else:
-                    profileTable.update_item(
+                    profileResponse = profileTable.update_item(
                         Key={
                             "userId": userId
                         },
                         UpdateExpression="set facebookUrl=:fb",
                         ExpressionAttributeValues={
                             ":fb": facebook
-                        }
+                        },
+                        ReturnValues="ALL_NEW"
                     )
+
+                    return profileObject['Attributes']
 
             return profileQuery['Items'][0]
     else:
