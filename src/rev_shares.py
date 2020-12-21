@@ -42,7 +42,7 @@ class RevenueData:
             buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
 
             if 'amt' in data["queryStringParameters"]:
-                revenue = Decimal(data["queryStringParameters"]['amt'])
+                revenue = Decimal(data["queryStringParameters"]['amt'])*100
             else:
                 revenue = Decimal('0.00')
 

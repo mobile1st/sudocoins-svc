@@ -197,7 +197,7 @@ class History:
                 ":rs": revShare,
                 ":sc": surveyCode
             },
-            ReturnValues="UPDATED_NEW"
+            ReturnValues="ALL_NEW"
         )
         print("updatedRecord:")
         print(updatedRecord)
