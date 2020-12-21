@@ -16,7 +16,9 @@ class Transaction:
     def endPL(self, data):
         history = History(self.dynamodb)
         surveyCode = data["queryStringParameters"]['status']
+        print("surveyCode")
         transactionId = data["queryStringParameters"]['transactionId']
+        print("transactionId")
         completed = str(datetime.utcnow().isoformat())
         buyerName = data['buyerName']
         userId = data["queryStringParameters"]['endUserId']
@@ -27,11 +29,11 @@ class Transaction:
 
         history.updateTransaction(transactionId, payment, surveyCode, completed,
                                   revenue, revShare, userStatus, cut, data, userId)
-        print("Transaction updated")
+        print("PL Transaction updated")
 
         if payment > 0:
             history.createLedgerRecord(transactionId, payment, userId, completed, userStatus)
-            print("Ledger updated")
+            print("PL Ledger updated")
 
         return None
 
