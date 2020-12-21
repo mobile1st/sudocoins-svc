@@ -30,11 +30,19 @@ def lambda_handler(event, context):
         if txnHash == confirmHash:
             hashState = True
 
-            msgValue = {
-                "queryStringParameters": event["queryStringParameters"],
-                "hashState": hashState,
-                "buyerName": "peanutLabs"
-            }
+            if event["queryStringParameters"]['transactionSource'] == 'iframe':
+                msgValue = {
+                    "queryStringParameters": event["queryStringParameters"],
+                    "hashState": hashState,
+                    "buyerName": "peanutLabs"
+                }
+
+            elif event["queryStringParameters"]['transactionSource'] == 'directlink':
+                msgValue = {
+                    "queryStringParameters": event["queryStringParameters"],
+                    "hashState": hashState,
+                    "buyerName": "directlink"
+                }
 
             pushMsg(msgValue)
             print("message pushed")
