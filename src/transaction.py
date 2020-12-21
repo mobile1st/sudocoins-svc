@@ -16,9 +16,9 @@ class Transaction:
     def endPL(self, data):
         history = History(self.dynamodb)
         surveyCode = data["queryStringParameters"]['status']
-        print("surveyCode")
+        print(surveyCode)
         transactionId = data["queryStringParameters"]['transactionId']
-        print("transactionId")
+        print(transactionId)
         completed = str(datetime.utcnow().isoformat())
         buyerName = data['buyerName']
         userId = data["queryStringParameters"]['endUserId']
