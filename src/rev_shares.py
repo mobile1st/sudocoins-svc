@@ -37,10 +37,15 @@ class RevenueData:
 
             return revenue, payment, userStatus, revShare, cut
 
-        elif buyerName in ['peanutLabs']:
+        elif buyerName in ['peanutLabs', 'dynata']:
             surveyCode = data["queryStringParameters"]["status"]
             buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
-            revenue = Decimal(buyerObject["Item"]["configValue"]["buyer"][buyerName]["defaultCpi"])
+
+            if 'amt' in data["queryStringParameters"]:
+                revenue = Decimal(data["queryStringParameters"]['amt'])
+            else:
+                revenue = Decimal('0.00')
+
             surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
 
             if data["queryStringParameters"]["status"] in surveyStatus:
@@ -58,3 +63,6 @@ class RevenueData:
             payment = revenue * revShare
 
             return revenue, payment, userStatus, revShare, cut
+
+        elif buyerName in ['lucid']:
+            return

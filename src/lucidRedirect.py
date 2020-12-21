@@ -9,8 +9,20 @@ import base64
 
 def lambda_handler(event, context):
     print(event)
+
+    response = {
+        "statusCode": 200,
+        "body": {
+            "redirect": 'https://www.sudocoins.com/'
+        }
+    }
+
+    return response
+
+    '''
     params = event["queryStringParameters"]
-    status = event['pathParameters']['status']
+    body = event['body']
+    status = body['status']
     url = ""  # . how do we get the Url?
 
     lucidHash = params['hash']
@@ -32,7 +44,7 @@ def lambda_handler(event, context):
             "transactionId": params['mid'],
             "hashState": hashState,
             "buyerName": "lucid",
-            "path": status,
+            "status": status,
             "queryStringParameters": params
         }
         pushMsg(msg)
@@ -54,7 +66,7 @@ def lambda_handler(event, context):
             "surveyLoi": params['l'],
             "hashState": hashState,
             "buyerName": "lucid",
-            "path": status,
+            "status": status,
             "queryStringParameters": params,
             "sudoCut": Decimal(params['c']) * Decimal('.7'),
             "userCut": (Decimal(params['c']) * Decimal('.7')) * Decimal('.8')
@@ -78,6 +90,7 @@ def lambda_handler(event, context):
         }
 
         return response
+    '''
 
 
 def checkHash(url, lucidHash):
