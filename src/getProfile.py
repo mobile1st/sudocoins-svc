@@ -123,10 +123,10 @@ def loadProfile(dynamodb, sub, email, facebook):
                     ReturnValues="ALL_NEW"
                 )
 
-                if 'history' not in profileObject['Item']:
-                    profileObject['Item']['history'] = []
-                if 'balance' not in profileObject['Item']:
-                    profileObject['Item']['balance'] = '0.00'
+                if 'history' not in profileObject['Attributes']:
+                    profileObject['Attributes']['history'] = []
+                if 'balance' not in profileObject['Attributes']:
+                    profileObject['Attributes']['balance'] = '0.00'
 
                 return profileObject['Attributes']
 
