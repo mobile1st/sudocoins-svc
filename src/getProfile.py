@@ -112,7 +112,6 @@ def loadProfile(dynamodb, sub, email, facebook):
             if facebook == profileObject['Item']['facebookUrl']:
                 pass
             else:
-                print("hit")
                 profileObject = profileTable.update_item(
                     Key={
                         "userId": userId
@@ -124,12 +123,17 @@ def loadProfile(dynamodb, sub, email, facebook):
                     ReturnValues="ALL_NEW"
                 )
 
+                if 'history' not in profileObject['Item']:
+                    profileObject['Item']['history'] = []
+                if 'balance' not in profileObject['Item']:
+                    profileObject['Item']['balance'] = '0.00'
+
                 return profileObject['Attributes']
 
         return profileObject['Item']
 
     elif email != "":
-
+        print("got here")
         profileQuery = profileTable.query(
             IndexName='email-index',
             KeyConditionExpression='email = :email',
@@ -153,8 +157,8 @@ def loadProfile(dynamodb, sub, email, facebook):
                 profileQuery['Items'][0]['history'] = []
             if 'balance' not in profileQuery['Items'][0]:
                 profileQuery['Items'][0]['balance'] = "0.00"
-            if 'facebookUrl' in profileObject['Item']:
-                if facebook == profileObject['Item']['facebookUrl']:
+            if 'facebookUrl' in profileQuery['Items']:
+                if facebook == profileQuery['Items']['facebookUrl']:
                     pass
                 else:
                     profileResponse = profileTable.update_item(
@@ -168,7 +172,12 @@ def loadProfile(dynamodb, sub, email, facebook):
                         ReturnValues="ALL_NEW"
                     )
 
-                    return profileObject['Attributes']
+                    if 'history' not in profileResponse['Attributes']:
+                        profileResponse['Attributes']['history'] = []
+                    if 'balance' not in profileResponse['Attributes']:
+                        profileResponse['Attributes']['balance'] = "0.00"
+
+                    return profileResponse['Attributes']
 
             return profileQuery['Items'][0]
     else:
