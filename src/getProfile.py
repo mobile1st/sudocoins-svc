@@ -93,12 +93,13 @@ def loadProfile(dynamodb, sub, email, facebook):
     if 'Item' in subResponse:
         print("found userId matching sub")
         userId = subResponse['Item']['userId']
+        print(userId)
         profileObject = profileTable.get_item(
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance"
         )
-
+        print(profileObject)
         if 'history' not in profileObject['Item']:
             profileObject['Item']['history'] = []
 
@@ -184,7 +185,7 @@ def loadProfile(dynamodb, sub, email, facebook):
     userId = str(uuid.uuid1())
 
     if email == "":
-        print("completely new user with no email")
+        print("completely new user with no email in cognito")
         email = userId + "@sudocoins.com"
 
     subTable.put_item(
@@ -206,11 +207,11 @@ def loadProfile(dynamodb, sub, email, facebook):
         "history": [],
         "balance": "0.00"
     }
-
+    print(profile)
     profileTable.put_item(
         Item=profile
     )
-
+    print("profile submitted")
     return profile
 
 
