@@ -1,9 +1,6 @@
 import boto3
 from datetime import datetime
 import uuid
-from decimal import *
-import json
-
 
 # from configuration import Configuration
 
@@ -94,7 +91,7 @@ def loadProfile(dynamodb, sub, email, facebook):
     print(email)
 
     if 'Item' in subResponse:
-        print("founder userId matching sub")
+        print("found userId matching sub")
         userId = subResponse['Item']['userId']
         profileObject = profileTable.get_item(
             Key={'userId': userId},
@@ -133,7 +130,7 @@ def loadProfile(dynamodb, sub, email, facebook):
         return profileObject['Item']
 
     elif email != "":
-        print("got here")
+        print("no sub but email found")
         profileQuery = profileTable.query(
             IndexName='email-index',
             KeyConditionExpression='email = :email',
@@ -145,6 +142,7 @@ def loadProfile(dynamodb, sub, email, facebook):
         )
         print(profileQuery)
         if profileQuery['Count'] > 0:
+            print("found email in database")
             userId = profileQuery['Items'][0]['userId']
             subTable.put_item(
                 Item={
@@ -181,11 +179,12 @@ def loadProfile(dynamodb, sub, email, facebook):
 
             return profileQuery['Items'][0]
 
-    print("ummmm")
+    print("no sub or email found in database. New user.")
     created = datetime.utcnow().isoformat()
     userId = str(uuid.uuid1())
 
     if email == "":
+        print("completely new user with no email")
         email = userId + "@sudocoins.com"
 
     subTable.put_item(
