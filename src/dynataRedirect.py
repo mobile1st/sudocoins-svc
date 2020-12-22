@@ -18,8 +18,11 @@ def lambda_handler(event, context):
 
         if event["queryStringParameters"] is None:
             queryString = {}
+            token = "invalid"
         else:
             queryString = event["queryStringParameters"]
+            if 'status' in queryString:
+                token = queryString['status']
 
         print(referer)
 
@@ -28,8 +31,6 @@ def lambda_handler(event, context):
             "queryStringParameters": queryString,
             "missingParams": missingParams(queryString, expectedParams)
         }
-
-        token = "valid"
 
         response = createRedirect(redirectUrl, token)
 
