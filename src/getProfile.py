@@ -143,7 +143,7 @@ def loadProfile(dynamodb, sub, email, facebook):
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance"
         )
-
+        print(profileQuery)
         if profileQuery['Count'] > 0:
             userId = profileQuery['Items'][0]['userId']
             subTable.put_item(
@@ -180,38 +180,39 @@ def loadProfile(dynamodb, sub, email, facebook):
                     return profileResponse['Attributes']
 
             return profileQuery['Items'][0]
-    else:
-        created = datetime.utcnow().isoformat()
-        userId = str(uuid.uuid1())
 
-        if email == "":
-            email = userId + "@sudocoins.com"
+    print("ummmm")
+    created = datetime.utcnow().isoformat()
+    userId = str(uuid.uuid1())
 
-        subTable.put_item(
-            Item={
-                "sub": sub,
-                "userId": userId
-            }
-        )
+    if email == "":
+        email = userId + "@sudocoins.com"
 
-        profile = {
-            "active": True,
-            "email": email,
-            "signupDate": created,
-            "userId": userId,
-            "currency": "usd",
-            "gravatarEmail": email,
-            "facebookUrl": facebook,
-            "consent": "",
-            "history": [],
-            "balance": "0.00"
+    subTable.put_item(
+        Item={
+            "sub": sub,
+            "userId": userId
         }
+    )
 
-        profileTable.put_item(
-            Item=profile
-        )
+    profile = {
+        "active": True,
+        "email": email,
+        "signupDate": created,
+        "userId": userId,
+        "currency": "usd",
+        "gravatarEmail": email,
+        "facebookUrl": facebook,
+        "consent": "",
+        "history": [],
+        "balance": "0.00"
+    }
 
-        return profile
+    profileTable.put_item(
+        Item=profile
+    )
+
+    return profile
 
 
 def getConfig(dynamodb):
