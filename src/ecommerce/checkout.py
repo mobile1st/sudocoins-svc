@@ -3,6 +3,7 @@ import uuid
 from coinbase_commerce.client import Client
 import os
 from datetime import datetime
+from decimal import Decimal
 
 
 def lambda_handler(event, context):
@@ -22,14 +23,17 @@ def lambda_handler(event, context):
         else:
             ip = ""
 
+
         orderId = str(uuid.uuid1())
         print(orderId)
+
+        finalAmount = (Decimal(event['amountUsd'])*Decimal(event['cashBack'])).quantize(Decimal('.01'))
 
         charge = client.charge.create(name=event['title'],
                                       description=event['description'],
                                       pricing_type='fixed_price',
                                       local_price={
-                                          "amount": event['amountUsd'],
+                                          "amount": finalAmount,
                                           "currency": "USD"
                                       },
                                       metadata={
@@ -49,6 +53,7 @@ def lambda_handler(event, context):
             "created": datetime.utcnow().isoformat(),
             "expires": charge['expires_at'],
             "amountUsd": event['amountUsd'],
+            "finalAmount": finalAmount,
             "productName": event['buyerName'],
             "ip": ip,
             "chargeId": charge['id'],
