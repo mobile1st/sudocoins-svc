@@ -4,40 +4,52 @@ import boto3
 def lambda_handler(event, context):
     jsonInput = event
     sub = jsonInput["sub"]
+    try:
+        buyer = jsonInput['name']
+    except Exception as e:
+        buyer = 'dynata'
 
-    nextStep, userId = loadProfile(sub)
+    userId, profile = loadProfile(sub)
 
-    if nextStep is True:
+    if buyer in ['dynata', 'peanutLabs']:
+        if 'dynataConsent' in profile:
+            if profile['dynataConsent']:
+                nextStep = 'Continue to survey'
+            else:
+                nextStep = 'dynataConsent'
+        else:
+            nextStep = 'dynataConsent'
+    elif buyer in ['lucid']:
+        if 'lucidConsent' in profile:
+            if profile['lucidConsent']:
+                nextStep = 'Continue to survey'
+            else:
+                nextStep = "lucidConsent"
+        else:
+            nextStep = 'lucidConsent'
+    elif buyer in ['rfg1', 'rfg2', 'rfg3']:
+        if 'rfgConsent' in profile:
+            if profile['rfgConsent']:
+                nextStep = 'Continue to survey'
+            else:
+                nextStep = 'rfgConsent'
+        else:
+            nextStep = 'rfgConsent'
 
-        return {
-            'statusCode': 200,
-            'body': {
-                "nextStep": "Continue to survey",
-                "userId": userId
-            }
+    if userId is None:
+        nextStep = 'error'
+        userId = 'error'
+
+    return {
+        'statusCode': 200,
+        'body': {
+            "nextStep": nextStep,
+            "userId": userId
         }
-
-    elif nextStep is False:
-
-        return {
-            'statusCode': 200,
-            'body': {
-                "nextStep": "dynataConsent",
-                "userId": userId
-            }
-        }
-
-    else:
-
-        return {
-            'statusCode': 200,
-            'body': {
-                "nextStep": "Error, return to home"
-            }
-        }
+    }
 
 
-def loadProfile(sub):
+def loadProfile(sub, name):
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
     profileTable = dynamodb.Table('Profile')
@@ -47,13 +59,7 @@ def loadProfile(sub):
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
         profileResponse = profileTable.get_item(Key={'userId': userId})
-        if 'dynataConsent' in profileResponse['Item']:
-            if profileResponse['Item']['dynataConsent']:
-                return True, userId
-            else:
-                return False, userId
-        else:
-            return False, userId
+        profile = profileResponse['Item']
+        return userId, profile
     else:
-
         return None, None
