@@ -49,7 +49,7 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, name):
+def loadProfile(sub):
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
     profileTable = dynamodb.Table('Profile')
