@@ -53,7 +53,7 @@ def lambda_handler(event, context):
             "created": datetime.utcnow().isoformat(),
             "expires": charge['expires_at'],
             "amountUsd": event['amountUsd'],
-            "finalAmount": finalAmount,
+            "finalAmount": str(finalAmount),
             "productName": event['buyerName'],
             "ip": ip,
             "chargeId": charge['id'],
