@@ -23,17 +23,17 @@ def lambda_handler(event, context):
         else:
             ip = ""
 
-
         orderId = str(uuid.uuid1())
         print(orderId)
 
-        finalAmount = (Decimal(event['amountUsd'])*Decimal(event['cashBack'])).quantize(Decimal('.01'))
+        discount = (Decimal(event['amountUsd']) * Decimal(event['cashBack'])).quantize(Decimal('.01'))
+        finalAmount = Decimal(event['amountUsd']) - discount
 
         charge = client.charge.create(name=event['title'],
                                       description=event['description'],
                                       pricing_type='fixed_price',
                                       local_price={
-                                          "amount": finalAmount,
+                                          "amount": str(finalAmount),
                                           "currency": "USD"
                                       },
                                       metadata={
