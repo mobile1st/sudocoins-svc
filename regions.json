@@ -21,7 +21,7 @@
     "AR": ["es", "en"],
     "CO": ["es", "en"],
     "MX": ["es", "en"],
-    "ES": ["es", "es"],
+    "ES": ["es", "en"],
     "SE": ["sv", "en"],
     "KR": ["ko"]
   },
@@ -34,7 +34,7 @@
     "CA": "Canada",
     "IN": "India",
     "GB": "United Kingdom",
-    "US": "United States of America",
+    "US": "United States",
     "FR": "France",
     "DE": "Deutschland",
     "CH": "Switzerland",
