@@ -1,9 +1,7 @@
 from datetime import datetime
 import boto3
-from botocore.exceptions import ClientError
 import uuid
 from decimal import Decimal
-from boto3.dynamodb.conditions import Key
 from history import History
 
 
@@ -11,8 +9,8 @@ def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table("Ledger")
     payoutTable = dynamodb.Table("Payouts")
+    profileTable = dynamodb.Table("Profile")
 
-    dynamodb = boto3.resource('dynamodb')
     loadHistory = History(dynamodb)
 
     jsonInput = event
@@ -63,26 +61,24 @@ def lambda_handler(event, context):
     )
     print("cash out submitted")
 
-    try:
-        history = loadHistory.getHistory(userId)
-        print("history loaded")
+    loadHistory.updateProfile(userId)
 
-    except Exception as e:
-        print(e)
-        history = {}
+    profileObject = profileTable.get_item(
+        Key={'userId': userId},
+        ProjectionExpression="history, balance"
+    )
 
-    try:
-        balance = getBalance(history)
-        print("balance loaded")
+    if 'history' not in profileObject['Item']:
+        profileObject['Item']['history'] = []
 
-    except Exception as e:
-        print(e)
-        balance = ""
+    if 'balance' not in profileObject['Item']:
+        profileObject['Item']['balance'] = '0.00'
+
 
     return {
         'statusCode': 200,
-        'history': history,
-        'balance': balance
+        'history': profileObject['Item']['history'],
+        'balance': profileObject['Item']['balance']
     }
 
 
