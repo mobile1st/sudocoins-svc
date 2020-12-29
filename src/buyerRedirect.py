@@ -13,7 +13,17 @@ class BuyerRedirect:
         print
 
         if buyerName in ["test", "cint"]:
-            entryUrl = f"{survey['url']}?si={survey['appId']}&ssi={transactionId}&unique_user_id={userId}&ip={ip}"
+            url = f"{survey['url']}?si={survey['appId']}&ssi={transactionId}&unique_user_id={userId}&ip={ip}"
+            message = 'unique_user_id=' + userId + '&ip=' + ip
+            signature = hmac.new(
+                survey['secretkey'],
+                msg=message,
+                digestmod=hashlib.md5
+            ).hexdigest()
+
+            entryUrl = url + '&hmac=' + signature
+
+
 
             return entryUrl
 
