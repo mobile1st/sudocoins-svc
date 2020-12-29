@@ -60,7 +60,7 @@ def lambda_handler(event, context):
         config = getConfig(dynamodb)
         print("config loaded")
 
-        rate = getRate(config)
+        rate, ethRate = getRate(config)
 
         print("about to get tiles from config")
         tiles = getTiles(userId, config)
@@ -68,6 +68,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
         rate = '1'
+        ethRate = '1'
         tiles = []
         print('failed to load tiles')
 
@@ -78,7 +79,8 @@ def lambda_handler(event, context):
         'body': {
             "profile": profile,
             "tiles": tiles,
-            "rate": str(rate)
+            "rate": str(rate),
+            "ethRate": ethRate
         }
     }
 
@@ -227,8 +229,9 @@ def getConfig(dynamodb):
 
 def getRate(config):
     rate = str(config['rate'])
+    ethRate = str(config['ethRate'])
 
-    return rate
+    return rate, ethRate
 
 
 def getTiles(userId, config):
