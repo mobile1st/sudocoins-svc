@@ -12,11 +12,11 @@ def lambda_handler(event, context):
     configTable = dynamodb.Table("Config")
     configTable.update_item(
             Key={
-                "configKey": "TakeSurveyPage"
+                "configKey": "HomePage"
             },
             UpdateExpression="set rate=:r, ethRate=:er",
             ExpressionAttributeValues={
-                ":br": Decimal(btcUsd),
+                ":r": Decimal(btcUsd),
                 ":er": Decimal(ethUsd)
 
             }

@@ -80,7 +80,7 @@ def lambda_handler(event, context):
             "profile": profile,
             "tiles": tiles,
             "rate": str(rate),
-            "ethRate": ethRate
+            "ethRate": str(ethRate)
         }
     }
 
