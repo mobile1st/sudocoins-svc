@@ -4,7 +4,6 @@ import boto3
 import hashlib
 
 
-
 def lambda_handler(event, context):
     try:
         redirectUrl, hostUrl, expectedParams = getUrls()
@@ -32,6 +31,10 @@ def lambda_handler(event, context):
             msgValue["message"] = "invalid"
             token = msgValue["message"]
 
+        response = createRedirect(redirectUrl, token)
+
+        return response
+
     except Exception as e:
         response = {
             "statusCode": 302,
@@ -39,9 +42,7 @@ def lambda_handler(event, context):
             "body": json.dumps({})
         }
 
-    response = createRedirect(redirectUrl, token)
-
-    return response
+        return response
 
 
 def createRedirect(redirectUrl, token):

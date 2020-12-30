@@ -16,14 +16,12 @@ class BuyerRedirect:
             url = f"{survey['url']}?si={survey['appId']}&ssi={transactionId}&unique_user_id={userId}&ip={ip}"
             message = 'unique_user_id=' + userId + '&ip=' + ip
             signature = hmac.new(
-                survey['secretkey'],
-                msg=message,
+                survey['secretkey'].encode('utf-8'),
+                msg=message.encode('utf-8'),
                 digestmod=hashlib.md5
             ).hexdigest()
 
             entryUrl = url + '&hmac=' + signature
-
-
 
             return entryUrl
 
