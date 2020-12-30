@@ -35,6 +35,8 @@ def lambda_handler(event, context):
                 nextStep = 'rfgConsent'
         else:
             nextStep = 'rfgConsent'
+    else:
+        nextStep = 'Continue to survey'
 
     if userId is None:
         nextStep = 'error'
