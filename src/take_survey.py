@@ -1,157 +1,70 @@
-import os
-import boto3
-from botocore.exceptions import ClientError
-import json
-from buyerRedirect import BuyerRedirect
-import history
+import hashlib
+import hmac
+import hashlib
+import base64
 
 
-def lambda_handler(event, context):
-    print(event)
+class BuyerRedirect:
 
-    try:
-        params = event["queryStringParameters"]
-    except Exception as e:
-        print(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
+    def __init__(self, dynamodb):
+        self.dynamodb = dynamodb
 
-        return response
+    def getRedirect(self, userId, buyerName, survey, ip, transactionId, cc):
+        print
 
-    try:
-        ip = event['requestContext']['identity']['sourceIp']
-    except Exception as e:
-        ip = ""
+        if buyerName in ["test", "cint"]:
+            url = f"{survey['url']}?si={survey['appId']}&ssi={transactionId}&unique_user_id={userId}&ip={ip}"
+            message = 'unique_user_id=' + userId + '&ip=' + ip
+            signature = hmac.new(
+                survey['secretkey'].encode('utf-8'),
+                msg=message.encode('utf-8'),
+                digestmod=hashlib.md5
+            ).hexdigest()
 
-    try:
-        headers = event['headers']
-        cc = parseAccLang(headers)
-    except Exception as e:
-        cc = ""
+            entryUrl = url + '&hmac=' + signature
 
-    print("IP:")
-    print(ip)
+            return entryUrl
 
-    try:
-        if 'userId' in params:
-            userId = params['userId']
-        elif 'sub' in params:
-            dynamodb = boto3.resource('dynamodb')
-            subTable = dynamodb.Table('sub')
-            subResponse = subTable.get_item(Key={'sub': params['sub']})
-            userId = subResponse['Item']['userId']
-        else:
-            response = {
-                "statusCode": 302,
-                "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-                "body": json.dumps({})
-            }
-            return response
+        elif buyerName in ["peanutLabs"]:
+            checkSum = hashlib.md5((userId + survey['appId'] + survey['secretkey']).encode('utf-8'))
+            peanutId = userId + "-" + survey['appId'] + "-" + checkSum.hexdigest()[:10]
+            entryUrl = f"{survey['url']}?userId={peanutId}&sub_id={transactionId}"
 
-    except Exception as e:
-        print(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
+            return entryUrl
 
-        return response
+        elif buyerName in ["dynata"]:
+            checkSum = hashlib.md5((userId + survey['appId'] + survey['secretkey']).encode('utf-8'))
+            peanutId = userId + "-" + survey['appId'] + "-" + checkSum.hexdigest()[:10]
+            entryUrl = f"{survey['url']}?pub_id={survey['appId']}&sub_id={transactionId}&user_id={peanutId}"
 
-    try:
-        dynamodb = boto3.resource('dynamodb')
-        transaction = history.History(dynamodb)
-        data = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
-        print("transaction record inserted")
+            return entryUrl
 
-    except Exception as e:
-        print(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
+        elif buyerName in ["lucid"]:
+            print("elif lucid")
+            try:
+                countryCode = survey['countryCode'][cc[0]][cc[1]]
+            except Exception as e:
+                print(e)
+                countryCode = 0
 
-        return response
+            url = survey['url'] + "&sid=" + str(survey['appId']) + '&pid=' + userId \
+                  + '&clid=' + str(countryCode) + '&mid=' + transactionId + '&'
+            testUrl = url + 'tar=' + '1584274' + '&'
 
-    try:
-        print(params['buyerName'])
-        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, cc)
-        print("entryUrl generated")
-        body = {}
-        response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
+            encodedKey = survey['secretkey'].encode('utf-8')
+            encodedUrl = testUrl.encode('utf-8')
+            hashed = hmac.new(encodedKey, msg=encodedUrl, digestmod=hashlib.sha1)
+            digestedHash = hashed.digest()
+            base64_encoded_result = base64.b64encode(digestedHash)
+            finalResult = base64_encoded_result.decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
 
-        return response
+            entryUrl = testUrl + 'hash=' + finalResult
 
-    except Exception as e:
-        print(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-        return response
+            return entryUrl
 
 
-def getSurveyObject(buyerName):
-    dynamodb = boto3.resource('dynamodb')
-    configTableName = os.environ["CONFIG_TABLE"]
-    configTable = dynamodb.Table(configTableName)
-    configKey = "TakeSurveyPage"
-
-    try:
-        response = configTable.get_item(Key={'configKey': configKey})
-
-    except ClientError as e:
-        print(e.response['Error']['Message'])
-        return None
-
-    else:
-        try:
-            configData = response['Item']["configValue"]
-            if buyerName in configData["buyer"].keys():
-                buyerObject = configData["buyer"][buyerName]
-
-                return buyerObject
-
-        except Exception as e:
-            print(e)
-            return None
-
-    return None
 
 
-def generateEntryUrl(userId, buyerName, transactionId, ip, cc):
-    try:
-        dynamodb = boto3.resource('dynamodb')
-        survey = getSurveyObject(buyerName)
-        if survey is None:
-            return None
 
-        else:
-            print("in the else")
-            redirect = BuyerRedirect(dynamodb)
-            entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, cc)
-
-        return entryUrl
-    except Exception as e:
-        print(e)
-
-
-def parseAccLang(headers):
-    acceptLanguage = headers['accept-language'][0]
-    part1 = acceptLanguage.split(',')[0]
-    country = part1.split('-')
-    cc = {}
-    if len(country) == 2:
-        cc['lang'] = country[0]
-        cc['cc'] = country[1]
-    else:
-        cc['lang'] = country[0]
-
-    return cc
 
 
