@@ -24,7 +24,7 @@ def lambda_handler(event, context):
         }
 
     elif 'userId' in event and 'lucidConsent' in event:
-        lucidCode = Lucid.region_code(event.locale.country, event.locale.language)
+        lucidCode = Lucid.region_code(event['locale']['country'], event['locale']['language'])
         profile_table.update_item(
             Key={
                 "userId": event['userId']
@@ -33,7 +33,7 @@ def lambda_handler(event, context):
             ExpressionAttributeValues={
                 ":lc": True,
                 ":ll": lucidCode,
-                ":iso": (event.locale.language + ":" + event.locale.country)
+                ":iso": (event['locale']['language'] + "-" + event['locale']['country'])
 
             },
             ReturnValues="ALL_NEW"
