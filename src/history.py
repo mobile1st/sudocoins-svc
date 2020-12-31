@@ -139,7 +139,7 @@ class History:
                     i['epochTime'] = int(epochTime)
 
                 if 'payoutType' in i:
-                    if i['payoutType'] == 'Bitcoin':
+                    if i['payoutType'] == 'Bitcoin' or i['payoutType'] == 'Ethereum':
                         bitcoin = str(
                             (Decimal(i['usdBtcRate']) * Decimal(i['userInput'])).quantize(
                                 Decimal('10') ** ((-1) * int(8))))
