@@ -1,4 +1,5 @@
 import boto3
+from lucid import Lucid
 
 
 def lambda_handler(event, context):
@@ -23,14 +24,17 @@ def lambda_handler(event, context):
         }
 
     elif 'userId' in event and 'lucidConsent' in event:
+        lucidCode = Lucid.region_code(event.locale.country, event.locale.language)
         profile_table.update_item(
             Key={
                 "userId": event['userId']
             },
-            UpdateExpression="set lucidConsent=:lc, lucidLocale=:ll",
+            UpdateExpression="set lucidConsent=:lc, lucidLocale=:ll, iso=:iso",
             ExpressionAttributeValues={
                 ":lc": True,
-                ":ll": event['locale']
+                ":ll": lucidCode,
+                ":iso": (event.locale.language + ":" + event.locale.country)
+
             },
             ReturnValues="ALL_NEW"
         )
