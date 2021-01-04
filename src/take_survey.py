@@ -26,12 +26,6 @@ def lambda_handler(event, context):
     except Exception as e:
         ip = ""
 
-    try:
-        headers = event['headers']
-        cc = parseAccLang(headers)
-    except Exception as e:
-        cc = ""
-
     print("IP:")
     print(ip)
 
@@ -64,7 +58,7 @@ def lambda_handler(event, context):
     try:
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
-        data = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
+        data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
         print("transaction record inserted")
 
     except Exception as e:
@@ -79,7 +73,7 @@ def lambda_handler(event, context):
 
     try:
         print(params['buyerName'])
-        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, cc)
+        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, profile)
         print("entryUrl generated")
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
@@ -124,7 +118,7 @@ def getSurveyObject(buyerName):
     return None
 
 
-def generateEntryUrl(userId, buyerName, transactionId, ip, cc):
+def generateEntryUrl(userId, buyerName, transactionId, ip, profile):
     try:
         dynamodb = boto3.resource('dynamodb')
         survey = getSurveyObject(buyerName)
@@ -134,13 +128,14 @@ def generateEntryUrl(userId, buyerName, transactionId, ip, cc):
         else:
             print("in the else")
             redirect = BuyerRedirect(dynamodb)
-            entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, cc)
+            entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, profile)
 
         return entryUrl
     except Exception as e:
         print(e)
 
 
+'''
 def parseAccLang(headers):
     acceptLanguage = headers['accept-language'][0]
     part1 = acceptLanguage.split(',')[0]
@@ -153,5 +148,5 @@ def parseAccLang(headers):
         cc['lang'] = country[0]
 
     return cc
-
+'''
 

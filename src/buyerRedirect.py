@@ -9,8 +9,7 @@ class BuyerRedirect:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
-    def getRedirect(self, userId, buyerName, survey, ip, transactionId, cc):
-        print
+    def getRedirect(self, userId, buyerName, survey, ip, transactionId, profile):
 
         if buyerName in ["test", "cint"]:
             url = f"{survey['url']}?si={survey['appId']}&ssi={transactionId}&unique_user_id={userId}&ip={ip}"
@@ -40,9 +39,8 @@ class BuyerRedirect:
             return entryUrl
 
         elif buyerName in ["lucid"]:
-            print("elif lucid")
             try:
-                countryCode = survey['countryCode'][cc[0]][cc[1]]
+                countryCode = profile['lucidLocale']
             except Exception as e:
                 print(e)
                 countryCode = 0

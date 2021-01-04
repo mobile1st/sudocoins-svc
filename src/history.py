@@ -26,7 +26,7 @@ class History:
         print("top 10 history")
         print(topHistory)
 
-        profileTable.update_item(
+        userProfile = profileTable.update_item(
             Key={
                 "userId": userId
             },
@@ -38,6 +38,8 @@ class History:
             },
             ReturnValues="ALL_NEW"
         )
+
+        return userProfile['Attributes']
 
     def getBalance(self, history):
         precision = 2  # 2 decimals for usd
@@ -233,9 +235,9 @@ class History:
 
         print("transaction record created")
         print("about to update profile")
-        self.updateProfile(userId)
+        userProfile = self.updateProfile(userId)
 
-        return transactionData
+        return transactionData, userProfile
 
     def createOrder(self, orderRecord):
         ordersTable = self.dynamodb.Table('orders')
