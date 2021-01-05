@@ -9,24 +9,21 @@ import base64
 
 def lambda_handler(event, context):
     print(event)
+    status = event['status']
+    url = event['url']
 
-    response = {
-        "statusCode": 200,
-        "body": {
-            "redirect": 'https://www.sudocoins.com/'
-        }
-    }
+    baseUrl = 'sudocoins.com'
+    urlIndex = url.find(baseUrl)
+    queryParams = url[urlIndex + 29:]
+    queryList = queryParams.split('&')
+    queryMap = {}
+    for i in queryList:
+        tmp = i.split('=')
+        queryMap[tmp[0]] = tmp[1]
 
-    return response
-
-    '''
-    params = event["queryStringParameters"]
-    body = event['body']
-    status = body['status']
-    url = ""  # . how do we get the Url?
-
-    lucidHash = params['hash']
+    lucidHash = queryMap['hash']
     hashState = checkHash(url, lucidHash)
+
     if hashState:
         pass
     else:
@@ -40,43 +37,44 @@ def lambda_handler(event, context):
 
     if status == 'failure':
         msg = {
-            "userId": params['pid'],
-            "transactionId": params['mid'],
+            "userId":   queryMap['pid'],
+            "transactionId": queryMap['mid'],
             "hashState": hashState,
             "buyerName": "lucid",
             "status": status,
-            "queryStringParameters": params
+            "queryStringParameters": queryMap
         }
         pushMsg(msg)
 
         response = {
             "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/valid'},
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=P'},
             "body": json.dumps({})
         }
 
         return response
 
     elif status == 'success':
+
         msg = {
-            "userId": params['pid'],
-            "transactionId": params['mid'],
-            "surveyId": params['sur'],
-            "revenue": params['c'],
-            "surveyLoi": params['l'],
+            "userId": queryMap['pid'],
+            "transactionId": queryMap['mid'],
+            "surveyId": queryMap['sur'],
+            "revenue": queryMap['c'],
+            "surveyLoi": queryMap['l'],
             "hashState": hashState,
             "buyerName": "lucid",
             "status": status,
-            "queryStringParameters": params,
-            "sudoCut": Decimal(params['c']) * Decimal('.7'),
-            "userCut": (Decimal(params['c']) * Decimal('.7')) * Decimal('.8')
+            "queryStringParameters": queryMap,
+            "sudoCut": Decimal(queryMap['c']) * Decimal('.7'),
+            "userCut": (Decimal(queryMap['c']) * Decimal('.7')) * Decimal('.8')
         }
 
         pushMsg(msg)
 
         response = {
             "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/valid'},
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=C'},
             "body": json.dumps({})
         }
 
@@ -90,7 +88,7 @@ def lambda_handler(event, context):
         }
 
         return response
-    '''
+
 
 
 def checkHash(url, lucidHash):

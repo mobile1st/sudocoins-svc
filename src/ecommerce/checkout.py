@@ -41,8 +41,8 @@ def lambda_handler(event, context):
                                           "customer_name": userId
 
                                       },
-                                      redirect_url='https://sudocoins.com',
-                                      cancel_url='https://sudocoins.com')
+                                      redirect_url='https://www.sudocoins.com/?msg=complete',
+                                      cancel_url='https://www.sudocoins.com/?msg=cancelled')
 
         print(charge)
 
