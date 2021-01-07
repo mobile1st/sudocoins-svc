@@ -5,13 +5,17 @@ import hashlib
 
 
 def lambda_handler(event, context):
+    print(event)
     try:
-        redirectUrl, hostUrl, expectedParams = getUrls()
+        redirectUrl, hostUrl = getUrls()
+        if 'referer' in event["headers"]:
+            referer = event["headers"]["referer"]
+        else:
+            referer = "None"
         msgValue = {
-            "referer": event["headers"]["referer"],
+            "referer": referer,
             "queryStringParameters": event["queryStringParameters"],
             "hashState": verifyHash(hostUrl, event["queryStringParameters"]),
-            "missingParams": missingParams(event["queryStringParameters"], expectedParams),
             "buyerName": "cint"
         }
 
@@ -23,6 +27,7 @@ def lambda_handler(event, context):
                 msgValue["message"] = "invalid"
             else:
                 msgValue["message"] = "valid"
+
             token = msgValue["message"]
 
         except Exception as e:
@@ -36,6 +41,7 @@ def lambda_handler(event, context):
         return response
 
     except Exception as e:
+        print(e)
         response = {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
@@ -63,15 +69,6 @@ def pushMsg(msgValue):
     return record
 
 
-def missingParams(params, expectedParams):
-    receivedParams = params.keys()
-    missingParams = []
-    for i in expectedParams:
-        if i not in receivedParams:
-            missingParams.append(i)
-    return missingParams
-
-
 def verifyHash(hostUrl, params):
     shaUrl = params["h"]
     hashUrl = (hostUrl + "ts={0}&t={1}&c={2}&ip={3}").format(params["ts"], params["t"], params["c"], params["ip"])
@@ -91,9 +88,9 @@ def getUrls():
     response = configTable.get_item(Key={'configKey': configKey})
     redirectUrl = response['Item']["configValue"]["redirectUrl"]
     hostUrl = response['Item']["configValue"]["hostUrl"]
-    expectedParams = response['Item']["configValue"]["expectedParams"]
+    #  expectedParams = response['Item']["configValue"]["expectedParams"]
 
-    return redirectUrl, hostUrl, expectedParams
+    return redirectUrl, hostUrl #  , expectedParams
 
 
 def checkSha(url, hash):
