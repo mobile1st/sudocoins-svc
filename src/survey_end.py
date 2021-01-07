@@ -70,8 +70,9 @@ def pushMsg(msgValue):
 
 
 def verifyHash(hostUrl, params):
-    shaUrl = params["h"]
-    hashUrl = (hostUrl + "ts={0}&t={1}&c={2}&ip={3}").format(params["ts"], params["t"], params["c"], params["ip"])
+    # tid=%transaction_id%&h=%signature_hmac_sha%
+    shaUrl = params["hash"]
+    hashUrl = (hostUrl + "status={0}&sid={1}&tid={2}").format(params["status"], params["sid"], params["tid"])
     hashState = checkSha(hashUrl, shaUrl)
     if hashState:
         return True
