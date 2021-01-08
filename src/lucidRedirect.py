@@ -1,114 +1,80 @@
 import json
-import os
 import boto3
 from decimal import Decimal
 import hmac
 import hashlib
 import base64
+from urllib.parse import urlparse, parse_qs
+from typing import AnyStr, Dict, List
+
+sdc_redirect_invalid = 'https://www.sudocoins.com/invalid'
+sdc_redirect_msg = 'https://www.sudocoins.com/?msg='
 
 
 def lambda_handler(event, context):
     print(event)
     status = event['status']
     url = event['url']
+    if status != 'failure' and status != 'success':
+        print("Invalid status code on lucidRedirect=" + url)
+        return {'redirect': sdc_redirect_invalid}
 
-    baseUrl = 'sudocoins.com'
-    urlIndex = url.find(baseUrl)
-    queryParams = url[urlIndex + 29:]
-    queryList = queryParams.split('&')
-    queryMap = {}
-    for i in queryList:
-        tmp = i.split('=')
-        queryMap[tmp[0]] = tmp[1]
-
-    lucidHash = queryMap['hash']
-    hashState = checkHash(url, lucidHash)
-
-    if hashState:
-        pass
-    else:
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/invalid'},
-            "body": json.dumps({})
-        }
-
-        return response
+    parameters = parse_qs(urlparse(url).query)
+    if not check_lucid_hash(url, value(parameters, 'hash')):
+        print("Hash mismatch for lucidRedirect=" + url)
+        return {'redirect': sdc_redirect_invalid}
 
     if status == 'failure':
-        msg = {
-            "userId":   queryMap['pid'],
-            "transactionId": queryMap['mid'],
-            "hashState": hashState,
+        enqueue_end_transaction({
+            "userId":   value(parameters, 'pid'),
+            "transactionId": value(parameters, 'mid'),
+            "hashState": 'true',
             "buyerName": "lucid",
             "status": status,
-            "queryStringParameters": queryMap
-        }
-        pushMsg(msg)
+            "queryStringParameters": parameters
+        })
+        return {'redirect': sdc_redirect_msg + 'P'}
 
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=P'},
-            "body": json.dumps({})
-        }
+    # we have a complete
+    enqueue_end_transaction({
+        "userId": value(parameters, 'pid'),
+        "transactionId": value(parameters, 'mid'),
+        "surveyId": value(parameters, 'sur'),
+        "revenue": value(parameters, 'c'),
+        "surveyLoi": value(parameters, 'l'),
+        "hashState": 'true',
+        "buyerName": "lucid",
+        "status": status,
+        "queryStringParameters": parameters,
+        "sudoCut": Decimal(value(parameters, 'c')) * Decimal('.7'),  # todo this looks off here
+        "userCut": (Decimal(value(parameters, 'c')) * Decimal('.7')) * Decimal('.8')  # todo this looks off here
+    })
 
-        return response
-
-    elif status == 'success':
-
-        msg = {
-            "userId": queryMap['pid'],
-            "transactionId": queryMap['mid'],
-            "surveyId": queryMap['sur'],
-            "revenue": queryMap['c'],
-            "surveyLoi": queryMap['l'],
-            "hashState": hashState,
-            "buyerName": "lucid",
-            "status": status,
-            "queryStringParameters": queryMap,
-            "sudoCut": Decimal(queryMap['c']) * Decimal('.7'),
-            "userCut": (Decimal(queryMap['c']) * Decimal('.7')) * Decimal('.8')
-        }
-
-        pushMsg(msg)
-
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=C'},
-            "body": json.dumps({})
-        }
-
-        return response
-
-    else:
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/invalid'},
-            "body": json.dumps({})
-        }
-
-        return response
+    return {'redirect': sdc_redirect_msg + 'C'}
 
 
-
-def checkHash(url, lucidHash):
-    key = os.environ["key"]
+def check_lucid_hash(url, expected_hash):
+    key = 'bab' # os.environ["key"]
+    hashed_url = url[:url.find('&hash=')]
     encoded_key = key.encode('utf-8')
-    encoded_URL = url.encode('utf-8')
-    hashed = hmac.new(encoded_key, msg=encoded_URL, digestmod=hashlib.sha1)
+    encoded_url = hashed_url.encode('utf-8')
+    hashed = hmac.new(encoded_key, msg=encoded_url, digestmod=hashlib.sha1)
     digested_hash = hashed.digest()
     base64_encoded_result = base64.b64encode(digested_hash)
-    final_result = base64_encoded_result.decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
+    calculated_hash = base64_encoded_result.decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
 
-    if final_result == lucidHash:
-        return True
-    else:
-        return False
+    print(calculated_hash)
+    return calculated_hash == expected_hash
 
 
-def pushMsg(msgValue):
+def enqueue_end_transaction(msg):
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-    record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
+    return queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='EndTransaction')
 
-    return record
+
+def value(query: Dict[AnyStr, List[AnyStr]], parameter_name) -> AnyStr:
+    """Gets the first value for a parameter name when present, otherwise returns None"""
+
+    value_list = query.get(parameter_name)
+    return None if (value_list is None or len(value_list) == 0) else value_list[0]
