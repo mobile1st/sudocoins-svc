@@ -246,12 +246,7 @@ def getTiles(userId, config):
                 buyer = {
                     "name": i["name"],
                     "type": i['type'],
-                    "title": i["title"],
-                    "title2": i['productTitle'],
-                    "description": i["description"],
-                    "amounts": i['amounts'],
-                    "cashBack": i['cashBack'],
-                    "currencies": config['currencies']
+                    "title": i["title"]
                 }
 
                 if userId == "":
@@ -266,7 +261,12 @@ def getTiles(userId, config):
                 buyer = {
                     "name": i["name"],
                     "type": i['type'],
-                    "title": i["tileTitle"]
+                    "title": i["tileTitle"],
+                    "title2": i['productTitle'],
+                    "description": i["description"],
+                    "amounts": i['amounts'],
+                    "cashBack": i['cashBack'],
+                    "currencies": config['currencies']
                 }
 
                 if userId == "":

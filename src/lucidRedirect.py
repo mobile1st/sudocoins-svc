@@ -51,7 +51,7 @@ def lambda_handler(event, context):
 
 def check_lucid_hash(url, expected_hash):
     key = os.environ["key"]
-    hashed_url = url[:url.find('&hash=')]
+    hashed_url = url[:url.find('hash=')]
     encoded_key = key.encode('utf-8')
     encoded_url = hashed_url.encode('utf-8')
     hashed = hmac.new(encoded_key, msg=encoded_url, digestmod=hashlib.sha1)
