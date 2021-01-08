@@ -45,9 +45,9 @@ def lambda_handler(event, context):
         "hashState": 'true',
         "buyerName": "lucid",
         "status": status,
-        "queryStringParameters": parameters,
-        "sudoCut": Decimal(value(parameters, 'c')) * Decimal('.7'),  # todo this looks off here
-        "userCut": (Decimal(value(parameters, 'c')) * Decimal('.7')) * Decimal('.8')  # todo this looks off here
+        "queryStringParameters": parameters
+        # "sudoCut": Decimal(value(parameters, 'c')) * Decimal('.7'),  # todo this looks off here
+        # "userCut": (Decimal(value(parameters, 'c')) * Decimal('.7')) * Decimal('.8')  # todo this looks off here
     })
 
     return {'redirect': sdc_redirect_msg + 'C'}
@@ -78,3 +78,6 @@ def value(query: Dict[AnyStr, List[AnyStr]], parameter_name) -> AnyStr:
 
     value_list = query.get(parameter_name)
     return None if (value_list is None or len(value_list) == 0) else value_list[0]
+
+res = lambda_handler({'status': 'failure', 'url': 'https://www.sudocoins.com/lucid/success/?happy=2'}, None)
+print('Result= ', res)
