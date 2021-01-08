@@ -263,30 +263,12 @@ class History:
         userId = response['Attributes']['userId']
 
         if orderStatus == "charge:confirmed":
-            '''
-            name = response['Attributes']['productName']
-            cashBack = response['Attributes']['cashBack']
-            transactionId = response['Attributes']['orderId']
-            
-            amount = (Decimal(response['Attributes']['amountUsd']) * Decimal(cashBack)).quantize(
-                Decimal(10) ** ((-1) * 2))
-            print("amount:")
-            print(type(amount))
-
-            ledgerTable = self.dynamodb.Table('Ledger')
-            ledgerTable.put_item(
-                Item={
-                    'userId': userId,
-                    'transactionId': transactionId,
-                    'amount': amount * 100,
-                    'status': "Completed",
-                    'lastUpdate': datetime.utcnow().isoformat(),
-                    'type': 'Gift Card Cash Back',
-                    "name": name
-                }
-            )
-            '''
             self.updateProfile(userId)
+            client = boto3.client("sns")
+            client.publish(
+                PhoneNumber="+16282265769",
+                Message="Gift Card ordered. Start processing"
+            )
 
         else:
             self.updateProfile(userId)

@@ -88,12 +88,25 @@ class Transaction:
 
 
     def endLucid(self, data):
-        history = History(self.dynamodb)
-
-        transactionId = data["queryStringParameters"]['t']
+        transactionId = data['transactionId']
         surveyCode = data["status"]
-
+        buyerName = data['buyerName']
         updated = str(datetime.utcnow().isoformat())
+        userId = data["userId"]
 
-        return
+        revData = RevenueData(self.dynamodb)
+        revenue, payment, userStatus, revShare, cut = revData.get_revShare(data, buyerName)
+
+        history = History(self.dynamodb)
+        history.updateTransaction(transactionId, payment, surveyCode, updated,
+                                  revenue, revShare, userStatus, cut, data, userId)
+        print("Transaction updated")
+
+        if payment > 0:
+            history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
+            print("Ledger updated")
+
+        return None
+
+
 

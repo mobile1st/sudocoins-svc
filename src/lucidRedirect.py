@@ -41,8 +41,6 @@ def lambda_handler(event, context):
         "buyerName": "lucid",
         "status": status,
         "queryStringParameters": parameters
-        # "sudoCut": Decimal(value(parameters, 'c')) * Decimal('.7'),  # todo this looks off here
-        # "userCut": (Decimal(value(parameters, 'c')) * Decimal('.7')) * Decimal('.8')  # todo this looks off here
     })
 
     print("lucidRedirect - Success url=" + url)

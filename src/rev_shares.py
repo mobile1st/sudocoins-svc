@@ -48,7 +48,7 @@ class RevenueData:
 
             surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
 
-            if data["queryStringParameters"]["status"] in surveyStatus:
+            if surveyCode in surveyStatus:
                 userStatus = surveyStatus[surveyCode]["userStatus"]
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
                 if 'cut' in surveyStatus[surveyCode]:
@@ -65,4 +65,34 @@ class RevenueData:
             return revenue, payment, userStatus, revShare, cut
 
         elif buyerName in ['lucid']:
-            return
+            surveyCode = data["status"]
+            buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
+            surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
+
+            if 'revenue' in data:
+                revenue = Decimal(data['revenue']) * 100
+            else:
+                revenue = Decimal('0.00')
+
+            if surveyCode in surveyStatus:
+                userStatus = surveyStatus[surveyCode]["userStatus"]
+                revShare = Decimal(surveyStatus[surveyCode]["revShare"])
+                if 'cut' in surveyStatus[surveyCode]:
+                    cut = Decimal(surveyStatus[surveyCode]['cut'])
+                else:
+                    cut = Decimal(0)
+                if 'lucidCut' in surveyStatus[surveyCode]:
+                    lucidCut = Decimal(surveyStatus[surveyCode]['lucidCut'])
+                else:
+                    lucidCut = Decimal('1')
+
+            else:
+                userStatus = data["status"]
+                revShare = Decimal(0)
+                cut = Decimal(0)
+
+            payment = revenue * lucidCut * revShare
+            revenue = revenue * lucidCut
+
+            return revenue, payment, userStatus, revShare, cut
+
