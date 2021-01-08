@@ -1,4 +1,5 @@
 import json
+import os
 import boto3
 from decimal import Decimal
 import hmac
@@ -7,24 +8,17 @@ import base64
 from urllib.parse import urlparse, parse_qs
 from typing import AnyStr, Dict, List
 
-sdc_redirect_invalid = 'https://www.sudocoins.com/invalid'
-sdc_redirect_msg = 'https://www.sudocoins.com/?msg='
-
 
 def lambda_handler(event, context):
-    print(event)
+    print("lucidRedirect -", event)
     status = event['status']
     url = event['url']
-    if status != 'failure' and status != 'success':
-        print("Invalid status code on lucidRedirect=" + url)
-        return {'redirect': sdc_redirect_invalid}
-
     parameters = parse_qs(urlparse(url).query)
     if not check_lucid_hash(url, value(parameters, 'hash')):
-        print("Hash mismatch for lucidRedirect=" + url)
-        return {'redirect': sdc_redirect_invalid}
+        print("lucidRedirect - Hash mismatch url=" + url)
+        return {'redirect': 'https://www.sudocoins.com/invalid'}
 
-    if status == 'failure':
+    if status != 'success':
         enqueue_end_transaction({
             "userId":   value(parameters, 'pid'),
             "transactionId": value(parameters, 'mid'),
@@ -33,9 +27,10 @@ def lambda_handler(event, context):
             "status": status,
             "queryStringParameters": parameters
         })
-        return {'redirect': sdc_redirect_msg + 'P'}
+        print("lucidRedirect - Failure status=" + status + " url=" + url)
+        return {'redirect': 'https://www.sudocoins.com/?msg=P'}
 
-    # we have a complete
+    # we have a success
     enqueue_end_transaction({
         "userId": value(parameters, 'pid'),
         "transactionId": value(parameters, 'mid'),
@@ -50,11 +45,12 @@ def lambda_handler(event, context):
         # "userCut": (Decimal(value(parameters, 'c')) * Decimal('.7')) * Decimal('.8')  # todo this looks off here
     })
 
-    return {'redirect': sdc_redirect_msg + 'C'}
+    print("lucidRedirect - Success url=" + url)
+    return {'redirect': 'https://www.sudocoins.com/?msg=C'}
 
 
 def check_lucid_hash(url, expected_hash):
-    key = 'bab' # os.environ["key"]
+    key = os.environ["key"]
     hashed_url = url[:url.find('&hash=')]
     encoded_key = key.encode('utf-8')
     encoded_url = hashed_url.encode('utf-8')
@@ -63,7 +59,6 @@ def check_lucid_hash(url, expected_hash):
     base64_encoded_result = base64.b64encode(digested_hash)
     calculated_hash = base64_encoded_result.decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
 
-    print(calculated_hash)
     return calculated_hash == expected_hash
 
 
@@ -78,6 +73,3 @@ def value(query: Dict[AnyStr, List[AnyStr]], parameter_name) -> AnyStr:
 
     value_list = query.get(parameter_name)
     return None if (value_list is None or len(value_list) == 0) else value_list[0]
-
-res = lambda_handler({'status': 'failure', 'url': 'https://www.sudocoins.com/lucid/success/?happy=2'}, None)
-print('Result= ', res)
