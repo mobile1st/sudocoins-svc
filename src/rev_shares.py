@@ -77,6 +77,7 @@ class RevenueData:
             if surveyCode in surveyStatus:
                 userStatus = surveyStatus[surveyCode]["userStatus"]
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
+                print(revShare)
                 if 'cut' in surveyStatus[surveyCode]:
                     cut = Decimal(surveyStatus[surveyCode]['cut'])
                 else:
@@ -91,6 +92,9 @@ class RevenueData:
                 revShare = Decimal(0)
                 cut = Decimal(0)
 
+            print(revenue)
+            print(lucidCut)
+            print(revShare)
             payment = revenue * lucidCut * revShare
             revenue = revenue * lucidCut
 
