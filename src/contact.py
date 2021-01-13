@@ -1,8 +1,7 @@
 import boto3
-import json
 import os
-from botocore.exceptions import ClientError
 import uuid
+from datetime import datetime
 
 
 def lambda_handler(event, context):
@@ -17,12 +16,15 @@ def lambda_handler(event, context):
 
     msgId = str(uuid.uuid1())
 
+    timeNow = datetime.utcnow().isoformat()
+
     jsonInput = event
 
     message = {
         'msgId': msgId,
         'userId': jsonInput["userId"],
-        'message': jsonInput["message"]
+        'message': jsonInput["message"],
+        'created': timeNow
     }
 
     if 'transactionId' in jsonInput:
