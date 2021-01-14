@@ -133,7 +133,7 @@ def loadProfile(dynamodb, sub, email, facebook):
         return profileObject['Item']
 
     elif email != "":
-        print("no sub but email found")
+        print("no sub. seeing if user email matches any userId")
         profileQuery = profileTable.query(
             IndexName='email-index',
             KeyConditionExpression='email = :email',
