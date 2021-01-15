@@ -47,7 +47,7 @@ class BuyerRedirect:
 
             url = survey['url'] + "&sid=" + str(survey['appId']) + '&pid=' + userId \
                   + '&clid=' + str(countryCode) + '&mid=' + transactionId + '&'
-            testUrl = url + 'tar=' + '1584274' + '&'
+            testUrl = url + '&'
 
             encodedKey = survey['secretkey'].encode('utf-8')
             encodedUrl = testUrl.encode('utf-8')
