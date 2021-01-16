@@ -61,6 +61,12 @@ def lambda_handler(event, context):
     )
     print("cash out submitted")
 
+    client = boto3.client("sns")
+    client.publish(
+        PhoneNumber="+16282265769",
+        Message="Cash Out submitted"
+    )
+
     loadHistory.updateProfile(userId)
 
     profileObject = profileTable.get_item(
