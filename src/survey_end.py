@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 import hashlib
+import hmac
 
 
 def lambda_handler(event, context):
@@ -12,16 +13,18 @@ def lambda_handler(event, context):
             referer = event["headers"]["referer"]
         else:
             referer = "None"
+
+        hashState = verifyHash(hostUrl, event["queryStringParameters"])
+
         msgValue = {
             "referer": referer,
             "queryStringParameters": event["queryStringParameters"],
-            "hashState": verifyHash(hostUrl, event["queryStringParameters"]),
+            "hashState": hashState,
             "buyerName": "cint"
         }
 
         try:
             messageResponse = pushMsg(msgValue)
-            print(messageResponse)
 
             if not msgValue['hashState']:
                 msgValue["message"] = "invalid"
@@ -70,10 +73,9 @@ def pushMsg(msgValue):
 
 
 def verifyHash(hostUrl, params):
-    # tid=%transaction_id%&h=%signature_hmac_sha%
     shaUrl = params["h"]
-    hashUrl = (hostUrl + "status={0}&sid={1}&tid={2}").format(params["status"], params["sid"], params["tid"])
-    hashState = checkSha(hashUrl, shaUrl)
+    url = (hostUrl + "status={0}&sid={1}&tid={2}").format(params["status"], params["sid"], params["tid"])
+    hashState = checkSha(url, shaUrl)
     if hashState:
         return True
     else:
@@ -91,13 +93,18 @@ def getUrls():
     hostUrl = response['Item']["configValue"]["hostUrl"]
     #  expectedParams = response['Item']["configValue"]["expectedParams"]
 
-    return redirectUrl, hostUrl #  , expectedParams
+    return redirectUrl, hostUrl
 
 
 def checkSha(url, hash):
-    hashObject = hashlib.sha256(url.encode('utf-8'))
-    hexDig = hashObject.hexdigest()
-    if hexDig == hash:
+    secret = os.environ["keyId"]
+    signature = hmac.new(
+        secret.encode('utf-8'),
+        url.encode('utf-8'),
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    if signature == hash:
         return True
     else:
         return False
