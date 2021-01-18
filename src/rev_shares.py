@@ -14,14 +14,14 @@ class RevenueData:
             if not data["hashState"]:
                 surveyCode = "F"
             else:
-                surveyCode = data["queryStringParameters"]["c"]
+                surveyCode = data["queryStringParameters"]["status"]
 
             print("trying getConfig")
             buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
             revenue = Decimal(buyerObject["Item"]["configValue"]["buyer"][buyerName]["defaultCpi"])
             surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
 
-            if data["queryStringParameters"]["c"] in surveyStatus:
+            if data["queryStringParameters"]["status"] in surveyStatus:
                 userStatus = surveyStatus[surveyCode]["userStatus"]
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
                 if 'cut' in surveyStatus[surveyCode]:
@@ -29,7 +29,7 @@ class RevenueData:
                 else:
                     cut = Decimal(0)
             else:
-                userStatus = data["queryStringParameters"]["c"]
+                userStatus = data["queryStringParameters"]["status"]
                 revShare = Decimal(0)
                 cut = Decimal(0)
 

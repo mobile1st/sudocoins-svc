@@ -1,10 +1,6 @@
-import hashlib
-import hmac
-import hashlib
-import base64
 from history import History
+import boto3
 from datetime import datetime
-from decimal import Decimal
 from rev_shares import RevenueData
 
 
@@ -67,10 +63,15 @@ class Transaction:
 
     def endTest(self, data):
         history = History(self.dynamodb)
-        transactionId = data["queryStringParameters"]['t']
-        surveyCode = data["queryStringParameters"]['c']
+        transactionId = data["queryStringParameters"]['sid']
+        surveyCode = data["queryStringParameters"]['status']
         buyerName = data['buyerName']
         updated = str(datetime.utcnow().isoformat())
+
+        dynamodb = boto3.resource('dynamodb')
+        transactionTable = dynamodb.Table('Transaction')
+        transactionResponse = transactionTable.get_item(Key={'transactionId': transactionId})
+        userId = transactionResponse['Item']['userId']
 
         revData = RevenueData(self.dynamodb)
         revenue, payment, userStatus, revShare, cut = revData.get_revShare(data, buyerName)
