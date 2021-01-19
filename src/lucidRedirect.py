@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     parameters = parse_qs(urlparse(url).query)
     if not check_lucid_hash(url, value(parameters, 'hash')):
         print("lucidRedirect - Hash mismatch url=" + url)
-        return {'redirect': 'https://www.sudocoins.com/?msg=invalid'}
+        return {'msg': 'invalid'}
 
     if status != 'success':
         enqueue_end_transaction({
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
             "queryStringParameters": parameters
         })
         print("lucidRedirect - Failure status=" + status + " url=" + url)
-        return {'redirect': 'https://www.sudocoins.com/?msg=P'}
+        return {'msg': 'P'}
 
     # we have a success
     enqueue_end_transaction({
@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     })
 
     print("lucidRedirect - Success url=" + url)
-    return {'redirect': 'https://www.sudocoins.com/?msg=C'}
+    return {'msg': 'C'}
 
 
 def check_lucid_hash(url, expected_hash):
