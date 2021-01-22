@@ -15,7 +15,7 @@ def lambda_handler(event, context):
 
     payoutTable.update_item(
         Key={
-            "payoutId": transactionId
+            "paymentId": transactionId
         },
         UpdateExpression="set #s=:s, lastUpdate=:lu",
         ExpressionAttributeValues={
