@@ -162,3 +162,11 @@ Resources:
       Runtime: python3.8
       FunctionName: updateCashOut
       CodeUri: ./src
+
+  reportsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: reports.lambda_handler
+      Runtime: python3.8
+      FunctionName: Reports
+      CodeUri: ./src
