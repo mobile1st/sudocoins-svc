@@ -17,12 +17,13 @@ def lambda_handler(event, context):
         Key={
             "payoutId": transactionId
         },
-        UpdateExpression="set status=:s, lastUpdate=:lu",
+        UpdateExpression="set #s=:s, lastUpdate=:lu",
         ExpressionAttributeValues={
             ":s": "Complete",
             ":lu": now
 
         },
+        ExpressionAttributeNames={'#s': 'status'},
         ReturnValues="ALL_NEW"
     )
 
