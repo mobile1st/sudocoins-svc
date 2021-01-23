@@ -16,15 +16,18 @@ def lambda_handler(event, context):
 
     for i in reports:
         date = i['date']
-        starts.append([date, i['Starts']])
-        completes.append([date, i['Completes']])
-        revenue.append([date, i['Revenue']])
-        profiles.append([date, i['Profiles']])
 
-    starts.sort(key=itemgetter(0), reverse=False)
-    completes.sort(key=itemgetter(0), reverse=False)
-    revenue.sort(key=itemgetter(0), reverse=False)
-    profiles.sort(key=itemgetter(0), reverse=False)
+        tmp = {"x": date, "y": i['Starts']}
+        starts.append(tmp)
+
+        tmp2 = {"x": date, "y": i['Completes']}
+        completes.append(tmp2)
+
+        tmp3 = {"x": date, "y": i['Revenue']}
+        revenue.append(tmp3)
+
+        tmp4 = {"x": date, "y": i['Profiles']}
+        profiles.append(tmp4)
 
     return {
         "starts": starts,
