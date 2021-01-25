@@ -160,7 +160,7 @@ class Lucid:
         'sl-SI': 79,
         'es-PE': 80,
         'vi-VN': 81,
-        'en-VI': 150,
+        'en-VN': 150,
         'ar-AE': 82,
         'en-AE': 93,
         'ar-QA': 83,
