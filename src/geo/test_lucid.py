@@ -16,6 +16,7 @@ class TestLucidLocales(unittest.TestCase):
             region_data = json.load(regions_json)
             self.languages = region_data['languages']
             self.regions = region_data['regions']
+            self.continents = region_data['continents']
             self.lucidLocales = region_data['lucidLocales']
 
     def test_lucid_regions_have_name(self):
@@ -36,3 +37,12 @@ class TestLucidLocales(unittest.TestCase):
                 clc = self.lucidCodes.get(code)
                 print(region, lang, code, clc[0], self.regions[region], clc[1], self.languages[lang])
                 self.assertIsNotNone(clc, 'no clc mapping for ' + str(code))
+
+    def test_regions_have_continent(self):
+        region_continent = {}
+        for continent in self.continents:
+            for region in continent['regions']:
+                region_continent[region] = continent['name']
+
+        for region in self.regions.keys():
+            self.assertIsNotNone(region_continent[region], "missing continent for region=" + region)

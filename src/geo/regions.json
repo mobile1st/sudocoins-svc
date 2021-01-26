@@ -137,6 +137,41 @@
     "ZM": ["en"],
     "MM": ["en", "my"]
   },
+  "continents": [
+    {
+      "name": "Africa, Middle East, India",
+      "regions": [
+        "AO", "BD", "BF", "BH", "BJ", "BW", "CD", "CG", "CM", "CV",
+        "DJ", "DZ", "EG", "ER", "ET", "GA", "GH", "GM", "GN", "GQ",
+        "GW", "IL", "IN", "IQ", "JO", "KE", "KM", "KW", "LB", "LR",
+        "LS", "LY", "MA", "MG", "ML", "MR", "MU", "MW", "MZ", "NA",
+        "NE", "NG", "OM", "PK", "PS", "QA", "RW", "SA", "SC", "SL",
+        "SN", "ST", "SZ", "TD", "TG", "TN", "TZ", "UG", "YE", "ZA",
+        "ZM", "AE"]
+    }, {
+      "name": "Asia Pacific",
+      "regions": [
+        "AU", "CN", "HK", "ID", "JP", "KR", "MM", "MY", "NZ", "PH",
+        "SG", "TH", "TW", "VN"]
+    }, {
+      "name": "Europe",
+      "regions": [
+        "AT", "BE", "BG", "CH", "CZ", "DE", "DK", "EE", "ES", "FI",
+        "FR", "GB", "GR", "HR", "HU", "IE", "IS", "IT", "KZ", "LT",
+        "LU", "LV", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "RU",
+        "SE", "SI", "SK", "TR", "UA"]
+    },{
+      "name": "North America",
+      "regions": [
+        "CA", "PR", "US"]
+    }, {
+      "name": "Latin America and the Caribbean",
+      "regions": [
+        "AR", "BO", "BR", "BS", "BZ", "CL", "CO", "CR", "DO", "EC",
+        "GT", "HN", "HT", "JM", "MX", "NI", "PA", "PE", "PY", "SV",
+        "UY", "VE"]
+    }
+  ],
   "regions": {
     "CN": "中国大陆",
     "HK": "香港",
@@ -164,7 +199,7 @@
     "SE": "Sverige",
     "KR": "대한민국",
     "BE": "Belgique",
-    "SA": "السعودية",
+    "SA": "المملكة العربية السعودية",
     "NO": "Norge",
     "DK": "Danmark",
     "FI": "Suomi",
@@ -202,7 +237,7 @@
     "SI": "Slovenija",
     "PE": "Perú",
     "VN": "Việt Nam",
-    "AE": "الإمارات",
+    "AE": "الإمارات العربية المتحدة",
     "QA": "قطر",
     "NG": "Nigeria",
     "HR": "Hrvatska",
@@ -228,7 +263,7 @@
     "PS": "فلسطين",
     "BH": "البحرين",
     "MT": "Malta",
-    "BS": "Bahamas",
+    "BS": "The Bahamas",
     "BZ": "Belize",
     "BO": "Bolivia",
     "HT": "Haïti",
