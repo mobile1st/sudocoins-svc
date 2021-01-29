@@ -29,6 +29,11 @@ def lambda_handler(event, context):
         tmp4 = {"x": date, "y": i['Profiles']}
         profiles.append(tmp4)
 
+    starts.sort(key=lambda e: e['x'])
+    completes.sort(key=lambda e: e['x'])
+    profiles.sort(key=lambda e: e['x'])
+    revenue.sort(key=lambda e: e['x'])
+
     return {
         "starts": starts,
         "completes": completes,
