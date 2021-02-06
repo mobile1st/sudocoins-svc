@@ -1,12 +1,15 @@
 import boto3
 from datetime import datetime
 import uuid
+from botocore.config import Config
 
 # from configuration import Configuration
 
+config = Config(connect_timeout=0.1, read_timeout=0.1, retries={'max_attempts': 5, 'mode': 'standard'})
+dynamodb = boto3.resource('dynamodb', config=config)
+
 
 def lambda_handler(event, context):
-    dynamodb = boto3.resource('dynamodb')
     # . jsonInput = json.loads(event['body'])
     jsonInput = event
     print(event)
@@ -40,7 +43,7 @@ def lambda_handler(event, context):
     try:
         if sub != "":
             print("about to load profile")
-            profile = loadProfile(dynamodb, sub, email, facebook)
+            profile = loadProfile(sub, email, facebook)
             print("profile loaded")
             userId = profile['userId']
         else:
@@ -57,7 +60,7 @@ def lambda_handler(event, context):
 
     try:
         print("about to get config")
-        config = getConfig(dynamodb)
+        config = getConfig()
         print("config loaded")
 
         rate, ethRate = getRate(config)
@@ -85,7 +88,7 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(dynamodb, sub, email, facebook):
+def loadProfile(sub, email, facebook):
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': sub})
@@ -217,7 +220,7 @@ def loadProfile(dynamodb, sub, email, facebook):
     return profile
 
 
-def getConfig(dynamodb):
+def getConfig():
     configTable = dynamodb.Table('Config')
     configKey = "HomePage"
 

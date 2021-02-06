@@ -97,6 +97,8 @@ Resources:
       Handler: getProfile.lambda_handler
       Runtime: python3.8
       FunctionName: getProfile
+      Description: Gets all data for displaying the profil page
+      MemorySize: 512
       CodeUri: ./src
 
   moreHistoryFunction:
