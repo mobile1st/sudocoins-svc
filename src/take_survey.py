@@ -59,6 +59,7 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
         data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
+        print("transaction record inserted")
 
         client = boto3.client("sns")
         message = {"start": 1}
@@ -67,8 +68,9 @@ def lambda_handler(event, context):
             MessageStructure='string',
             Message=json.dumps(message)
         )
+        print("start added to sns")
 
-        print("transaction record inserted")
+
 
     except Exception as e:
         print(e)
