@@ -2,6 +2,7 @@ import boto3
 from datetime import datetime
 import uuid
 from botocore.config import Config
+import json
 
 # from configuration import Configuration
 
@@ -217,6 +218,18 @@ def loadProfile(sub, email, facebook):
         Item=profile
     )
     print("profile submitted")
+
+    client = boto3.client("sns")
+    message = {"profile": 1}
+    client.publish(
+        TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+        MessageStructure='string',
+        Message=json.dumps(message)
+    )
+    print("profile added to sns")
+
+
+
     return profile
 
 
