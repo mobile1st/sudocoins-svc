@@ -2,6 +2,7 @@ from history import History
 import boto3
 from datetime import datetime
 from rev_shares import RevenueData
+import json
 
 
 class Transaction:
@@ -25,11 +26,21 @@ class Transaction:
 
         history.updateTransaction(transactionId, payment, surveyCode, completed,
                                   revenue, revShare, userStatus, cut, data, userId)
-        print("PL Transaction updated")
+        print("Transaction updated")
 
         if payment > 0:
             history.createLedgerRecord(transactionId, payment, userId, completed, userStatus)
-            print("PL Ledger updated")
+            print("Ledger updated")
+
+        if surveyCode == "C":
+            client = boto3.client("sns")
+            message = {"complete": 1}
+            client.publish(
+                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+                MessageStructure='string',
+                Message=json.dumps(message)
+            )
+            print("complete added to sns")
 
         return None
 
@@ -58,10 +69,21 @@ class Transaction:
             history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
 
+        if surveyCode == "C":
+            client = boto3.client("sns")
+            message = {"complete": 1}
+            client.publish(
+                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+                MessageStructure='string',
+                Message=json.dumps(message)
+            )
+            print("complete added to sns")
+
         return None
 
 
     def endTest(self, data):
+        #  also used for Cint
         history = History(self.dynamodb)
         transactionId = data["queryStringParameters"]['sid']
         surveyCode = data["queryStringParameters"]['status']
@@ -85,6 +107,16 @@ class Transaction:
             history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
 
+        if surveyCode == "C":
+            client = boto3.client("sns")
+            message = {"complete": 1}
+            client.publish(
+                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+                MessageStructure='string',
+                Message=json.dumps(message)
+            )
+            print("complete added to sns")
+
         return None
 
 
@@ -106,6 +138,16 @@ class Transaction:
         if payment > 0:
             history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
+
+        if surveyCode == "success":
+            client = boto3.client("sns")
+            message = {"complete": 1}
+            client.publish(
+                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+                MessageStructure='string',
+                Message=json.dumps(message)
+            )
+            print("complete added to sns")
 
         return None
 

@@ -59,6 +59,15 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
         data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
+
+        client = boto3.client("sns")
+        message = {"start": 1}
+        client.publish(
+            TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+            MessageStructure='string',
+            Message=json.dumps(message)
+        )
+
         print("transaction record inserted")
 
     except Exception as e:
