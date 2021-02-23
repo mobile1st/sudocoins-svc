@@ -34,7 +34,8 @@ class Transaction:
 
         if surveyCode == "C":
             client = boto3.client("sns")
-            message = {"complete": 1}
+
+            message = {"complete": 1, "revenue": revenue}
             client.publish(
                 TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
                 MessageStructure='string',
@@ -71,7 +72,7 @@ class Transaction:
 
         if surveyCode == "C":
             client = boto3.client("sns")
-            message = {"complete": 1}
+            message = {"complete": 1, "revenue": revenue}
             client.publish(
                 TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
                 MessageStructure='string',
@@ -109,7 +110,7 @@ class Transaction:
 
         if surveyCode == "C":
             client = boto3.client("sns")
-            message = {"complete": 1}
+            message = {"complete": 1, "revenue": revenue}
             client.publish(
                 TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
                 MessageStructure='string',
@@ -141,7 +142,7 @@ class Transaction:
 
         if surveyCode == "success":
             client = boto3.client("sns")
-            message = {"complete": 1}
+            message = {"complete": 1, "revenue": revenue}
             client.publish(
                 TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
                 MessageStructure='string',
