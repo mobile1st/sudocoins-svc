@@ -148,7 +148,7 @@ class Transaction:
                 MessageStructure='string',
                 Message=json.dumps(message)
             )
-            print("complete added to sns")
+            print("complete/rev added to sns")
 
         return None
 
