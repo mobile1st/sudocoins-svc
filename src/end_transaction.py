@@ -29,7 +29,8 @@ def lambda_handler(event, context):
 def update(payload):
     data = json.loads(payload)
     dynamodb = boto3.resource('dynamodb')
-    transaction = Transaction(dynamodb)
+    sns_client = boto3.client("sns")
+    transaction = Transaction(dynamodb, sns_client)
 
     if data["buyerName"] == 'cint' or data["buyerName"] == 'test':
         transaction.endTest(data)

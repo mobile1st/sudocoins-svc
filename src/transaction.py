@@ -7,8 +7,9 @@ import json
 
 class Transaction:
 
-    def __init__(self, dynamodb):
+    def __init__(self, dynamodb, sns_client):
         self.dynamodb = dynamodb
+        self.sns_client = sns_client
 
     def endPL(self, data):
         history = History(self.dynamodb)
@@ -32,16 +33,9 @@ class Transaction:
             history.createLedgerRecord(transactionId, payment, userId, completed, userStatus)
             print("Ledger updated")
 
-        if surveyCode == "C":
-            client = boto3.client("sns")
+        # TODO convert surveyCode to buyer independent format (C, ...)
+        self.send_notification(surveyCode, transactionId, completed, 'peanutlabs', userId, revenue)
 
-            message = {"complete": 1, "revenue": revenue}
-            client.publish(
-                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
-                MessageStructure='string',
-                Message=json.dumps(message)
-            )
-            print("complete added to sns")
 
         return None
 
@@ -70,15 +64,8 @@ class Transaction:
             history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
 
-        if surveyCode == "C":
-            client = boto3.client("sns")
-            message = {"complete": 1, "revenue": revenue}
-            client.publish(
-                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
-                MessageStructure='string',
-                Message=json.dumps(message)
-            )
-            print("complete added to sns")
+        # TODO convert surveyCode to buyer independent format (C, ...)
+        self.send_notification(surveyCode, transactionId, updated, 'dynata', userId, revenue)
 
         return None
 
@@ -108,15 +95,8 @@ class Transaction:
             history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
 
-        if surveyCode == "C":
-            client = boto3.client("sns")
-            message = {"complete": 1, "revenue": revenue}
-            client.publish(
-                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
-                MessageStructure='string',
-                Message=json.dumps(message)
-            )
-            print("complete added to sns")
+        # TODO convert surveyCode to buyer independent format (C, ...)
+        self.send_notification(surveyCode, transactionId, updated, 'cint', userId, revenue)
 
         return None
 
@@ -140,17 +120,25 @@ class Transaction:
             history.createLedgerRecord(transactionId, payment, userId, updated, userStatus)
             print("Ledger updated")
 
-        if surveyCode == "success":
-            client = boto3.client("sns")
-            message = {"complete": 1, "revenue": revenue}
-            client.publish(
-                TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
-                MessageStructure='string',
-                Message=json.dumps(message)
-            )
-            print("complete/rev added to sns")
+        # TODO convert surveyCode to buyer independent format (C, ...)
+        self.send_notification(surveyCode, transactionId, updated, 'lucid', userId, revenue)
 
         return None
 
+
+    def send_notification(self, status, transaction_id, timestamp, buyer_name, user_id, revenue):
+        self.sns_client.publish(
+            TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
+            MessageStructure='string',
+            Message=json.dumps({
+                "source": 'SURVEY_END',
+                "status": status,
+                "transactionId": transaction_id,
+                "timestamp": timestamp,
+                "buyerName": buyer_name,
+                "userId": user_id,
+                "revenue": revenue
+            })
+        )
 
 
