@@ -9,9 +9,10 @@ def lambda_handler(event, context):
     pendingPayouts = payouts.query(
         KeyConditionExpression=Key("status").eq("Pending"),
         ScanIndexForward=False,
+        ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
         IndexName='byStatus',
         ProjectionExpression="userId, transactionId, amount, lastUpdate, payoutType, "
-                             "status, type, usdBtcRate, userInput")
+                             "#s, #t, usdBtcRate, userInput")
 
     payoutRecords = pendingPayouts["Items"]
 
