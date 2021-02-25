@@ -2,6 +2,10 @@ import boto3
 import json
 from transaction import Transaction
 
+dynamodb = boto3.resource('dynamodb')
+sns_client = boto3.client("sns")
+transaction = Transaction(dynamodb, sns_client)
+
 
 def lambda_handler(event, context):
     try:
@@ -9,7 +13,8 @@ def lambda_handler(event, context):
             payload = record['body']
             print(payload)
 
-            update(payload)
+            data = json.loads(payload)
+            transaction.end(data)
             print("record updated")
 
         return {
@@ -24,23 +29,3 @@ def lambda_handler(event, context):
             "status": 200,
             "body": "Failure! Something went wrong"
         }
-
-
-def update(payload):
-    data = json.loads(payload)
-    dynamodb = boto3.resource('dynamodb')
-    sns_client = boto3.client("sns")
-    transaction = Transaction(dynamodb, sns_client)
-
-    if data["buyerName"] == 'cint' or data["buyerName"] == 'test':
-        transaction.endTest(data)
-
-    elif data["buyerName"] == 'lucid':
-        transaction.endLucid(data)
-
-    elif data["buyerName"] == 'peanutLabs':
-        transaction.endPL(data)
-
-    elif data["buyerName"] == 'dynata':
-        transaction.endDynata(data)
-
