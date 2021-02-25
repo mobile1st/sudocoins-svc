@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         "lastUpdate": lastUpdate,
         "type": jsonInput["type"],
         "address": jsonInput["address"],
-        "Status": "Pending",
+        "status": "Pending",
         "usdBtcRate": rate,
         "userInput": jsonInput["amount"],
         "payoutType": jsonInput['type']
