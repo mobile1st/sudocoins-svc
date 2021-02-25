@@ -7,7 +7,7 @@ def lambda_handler(event, context):
 
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table('Ledger')
-    transactionTable = dynamodb.Table('Transactions')
+    transactionTable = dynamodb.Table('Transaction')
     #  verification = dynamodb.Table('Verifications')
 
     ledgerObject = ledgerTable.query(
