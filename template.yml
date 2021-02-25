@@ -174,3 +174,11 @@ Resources:
       Runtime: python3.8
       FunctionName: Reports
       CodeUri: ./src
+
+  payoutsUIFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: payouts.lambda_handler
+      Runtime: python3.8
+      FunctionName: PayoutsUI
+      CodeUri: ./src
