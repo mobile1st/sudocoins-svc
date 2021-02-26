@@ -1,12 +1,14 @@
 import boto3
 from operator import itemgetter
 
+dynamodb = boto3.resource('dynamodb')
+
 
 def lambda_handler(event, context):
-    dynamodb = boto3.resource('dynamodb')
-    reportsTable = dynamodb.Table('Reports')
 
-    reports = reportsTable.scan()
+    reports_table = dynamodb.Table('Reports')
+
+    reports = reports_table.scan()
     reports = reports['Items']
 
     starts = []

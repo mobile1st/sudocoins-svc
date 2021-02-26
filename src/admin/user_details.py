@@ -1,25 +1,26 @@
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
+
+dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    userId = event['userId']
+    user_id = event['userId']
 
-    dynamodb = boto3.resource('dynamodb')
-    ledgerTable = dynamodb.Table('Ledger')
-    transactionTable = dynamodb.Table('Transaction')
-    #  verification = dynamodb.Table('Verifications')
+    ledger_table = dynamodb.Table('Ledger')
+    transaction_table = dynamodb.Table('Transaction')
+    #  verification = dynamodb.Table('Verification')
 
-    ledgerObject = ledgerTable.query(
-        KeyConditionExpression=Key("userId").eq(userId),
+    ledger_row = ledger_table.query(
+        KeyConditionExpression=Key("userId").eq(user_id),
         ScanIndexForward=False,
         ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
         IndexName='byUserId',
         ProjectionExpression="userId, transactionId, amount, lastUpdate, payoutType, "
                              "#s, #t, usdBtcRate, userInput")
 
-    transactionsObject = transactionTable.query(
-        KeyConditionExpression=Key("userId").eq(userId),
+    transactions_row = transaction_table.query(
+        KeyConditionExpression=Key("userId").eq(user_id),
         ScanIndexForward=False,
         ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
         IndexName='userId-started-index',
@@ -27,10 +28,8 @@ def lambda_handler(event, context):
                              "ip, payout, redirect, revenue, revShare, #s, "
                              "surveyCode, #t")
 
-    details = {
-        "ledger": ledgerObject['Items'],
-        "transactions": transactionsObject['Items'],
+    return {
+        "ledger": ledger_row['Items'],
+        "transactions": transactions_row['Items'],
         "verification": ""
     }
-
-    return details

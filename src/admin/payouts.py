@@ -1,12 +1,13 @@
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
+
+dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    dynamodb = boto3.resource('dynamodb')
     payouts = dynamodb.Table('Payouts')
 
-    pendingPayouts = payouts.query(
+    pending_payout = payouts.query(
         KeyConditionExpression=Key("status").eq("Pending"),
         ScanIndexForward=False,
         ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
@@ -14,6 +15,4 @@ def lambda_handler(event, context):
         ProjectionExpression="paymentId, address, amount, lastUpdate, payoutType, "
                              "#s, #t, usdBtcRate, userId, userInput")
 
-    payoutRecords = pendingPayouts["Items"]
-
-    return payoutRecords
+    return pending_payout["Items"]

@@ -167,26 +167,26 @@ Resources:
       FunctionName: updateCashOut
       CodeUri: ./src
 
-  reportsFunction:
+  adminTrafficReportFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: reports.lambda_handler
+      Handler: traffic_report.lambda_handler
       Runtime: python3.8
-      FunctionName: Reports
-      CodeUri: ./src
+      FunctionName: adminTrafficReport
+      CodeUri: ./src/admin
 
-  payoutsUIFunction:
+  adminPayoutListFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: payouts.lambda_handler
       Runtime: python3.8
-      FunctionName: PayoutsUI
-      CodeUri: ./src
+      FunctionName: adminPayoutList
+      CodeUri: ./src/admin
 
-  userDetailsFunction:
+  adminUserDetailsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: userDetails.lambda_handler
+      Handler: user_details.lambda_handler
       Runtime: python3.8
-      FunctionName: userDetails
-      CodeUri: ./src
+      FunctionName: adminUserDetails
+      CodeUri: ./src/admin
