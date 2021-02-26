@@ -39,12 +39,17 @@ def lambda_handler(event, context):
     else:
         facebook = ""
 
+    if 'signupMethod' in jsonInput:
+        signupMethod = jsonInput['signupMethod']
+    else:
+        signupMethod = ""
+
     global profile
 
     try:
         if sub != "":
             print("about to load profile")
-            profile = loadProfile(sub, email, facebook)
+            profile = loadProfile(sub, email, facebook, signupMethod)
             print("profile loaded")
             userId = profile['userId']
         else:
@@ -89,7 +94,7 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, email, facebook):
+def loadProfile(sub, email, facebook, signupMethod):
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': sub})
@@ -103,7 +108,8 @@ def loadProfile(sub, email, facebook):
         profileObject = profileTable.get_item(
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
-                                 "gravatarEmail, facebookUrl, consent, history, balance"
+                                 "gravatarEmail, facebookUrl, consent, history, balance,"
+                                 "verificationState, signupMethod"
         )
         print(profileObject)
         if 'history' not in profileObject['Item']:
@@ -111,6 +117,32 @@ def loadProfile(sub, email, facebook):
 
         if 'balance' not in profileObject['Item']:
             profileObject['Item']['balance'] = '0.00'
+
+        if 'verificationState' not in profileObject['Item']:
+            profileObject['Item']['verificationState'] = 'None'
+            profileTable.update_item(
+                Key={
+                    "userId": userId
+                },
+                UpdateExpression="set verificationState=:vs",
+                ExpressionAttributeValues={
+                    ":vs": 'None'
+                },
+                ReturnValues="ALL_NEW"
+            )
+
+        if 'signupMethod' not in profileObject['Item']:
+            profileObject['Item']['signupMethod'] = signupMethod
+            profileTable.update_item(
+                Key={
+                    "userId": userId
+                },
+                UpdateExpression="set signupMethod=:sm",
+                ExpressionAttributeValues={
+                    ":sm": signupMethod
+                },
+                ReturnValues="ALL_NEW"
+            )
 
         if 'facebookUrl' in profileObject['Item']:
             if facebook == profileObject['Item']['facebookUrl']:
@@ -137,7 +169,7 @@ def loadProfile(sub, email, facebook):
         return profileObject['Item']
 
     elif email != "":
-        print("no sub. seeing if user email matches any userId")
+        print("sub not found in sub table: seeing if user email matches any existing userId")
         profileQuery = profileTable.query(
             IndexName='email-index',
             KeyConditionExpression='email = :email',
@@ -145,7 +177,8 @@ def loadProfile(sub, email, facebook):
                 ':email': email
             },
             ProjectionExpression="active , email, signupDate, userId, currency, "
-                                 "gravatarEmail, facebookUrl, consent, history, balance"
+                                 "gravatarEmail, facebookUrl, consent, history, balance,"
+                                 "verificationState, signupMethod"
         )
         print(profileQuery)
         if profileQuery['Count'] > 0:
@@ -162,6 +195,18 @@ def loadProfile(sub, email, facebook):
                 profileQuery['Items'][0]['history'] = []
             if 'balance' not in profileQuery['Items'][0]:
                 profileQuery['Items'][0]['balance'] = "0.00"
+            if 'verificationState' not in profileQuery['Items'][0]:
+                profileQuery['Items'][0]['verificationState'] = "None"
+                profileTable.update_item(
+                    Key={
+                        "userId": userId
+                    },
+                    UpdateExpression="set verificationState=:vs",
+                    ExpressionAttributeValues={
+                        ":vs": 'None'
+                    },
+                    ReturnValues="ALL_NEW"
+                )
             if 'facebookUrl' in profileQuery['Items']:
                 if facebook == profileQuery['Items']['facebookUrl']:
                     pass
@@ -211,7 +256,9 @@ def loadProfile(sub, email, facebook):
         "facebookUrl": facebook,
         "consent": "",
         "history": [],
-        "balance": "0.00"
+        "balance": "0.00",
+        "verificationState": "None",
+        "signupMethod": signupMethod
     }
     print(profile)
     profileTable.put_item(
@@ -227,7 +274,6 @@ def loadProfile(sub, email, facebook):
         Message=json.dumps(message)
     )
     print("profile added to sns")
-
 
 
     return profile
