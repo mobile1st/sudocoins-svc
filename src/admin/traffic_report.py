@@ -1,5 +1,4 @@
 import boto3
-from operator import itemgetter
 
 dynamodb = boto3.resource('dynamodb')
 
