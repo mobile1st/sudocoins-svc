@@ -8,10 +8,14 @@ def lambda_handler(event, context):
     verification_table = dynamodb.Table('Verifications')
     profile_table = dynamodb.Table('Profile')
 
+    print(event)
+
     # receive and process request from Google recaptcha
     # call recaptcha API and determine if user is human or bot/fraud
     # set state of result to verificationState
-    verificationState = ""
+
+
+    verificationState = "VERIFIED"
 
     verification_table.update_item(
         Key={
@@ -38,6 +42,7 @@ def lambda_handler(event, context):
         },
         ReturnValues="ALL_NEW"
     )
+
 
     return verificationState
 
