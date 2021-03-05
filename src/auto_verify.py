@@ -1,5 +1,5 @@
 import boto3
-import datetime
+from datetime import datetime
 
 dynamodb = boto3.resource('dynamodb')
 
@@ -32,17 +32,17 @@ def lambda_handler(event, context):
         ReturnValues="ALL_NEW"
     )
 
-    profile_table.update_item(
+    userProfile = profile_table.update_item(
         Key={
             "userId": event['userId']
         },
         UpdateExpression="set verificationState=:vs",
         ExpressionAttributeValues={
-            "verificationState": verificationState
+            ":vs": verificationState
         },
         ReturnValues="ALL_NEW"
     )
 
 
-    return verificationState
+    return userProfile['Attributes']
 
