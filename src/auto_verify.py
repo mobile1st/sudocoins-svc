@@ -14,8 +14,12 @@ def lambda_handler(event, context):
     # call recaptcha API and determine if user is human or bot/fraud
     # set state of result to verificationState
 
-
     verificationState = "VERIFIED"
+
+    if 'userId' in event:
+        userId = event['userId']
+    else:
+        userId = "64e1975c-2a94-11eb-9ec8-2d6e99b50af0"
 
     verification_table.update_item(
         Key={
@@ -42,7 +46,6 @@ def lambda_handler(event, context):
         },
         ReturnValues="ALL_NEW"
     )
-
 
     return userProfile['Attributes']
 
