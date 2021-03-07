@@ -175,6 +175,27 @@ Resources:
       FunctionName: adminTrafficReport
       CodeUri: ./src/admin
 
+  adminTrafficReportCounterStoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: traffic_report_counter_store.lambda_handler
+      Runtime: python3.8
+      FunctionName: adminTrafficReportCounterStore
+      CodeUri: ./src/admin
+      Events:
+        SnsEvent:
+          Type: SNS
+          Properties:
+            Topic: arn:aws:sns:us-west-2:977566059069:transaction-event
+
+  adminTrafficReportChartDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: traffic_report_chart_data.lambda_handler
+      Runtime: python3.8
+      FunctionName: adminTrafficReportChartData
+      CodeUri: ./src/admin
+
   adminPayoutListFunction:
     Type: AWS::Serverless::Function
     Properties:
