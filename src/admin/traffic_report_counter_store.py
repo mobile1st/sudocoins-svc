@@ -52,4 +52,5 @@ def get_attribute_name(message):
         return 'profiles'
     if 'status' in message and message['status'] in complete_statuses:
         return 'completes'
+    raise Exception('cannot get attribute name for message ' + json.dumps(message))
     # TODO handle other attributes and statuses
