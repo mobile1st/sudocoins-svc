@@ -182,6 +182,8 @@ Resources:
       Runtime: python3.8
       FunctionName: adminTrafficReportCounterStore
       CodeUri: ./src/admin
+      Policies:
+        - DynamoDBCrudPolicy
       Events:
         SnsEvent:
           Type: SNS
@@ -195,6 +197,8 @@ Resources:
       Runtime: python3.8
       FunctionName: adminTrafficReportChartData
       CodeUri: ./src/admin
+      Policies:
+        - DynamoDBReadPolicy
 
   adminPayoutListFunction:
     Type: AWS::Serverless::Function
