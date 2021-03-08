@@ -183,7 +183,7 @@ Resources:
       FunctionName: adminTrafficReportCounterStore
       CodeUri: ./src/admin
       Policies:
-        - DynamoDBCrudPolicy
+        - AmazonDynamoDBFullAccess
       Events:
         SnsEvent:
           Type: SNS
@@ -198,7 +198,7 @@ Resources:
       FunctionName: adminTrafficReportChartData
       CodeUri: ./src/admin
       Policies:
-        - DynamoDBReadPolicy
+        - AmazonDynamoDBReadOnlyAccess
 
   adminPayoutListFunction:
     Type: AWS::Serverless::Function
