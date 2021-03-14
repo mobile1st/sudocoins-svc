@@ -3,7 +3,9 @@ import json
 from datetime import datetime
 
 dynamodb = boto3.resource('dynamodb')
-complete_statuses = ['Complete']
+complete_statuses = {'Complete'}
+term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out'}  # empty string???
+no_project_statuses = {'No Project'}
 
 
 def lambda_handler(event, context):
@@ -45,12 +47,17 @@ def increment_revenue(table, date, revenue):
     )
 
 
+# {'Blocked', 'Invalid', '', 'No Project', 'Overquota', 'Complete', 'Started', 'Screen-out'}
 def get_attribute_name(message):
+    has_status_property = 'status' in message
     if 'start' in message and message['start'] == 1:
         return 'starts'
     if 'profile' in message and message['profile'] == 1:
         return 'profiles'
-    if 'status' in message and message['status'] in complete_statuses:
+    if has_status_property and message['status'] in complete_statuses:
         return 'completes'
+    if has_status_property and message['status'] in term_statuses:
+        return 'terms'
+    if has_status_property and message['status'] in no_project_statuses:
+        return 'noProjects'
     raise Exception('cannot get attribute name for message ' + json.dumps(message))
-    # TODO handle other attributes and statuses
