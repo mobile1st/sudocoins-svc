@@ -1,4 +1,5 @@
 import boto3
+import collections
 from datetime import datetime, timedelta
 
 dynamodb = boto3.resource('dynamodb')
@@ -15,9 +16,10 @@ def lambda_handler(event, context):
     )
     reports = response['Responses']['TrafficReports']
 
-    mva7_days = get_mva7_days()
-    mva7_profiles = 0
-    mva7_revenue = 0
+    mva7_profiles_deque = collections.deque(maxlen=7)
+    mva7_revenue_deque = collections.deque(maxlen=7)
+    mva7_profiles = []
+    mva7_revenue = []
     total_starts = 0
     total_completes = 0
     total_profiles = 0
@@ -33,10 +35,13 @@ def lambda_handler(event, context):
         daily_completes = int(i.get('completes', 0))
         daily_profiles = int(i.get('profiles', 0))
         daily_revenue = int(i.get('revenue', 0))  # TODO review revenue type
+        mva7_profiles_deque.append(daily_profiles)
+        mva7_revenue_deque.append(daily_revenue)
 
-        if date in mva7_days:
-            mva7_profiles += daily_profiles
-            mva7_revenue += daily_revenue
+        if len(mva7_profiles_deque) >= 7:
+            mva7_profiles.append(avg(mva7_profiles_deque))
+        if len(mva7_revenue_deque) >= 7:
+            mva7_revenue.append(avg(mva7_revenue_deque))
 
         total_starts += daily_starts
         total_completes += daily_completes
@@ -67,11 +72,11 @@ def lambda_handler(event, context):
         },
         'profileChart': {
             'profiles': profiles,
-            'mva7': (mva7_profiles / 7.0)
+            'mva7': mva7_profiles
         },
         'revenueChart': {
             'revenue': revenue,
-            'mva7': (mva7_revenue / 7.0)
+            'mva7': mva7_revenue
         }
     }
 
@@ -85,9 +90,8 @@ def generate_input_keys():
     return result
 
 
-def get_mva7_days():
-    result = []
-    for i in range(7):
-        day = datetime.today() - timedelta(days=i)
-        result.append(day.strftime(date_key_format))
-    return result
+def avg(deque):
+    total = 0
+    for e in deque:
+        total += e
+    return total / len(deque)
