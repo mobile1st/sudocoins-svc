@@ -9,19 +9,30 @@ def lambda_handler(event, context):
 
     dynamodb = boto3.resource('dynamodb')
     contactTable = dynamodb.Table(os.environ["CONTACT_TABLE"])
+    profileTable = dynamodb.Table("Profile")
     msgId = str(uuid.uuid1())
     timeNow = datetime.utcnow().isoformat()
     jsonInput = event
+
+    profileObject = profileTable.get_item(
+        Key={'userId': jsonInput['userId']},
+        ProjectionExpression="active, email, signupDate, userId,"
+                             "consent, balance,"
+                             "verificationState, signupMethod"
+    )
 
     message = {
         'msgId': msgId,
         'userId': jsonInput["userId"],
         'message': jsonInput["message"],
-        'created': timeNow
+        'created': timeNow,
+        'status': "Unread"
     }
 
     if 'transactionId' in jsonInput:
         message['transactionId'] = jsonInput['transactionId']
+    if 'email' in jsonInput:
+        message['email'] = jsonInput['email']
 
     contactResponse = contactTable.put_item(
         Item=message
@@ -35,5 +46,5 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': "success1"
+        'body': "success"
     }
