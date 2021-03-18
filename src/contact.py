@@ -26,7 +26,7 @@ def lambda_handler(event, context):
         'userId': jsonInput["userId"],
         'message': jsonInput["message"],
         'created': timeNow,
-        'status': "Unread"
+        'msgStatus': "pending"
     }
 
     if 'transactionId' in jsonInput:
