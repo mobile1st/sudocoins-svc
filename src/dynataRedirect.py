@@ -11,8 +11,8 @@ def lambda_handler(event, context):
 
         if event["headers"] is None:
             referer = ""
-        elif 'referer' in event['headers']:
-            referer = event["headers"]["referer"]
+        elif 'Referer' in event['headers']:
+            referer = event["headers"]["Referer"]
         else:
             referer = ""
 
