@@ -178,14 +178,6 @@ Resources:
       FunctionName: updateCashOut
       CodeUri: ./src
 
-  adminTrafficReportFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: traffic_report.lambda_handler
-      Runtime: python3.8
-      FunctionName: adminTrafficReport
-      CodeUri: ./src/admin
-
   adminTrafficReportCounterStoreFunction:
     Type: AWS::Serverless::Function
     Properties:

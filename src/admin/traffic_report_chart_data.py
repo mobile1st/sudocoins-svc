@@ -1,74 +1,76 @@
 import boto3
 import collections
-from datetime import datetime, timedelta
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone
 
 dynamodb = boto3.resource('dynamodb')
 date_key_format = '%Y-%m-%d'
+default_item = {'completes': Decimal('0'), 'profiles': Decimal('0'), 'revenue': Decimal('0'),
+                'starts': Decimal('0'), 'terms': Decimal('0')}
 
 
 def lambda_handler(event, context):
+    keys = generate_input_keys()
     response = dynamodb.batch_get_item(
         RequestItems={
             'TrafficReports': {
-                'Keys': generate_input_keys()
+                'Keys': keys
             }
         }
     )
-    reports = response['Responses']['TrafficReports']
+    items = response['Responses']['TrafficReports']
+    reports = {}
+    for item in items:
+        reports[item['date']] = item
 
     mva7_profiles_deque = collections.deque(maxlen=7)
     mva7_revenue_deque = collections.deque(maxlen=7)
+    mva7_completes_deque = collections.deque(maxlen=7)
     mva7_profiles = []
     mva7_revenue = []
-    total_starts = 0
-    total_completes = 0
-    total_profiles = 0
-    total_revenue = 0
+    mva7_completes = []
     starts = []
     completes = []
+    terms = []
     profiles = []
     revenue = []
 
-    for i in reports:
-        date = i['date']
-        daily_starts = int(i.get('starts', 0))
-        daily_completes = int(i.get('completes', 0))
-        daily_profiles = int(i.get('profiles', 0))
-        daily_revenue = int(i.get('revenue', 0))  # TODO review revenue type
+    for index, key in enumerate(keys):
+        date = key['date']
+        item = reports.get(date, default_item)
+
+        daily_completes = int(item.get('completes', 0))
+        daily_terms = int(item.get('terms', 0))
+        daily_profiles = int(item.get('profiles', 0))
+        daily_starts = int(item.get('starts', 0)) - daily_terms - daily_completes
+        daily_revenue = int(item.get('revenue', 0) / 100)
+
+        starts.append({'x': to_epoch_millis(date), 'y': daily_starts})
+        completes.append({'x': to_epoch_millis(date), 'y': daily_completes})
+        terms.append({'x': to_epoch_millis(date), 'y': daily_terms})
+        profiles.append({'x': to_epoch_millis(date), 'y': daily_profiles})
+        revenue.append({'x': to_epoch_millis(date), 'y': daily_revenue})
+
         mva7_profiles_deque.append(daily_profiles)
         mva7_revenue_deque.append(daily_revenue)
+        mva7_completes_deque.append(daily_completes)
 
-        if len(mva7_profiles_deque) >= 7:
-            mva7_profiles.append(avg(mva7_profiles_deque))
-        if len(mva7_revenue_deque) >= 7:
-            mva7_revenue.append(avg(mva7_revenue_deque))
-
-        total_starts += daily_starts
-        total_completes += daily_completes
-        total_profiles += daily_profiles
-        total_revenue += daily_revenue
-
-        starts.append({'x': date, 'y': daily_starts})
-        completes.append({'x': date, 'y': daily_completes})
-        profiles.append({'x': date, 'y': daily_profiles})
-        revenue.append({'x': date, 'y': daily_revenue})
-
-    starts.sort(key=lambda e: e['x'])
-    completes.sort(key=lambda e: e['x'])
-    profiles.sort(key=lambda e: e['x'])
-    revenue.sort(key=lambda e: e['x'])
+        if index >= 6:
+            mva7_profiles.append({'x': to_epoch_millis(date), 'y': avg(mva7_profiles_deque)})
+            mva7_revenue.append({'x': to_epoch_millis(date), 'y': avg(mva7_revenue_deque)})
+            mva7_completes.append({'x': to_epoch_millis(date), 'y': avg(mva7_completes_deque)})
 
     return {
-        'totals': {
-            'starts': total_starts,
-            'completes': total_completes,
-            'profiles': total_profiles,
-            'revenue': total_revenue
+        'lastMva7': {
+            'completes': mva7_completes[len(mva7_completes) - 2]['y'],
+            'profiles': mva7_profiles[len(mva7_profiles) - 2]['y'],
+            'revenue': mva7_revenue[len(mva7_revenue) - 2]['y']
         },
         'trafficChart': {
             'starts': starts,
-            'completes': completes
-            # TODO handle terms, no projects
+            'completes': completes,
+            'terms': terms,
+            'mva7Completes': mva7_completes
         },
         'profileChart': {
             'profiles': profiles,
@@ -81,13 +83,17 @@ def lambda_handler(event, context):
     }
 
 
-def generate_input_keys():
+def generate_input_keys():  # this is controlling the flow, guarantees sorting
     result = []
-    for i in range(90):
-        day = datetime.today() - timedelta(days=i)
+    for i in reversed(range(90)):
+        day = datetime.utcnow() - timedelta(days=i)
         key = day.strftime(date_key_format)
         result.append({'date': key})
     return result
+
+
+def to_epoch_millis(date_string):
+    return int(datetime.strptime(date_string, date_key_format).replace(tzinfo=timezone.utc).timestamp() * 1000)
 
 
 def avg(deque):

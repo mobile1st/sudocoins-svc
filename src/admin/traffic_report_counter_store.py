@@ -7,15 +7,14 @@ dynamodb = boto3.resource('dynamodb')
 start_statuses = {'Started'}
 profile_statuses = {'Profile'}
 complete_statuses = {'Complete'}
-term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out'}
-no_project_statuses = {'No Project'}
+term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project'}
 date_format = '%Y-%m-%d'
 
 
 def lambda_handler(event, context):
     message = json.loads(event['Records'][0]['Sns']['Message'])
     print(message)
-    date = datetime.today().strftime(date_format) if message.get('date') is None else message['date']
+    date = datetime.utcnow().strftime(date_format) if message.get('date') is None else message['date']
 
     traffic_reports_table = dynamodb.Table('TrafficReports')
     add_counter(traffic_reports_table, date, message)
@@ -62,8 +61,6 @@ def get_attribute_name(message):
         return 'completes'
     if has_status_property and message['status'] in term_statuses:
         return 'terms'
-    if has_status_property and message['status'] in no_project_statuses:
-        return 'noProjects'
     if has_status_property and message['status'] in start_statuses:
         return 'starts'
     if has_status_property and message['status'] in profile_statuses:
