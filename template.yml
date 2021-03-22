@@ -29,6 +29,8 @@ Resources:
       CodeUri: ./src
       Policies:
         - AmazonSQSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSNSFullAccess
       MemorySize: 512
       Events:
         SQSEvent:
