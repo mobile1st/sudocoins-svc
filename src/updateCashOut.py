@@ -4,9 +4,27 @@ import history
 
 
 def lambda_handler(event, context):
-    userId = event['userId']
-    transactionId = event['transactionId']
 
+    try:
+        for i in event:
+            userId = i['userId']
+            transactionId = i['transactionId']
+
+            updateCashOut(userId, transactionId)
+
+        return {
+            'body': "Success"
+        }
+
+    except Exception as e:
+        print(e)
+        return {
+            'body': "Success"
+        }
+
+
+
+def updateCashOut(userId, transactionId):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table('Ledger')
     payoutTable = dynamodb.Table('Payouts')
@@ -44,8 +62,3 @@ def lambda_handler(event, context):
 
     profile = history.History(dynamodb)
     profile.updateProfile(userId)
-
-    return {
-        'body': "Success"
-    }
-
