@@ -57,7 +57,7 @@ def lambda_handler(event, context):
         mva7_completes_deque.append(daily_completes)
 
         if index >= 6:
-            mva7_profiles.append({'x': epoch_date, 'y': avg(mva7_profiles_deque)})
+            mva7_profiles.append({'x': epoch_date, 'y': round(avg(mva7_profiles_deque))})
             mva7_revenue.append({'x': epoch_date, 'y': avg(mva7_revenue_deque)})
             mva7_completes.append({'x': epoch_date, 'y': avg(mva7_completes_deque)})
 
