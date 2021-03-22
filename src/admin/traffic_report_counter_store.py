@@ -6,8 +6,8 @@ from decimal import Decimal
 dynamodb = boto3.resource('dynamodb')
 start_statuses = {'Started'}
 profile_statuses = {'Profile'}
-complete_statuses = {'Complete'}
-term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project'}
+complete_statuses = {'Complete', 'C', 'success'}
+term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure'}
 date_format = '%Y-%m-%d'
 
 

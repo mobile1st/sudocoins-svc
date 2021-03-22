@@ -64,6 +64,6 @@ class Transaction:
                 "timestamp": timestamp,
                 "buyerName": buyer_name,
                 "userId": user_id,
-                "revenue": revenue
+                "revenue": str(revenue)  # Decimal is not JSON serializable
             })
         )
