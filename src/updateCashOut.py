@@ -6,9 +6,11 @@ import history
 def lambda_handler(event, context):
 
     try:
-        for i in event:
+        for i in event["records"]:
             userId = i['userId']
-            transactionId = i['transactionId']
+            transactionId = i['paymentId']
+            print(userId)
+            print(transactionId)
 
             updateCashOut(userId, transactionId)
 
@@ -19,7 +21,7 @@ def lambda_handler(event, context):
     except Exception as e:
         print(e)
         return {
-            'body': "Success"
+            'body': "Fail"
         }
 
 
