@@ -37,6 +37,7 @@ def lambda_handler(event, context):
 
     for index, key in enumerate(keys):
         date = key['date']
+        epoch_date = to_epoch_millis(date)
         item = reports.get(date, default_item)
 
         daily_completes = int(item.get('completes', 0))
@@ -45,20 +46,20 @@ def lambda_handler(event, context):
         daily_starts = int(item.get('starts', 0)) - daily_terms - daily_completes
         daily_revenue = int(item.get('revenue', 0) / 100)
 
-        starts.append({'x': to_epoch_millis(date), 'y': daily_starts})
-        completes.append({'x': to_epoch_millis(date), 'y': daily_completes})
-        terms.append({'x': to_epoch_millis(date), 'y': daily_terms})
-        profiles.append({'x': to_epoch_millis(date), 'y': daily_profiles})
-        revenue.append({'x': to_epoch_millis(date), 'y': daily_revenue})
+        starts.append({'x': epoch_date, 'y': daily_starts})
+        completes.append({'x': epoch_date, 'y': daily_completes})
+        terms.append({'x': epoch_date, 'y': daily_terms})
+        profiles.append({'x': epoch_date, 'y': daily_profiles})
+        revenue.append({'x': epoch_date, 'y': daily_revenue})
 
         mva7_profiles_deque.append(daily_profiles)
         mva7_revenue_deque.append(daily_revenue)
         mva7_completes_deque.append(daily_completes)
 
         if index >= 6:
-            mva7_profiles.append({'x': to_epoch_millis(date), 'y': avg(mva7_profiles_deque)})
-            mva7_revenue.append({'x': to_epoch_millis(date), 'y': avg(mva7_revenue_deque)})
-            mva7_completes.append({'x': to_epoch_millis(date), 'y': avg(mva7_completes_deque)})
+            mva7_profiles.append({'x': epoch_date, 'y': avg(mva7_profiles_deque)})
+            mva7_revenue.append({'x': epoch_date, 'y': avg(mva7_revenue_deque)})
+            mva7_completes.append({'x': epoch_date, 'y': avg(mva7_completes_deque)})
 
     return {
         'lastMva7': {
