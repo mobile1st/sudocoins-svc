@@ -4,6 +4,9 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
 import uuid
+import sudocoins_logger
+
+log = sudocoins_logger.get(__name__)
 
 
 class History:
@@ -14,17 +17,14 @@ class History:
     def updateProfile(self, userId):
         profileTable = self.dynamodb.Table("Profile")
         history = self.getHistory(userId)
-        print("grabbed history")
-        print(history)
+        log.info(f"grabbed history {history}")
 
-        print("getting balance")
+        log.debug("getting balance")
         balance = self.getBalance(history)
-        print("got balance")
-        print(balance)
+        log.info(f"got balance {balance}")
 
         topHistory = history[0:10]
-        print("top 10 history")
-        print(topHistory)
+        log.info(f"top 10 history {topHistory}")
 
         userProfile = profileTable.update_item(
             Key={
@@ -71,28 +71,28 @@ class History:
         rate = Decimal('.01')
         precision = 2
 
-        print("about to get ledger")
+        log.debug("about to get ledger")
         ledger = self.getLedger(userId, rate, precision)
-        print(ledger)
+        log.info(f"ledger {ledger}")
 
-        print("about to get transaction")
+        log.debug("about to get transaction")
         transactions = self.getTransactions(userId)
-        print(transactions)
+        log.info(f"transactions {transactions}")
 
-        print("about to get orders")
+        log.debug("about to get orders")
         orders = self.getOrders(userId)
-        print(orders)
+        log.info(f"orders {orders}")
 
-        print("about to merge")
+        log.debug("about to merge")
         history = self.mergeHistory(ledger, transactions, orders)
-        print(history)
+        log.info(f"history {history}")
         return history
 
     def mergeHistory(self, ledger, transactions, orders):
         history = ledger + transactions + orders
 
         history = sorted(history, key=lambda k: k['epochTime'], reverse=True)
-        print("history sorted")
+        log.info("history sorted")
         return history
 
     def getTransactions(self, userId):
@@ -147,9 +147,8 @@ class History:
                                 Decimal('10') ** ((-1) * int(8))))
                         i['btcAmount'] = bitcoin
 
-        except ClientError as e:
-            print("Failed to query ledger")
-            print(e)
+        except ClientError:
+            log.exception("Failed to query ledger")
 
             return {}
 
@@ -204,9 +203,7 @@ class History:
             },
             ReturnValues="ALL_NEW"
         )
-        print("updatedRecord:")
-        print(updatedRecord)
-
+        log.info(f"updatedRecord: {updatedRecord}")
 
         self.updateProfile(userId)
 
@@ -233,8 +230,8 @@ class History:
             Item=transactionData
         )
 
-        print("transaction record created")
-        print("about to update profile")
+        log.info("transaction record created")
+        log.debug("about to update profile")
         userProfile = self.updateProfile(userId)
 
         return transactionData, userProfile
@@ -257,8 +254,7 @@ class History:
             },
             ReturnValues="ALL_NEW"
         )
-        print("updated item:")
-        print(response)
+        log.info(f"updated item: {response}")
 
         userId = response['Attributes']['userId']
 
@@ -281,7 +277,7 @@ class History:
             ScanIndexForward=False,
             IndexName='userId-index',
             ProjectionExpression="orderId, created, amountUsd, statusCode")
-        print(orderHistory)
+        log.info(f"orderHistory {orderHistory}")
         orders = orderHistory["Items"]
 
         for i in orders:
@@ -296,8 +292,3 @@ class History:
             i['type'] = 'Gift Card Order'
 
         return orders
-
-
-
-
-

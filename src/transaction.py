@@ -1,7 +1,10 @@
+import sudocoins_logger
 from history import History
 from datetime import datetime
 from rev_shares import RevenueData
 import json
+
+log = sudocoins_logger.get(__name__)
 
 
 class Transaction:
@@ -40,12 +43,12 @@ class Transaction:
             user_id = transaction_item['Item']['userId']
 
         else:
-            print(f'Transaction.end - Unsupported buyer={buyer_name} data={data}')
+            log.warn(f'Transaction.end - Unsupported buyer={buyer_name} data={data}')
             return
 
         revenue, payment, user_status, rev_share, cut = self.revData.get_revShare(data, buyer_name)
-        print(f'Transaction.end buyer={buyer_name} transactionId={transaction_id} status={status} userId={user_id}'
-              f' userStatus={user_status} revenue={revenue} share={rev_share} cut={cut} payment={payment} data={data}')
+        log.info(f'Transaction.end buyer={buyer_name} transactionId={transaction_id} status={status} userId={user_id}'
+                 f' userStatus={user_status} revenue={revenue} share={rev_share} cut={cut} payment={payment} data={data}')
 
         self.history.updateTransaction(transaction_id, payment, status, timestamp,
                                        revenue, rev_share, user_status, cut, data, user_id)

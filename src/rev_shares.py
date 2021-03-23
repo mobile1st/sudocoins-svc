@@ -1,4 +1,7 @@
+import sudocoins_logger
 from decimal import Decimal
+
+log = sudocoins_logger.get(__name__)
 
 
 class RevenueData:
@@ -16,7 +19,7 @@ class RevenueData:
             else:
                 surveyCode = data["queryStringParameters"]["status"]
 
-            print("trying getConfig")
+            log.info("trying getConfig")
             buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
             revenue = Decimal(buyerObject["Item"]["configValue"]["buyer"][buyerName]["defaultCpi"])
             surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
@@ -77,7 +80,7 @@ class RevenueData:
             if surveyCode in surveyStatus:
                 userStatus = surveyStatus[surveyCode]["userStatus"]
                 revShare = Decimal(surveyStatus[surveyCode]["revShare"])
-                print(revShare)
+                log.info(f'revShare: {revShare}')
                 if 'cut' in surveyStatus[surveyCode]:
                     cut = Decimal(surveyStatus[surveyCode]['cut'])
                 else:
@@ -92,9 +95,9 @@ class RevenueData:
                 revShare = Decimal(0)
                 cut = Decimal(0)
 
-            print(revenue)
-            print(lucidCut)
-            print(revShare)
+            log.info(f'revenue {revenue}')
+            log.info(f'lucidCut {lucidCut}')
+            log.info(f'revShare {revShare}')
             payment = revenue * lucidCut * revShare
             revenue = revenue * lucidCut
 
