@@ -188,7 +188,7 @@ class History:
                 'transactionId': transactionId
             },
             UpdateExpression="set payout=:pay, #status1=:s, completed=:c, redirect=:r, revenue=:rev, revShare=:rs, "
-                             "surveyCode=:sc",
+                             "surveyCode=:sc, userId=:ui",
             ExpressionAttributeNames={
                 "#status1": "status"
             },
@@ -199,7 +199,8 @@ class History:
                 ":r": data,
                 ":rev": revenue * cut,
                 ":rs": revShare,
-                ":sc": surveyCode
+                ":sc": surveyCode,
+                ":ui": userId
             },
             ReturnValues="ALL_NEW"
         )

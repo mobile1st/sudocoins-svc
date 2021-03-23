@@ -82,7 +82,6 @@ def lambda_handler(event, context):
     if 'balance' not in profileObject['Item']:
         profileObject['Item']['balance'] = '0.00'
 
-
     return {
         'statusCode': 200,
         'history': profileObject['Item']['history'],
@@ -104,7 +103,11 @@ def loadProfile(sub):
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
         profileResponse = profileTable.get_item(Key={'userId': userId})
-        verificationState = profileResponse['Item']['verificationState']
+
+        if 'verificationState' in profileResponse['Item']:
+            verificationState = profileResponse['Item']['verificationState']
+        else:
+            verificationState = 'None'
 
         return userId, verificationState
 
