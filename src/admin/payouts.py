@@ -13,6 +13,6 @@ def lambda_handler(event, context):
         ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
         IndexName='byStatus',
         ProjectionExpression="paymentId, address, amount, lastUpdate, payoutType, "
-                             "#s, #t, usdBtcRate, userId, userInput")
+                             "#s, #t, usdBtcRate, userId, userInput, verificationState")
 
     return pending_payout["Items"]
