@@ -15,7 +15,7 @@ def lambda_handler(event, context):
 
     jsonInput = event
     sub = jsonInput['sub']
-    userId = loadProfile(sub)
+    userId, verificationState = loadProfile(sub)
 
     lastUpdate = datetime.utcnow().isoformat()
     transactionId = str(uuid.uuid1())
@@ -37,7 +37,8 @@ def lambda_handler(event, context):
         "status": "Pending",
         "usdBtcRate": rate,
         "userInput": jsonInput["amount"],
-        "payoutType": jsonInput['type']
+        "payoutType": jsonInput['type'],
+        "verificationState": verificationState
     }
     # withdraw record added to ledger table
     withdraw = {
@@ -49,7 +50,8 @@ def lambda_handler(event, context):
         "transactionId": transactionId,
         "usdBtcRate": rate,
         "userInput": jsonInput["amount"],
-        "payoutType": jsonInput['type']
+        "payoutType": jsonInput['type'],
+        "verificationState": verificationState
     }
 
     payoutResponse = payoutTable.put_item(
@@ -101,8 +103,9 @@ def loadProfile(sub):
 
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
+        verificationState = subResponse['Item']['verificationState']
 
-        return userId
+        return userId, verificationState
 
     else:
 
