@@ -103,7 +103,8 @@ def loadProfile(sub):
 
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
-        verificationState = subResponse['Item']['verificationState']
+        profileResponse = profileTable.get_item(Key={'userId': userId})
+        verificationState = profileResponse['Item']['verificationState']
 
         return userId, verificationState
 
