@@ -11,7 +11,13 @@ def lambda_handler(event, context):
         try:
             userId = i['userId']
             transactionId = i['transactionId']
-            updateCashOut(userId, transactionId)
+
+            if "userStatus" in i:
+                userStatus = i["userStatus"]
+            else:
+                userStatus = "Complete"
+
+            updateCashOut(userId, transactionId, userStatus)
             success.append(transactionId)
 
         except Exception as e:
@@ -24,7 +30,7 @@ def lambda_handler(event, context):
     }
 
 
-def updateCashOut(userId, transactionId):
+def updateCashOut(userId, transactionId, userStatus):
     dynamodb = boto3.resource('dynamodb')
     ledgerTable = dynamodb.Table('Ledger')
     payoutTable = dynamodb.Table('Payouts')
@@ -37,7 +43,7 @@ def updateCashOut(userId, transactionId):
         },
         UpdateExpression="set #s=:s, lastUpdate=:lu",
         ExpressionAttributeValues={
-            ":s": "Complete",
+            ":s": userStatus,
             ":lu": now
 
         },
@@ -52,7 +58,7 @@ def updateCashOut(userId, transactionId):
         },
         UpdateExpression="set #s=:s, lastUpdate=:lu",
         ExpressionAttributeValues={
-            ":s": "Complete",
+            ":s": userStatus,
             ":lu": now
 
         },
