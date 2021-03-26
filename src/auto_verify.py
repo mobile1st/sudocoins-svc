@@ -22,8 +22,6 @@ def lambda_handler(event, context):
 
     print(response['success'])
 
-    verificationState = "FRAUD"
-
     if response['success'] == "False":
         verificationState = "FRAUD"
 
@@ -31,13 +29,6 @@ def lambda_handler(event, context):
         verificationState = "VERIFIED"
 
     userId = event['userId']
-
-    if 'userId' in event:
-        userId = event['userId']
-    else:
-        userId = "64e1975c-2a94-11eb-9ec8-2d6e99b50af0"
-
-    print(verificationState)
 
     verification_table.update_item(
         Key={
