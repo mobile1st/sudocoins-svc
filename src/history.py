@@ -6,7 +6,7 @@ from datetime import datetime
 import uuid
 import sudocoins_logger
 
-log = sudocoins_logger.get(__name__)
+log = sudocoins_logger.get()
 
 
 class History:

@@ -1,7 +1,7 @@
 import sudocoins_logger
 from decimal import Decimal
 
-log = sudocoins_logger.get(__name__)
+log = sudocoins_logger.get()
 
 
 class RevenueData:

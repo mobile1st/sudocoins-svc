@@ -4,7 +4,7 @@ from datetime import datetime
 from rev_shares import RevenueData
 import json
 
-log = sudocoins_logger.get(__name__)
+log = sudocoins_logger.get()
 
 
 class Transaction:
