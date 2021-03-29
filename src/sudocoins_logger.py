@@ -11,7 +11,7 @@ logging.basicConfig(format=local_log_format, stream=sys.stdout)
 # init aws logging
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
-if os.environ.get('AWS_LAMBDA_FUNCTION_NAME '):
+if os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
     root_logger.handlers[0].setFormatter(logging.Formatter(aws_log_format))
 
 
