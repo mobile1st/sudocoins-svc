@@ -3,7 +3,7 @@ import json
 import sudocoins_logger
 from transaction import Transaction
 
-log = sudocoins_logger.get(__name__)
+log = sudocoins_logger.get()
 
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client('sns')
@@ -11,6 +11,7 @@ transaction = Transaction(dynamodb, sns_client)
 
 
 def lambda_handler(event, context):
+    log.debug('end_transaction called')
     for record in event['Records']:
         payload = record['body']
         log.info(f'payload: {payload}')
