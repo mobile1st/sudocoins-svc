@@ -4,30 +4,29 @@ from botocore.exceptions import ClientError
 import json
 from buyerRedirect import BuyerRedirect
 import history
+from datetime import datetime
+import sudocoins_logger
+
+log = sudocoins_logger.get()
+sns_client = boto3.client('sns')
 
 
 def lambda_handler(event, context):
-    print(event)
-
-    try:
-        params = event["queryStringParameters"]
-    except Exception as e:
-        print(e)
-        response = {
+    log.debug(f'event: {event}')
+    if event.get('queryStringParameters') is None:
+        log.warn('the request does not contain query parameters')
+        return {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
             "body": json.dumps({})
         }
-
-        return response
-
+    params = event['queryStringParameters']
     try:
         ip = event['requestContext']['identity']['sourceIp']
     except Exception as e:
         ip = ""
 
-    print("IP:")
-    print(ip)
+    log.info(f'IP: {ip}')
 
     try:
         if 'userId' in params:
@@ -45,8 +44,8 @@ def lambda_handler(event, context):
             }
             return response
 
-    except Exception as e:
-        print(e)
+    except Exception:
+        log.exception('could not retrieve user data')
         response = {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
@@ -59,21 +58,31 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
         data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
-        print("transaction record inserted")
-
-        client = boto3.client("sns")
-        message = {"start": 1}
-        client.publish(
+        log.debug('transaction record inserted')
+        timestamp = datetime.utcnow().isoformat()
+        sns_client.publish(
             TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
             MessageStructure='string',
-            Message=json.dumps(message)
+            MessageAttributes={
+                'source': {
+                    'DataType': 'String',
+                    'StringValue': 'SURVEY_START'
+                }
+            },
+            Message=json.dumps({
+                'userId': userId,
+                'source': 'SURVEY_START',
+                'status': 'Started',
+                'awsRequestId': context['aws_request_id'],
+                'timestamp': timestamp,
+                'transactionId': data.get('transactionId'),
+                'buyerName': params.get('buyerName'),
+            })
         )
-        print("start added to sns")
-
-
+        log.debug('start added to sns')
 
     except Exception as e:
-        print(e)
+        log.exception(e)
         response = {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
@@ -83,16 +92,16 @@ def lambda_handler(event, context):
         return response
 
     try:
-        print(params['buyerName'])
+        log.info(f'buyer: {params["buyerName"]}')
         entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, profile)
-        print("entryUrl generated")
+        log.debug('entryUrl generated')
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
 
         return response
 
     except Exception as e:
-        print(e)
+        log.exception(e)
         response = {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
@@ -111,7 +120,7 @@ def getSurveyObject(buyerName):
         response = configTable.get_item(Key={'configKey': configKey})
 
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        log.warn(e.response['Error']['Message'])
         return None
 
     else:
@@ -123,7 +132,7 @@ def getSurveyObject(buyerName):
                 return buyerObject
 
         except Exception as e:
-            print(e)
+            log.exception(e)
             return None
 
     return None
@@ -137,13 +146,12 @@ def generateEntryUrl(userId, buyerName, transactionId, ip, profile):
             return None
 
         else:
-            print("in the else")
             redirect = BuyerRedirect(dynamodb)
             entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, profile)
 
         return entryUrl
     except Exception as e:
-        print(e)
+        log.exception(e)
 
 
 '''
@@ -160,4 +168,3 @@ def parseAccLang(headers):
 
     return cc
 '''
-

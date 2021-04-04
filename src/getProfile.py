@@ -3,17 +3,20 @@ from datetime import datetime
 import uuid
 from botocore.config import Config
 import json
+import sudocoins_logger
 
 # from configuration import Configuration
 
+log = sudocoins_logger.get()
 config = Config(connect_timeout=0.1, read_timeout=0.1, retries={'max_attempts': 5, 'mode': 'standard'})
 dynamodb = boto3.resource('dynamodb', config=config)
+sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
     # . jsonInput = json.loads(event['body'])
     jsonInput = event
-    print(event)
+    log.debug(f'event: {event}')
 
     # begin testing configuration access
     # config = Configuration(dynamodb)
@@ -48,40 +51,39 @@ def lambda_handler(event, context):
 
     try:
         if sub != "":
-            print("about to load profile")
-            profile = loadProfile(sub, email, facebook, signupMethod)
-            print("profile loaded")
+            log.debug("about to load profile")
+            profile = loadProfile(sub, email, facebook, signupMethod, context)
+            log.debug("profile loaded")
             userId = profile['userId']
         else:
             profile = {}
             userId = ""
 
-    except Exception as e:
-        print("issue loading profile")
+    except Exception:
+        log.exception("issue loading profile")
         # profile.update(history = [])
         # profile.update(balance = "")
         profile = {}
         userId = ""
-        print(e)
 
     try:
-        print("about to get config")
+        log.debug("about to get config")
         config = getConfig()
-        print("config loaded")
+        log.debug("config loaded")
 
         rate, ethRate = getRate(config)
 
-        print("about to get tiles from config")
+        log.debug("about to get tiles from config")
         tiles = getTiles(userId, config)
-        print("tiles loaded")
+        log.debug("tiles loaded")
 
-    except Exception as e:
+    except Exception:
         rate = '1'
         ethRate = '1'
         tiles = []
-        print('failed to load tiles')
+        log.exception('failed to load tiles')
 
-    print("about to return the entire response")
+    log.debug("about to return the entire response")
 
     return {
         'statusCode': 200,
@@ -94,24 +96,24 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, email, facebook, signupMethod):
+def loadProfile(sub, email, facebook, signupMethod, context):
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': sub})
-    print(subResponse)
-    print(email)
+    log.info(f'subResponse: {subResponse}')
+    log.info(f'email: {email}')
 
     if 'Item' in subResponse:
-        print("found userId matching sub")
+        log.debug("found userId matching sub")
         userId = subResponse['Item']['userId']
-        print(userId)
+        log.info(f'userId: {userId}')
         profileObject = profileTable.get_item(
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance,"
                                  "verificationState, signupMethod"
         )
-        print(profileObject)
+        log.info(f'profileObject: {profileObject}')
         if 'history' not in profileObject['Item']:
             profileObject['Item']['history'] = []
 
@@ -169,7 +171,7 @@ def loadProfile(sub, email, facebook, signupMethod):
         return profileObject['Item']
 
     elif email != "":
-        print("sub not found in sub table: seeing if user email matches any existing userId")
+        log.info("sub not found in sub table: seeing if user email matches any existing userId")
         profileQuery = profileTable.query(
             IndexName='email-index',
             KeyConditionExpression='email = :email',
@@ -180,9 +182,9 @@ def loadProfile(sub, email, facebook, signupMethod):
                                  "gravatarEmail, facebookUrl, consent, history, balance,"
                                  "verificationState, signupMethod"
         )
-        print(profileQuery)
+        log.info(f'profileQuery: {profileQuery}')
         if profileQuery['Count'] > 0:
-            print("found email in database")
+            log.info("found email in database")
             userId = profileQuery['Items'][0]['userId']
             subTable.put_item(
                 Item={
@@ -231,12 +233,12 @@ def loadProfile(sub, email, facebook, signupMethod):
 
             return profileQuery['Items'][0]
 
-    print("no sub or email found in database. New user.")
+    log.info("no sub or email found in database. New user.")
     created = datetime.utcnow().isoformat()
     userId = str(uuid.uuid1())
 
     if email == "":
-        print("completely new user with no email in cognito")
+        log.info("completely new user with no email in cognito")
         email = userId + "@sudocoins.com"
 
     subTable.put_item(
@@ -260,20 +262,31 @@ def loadProfile(sub, email, facebook, signupMethod):
         "verificationState": "None",
         "signupMethod": signupMethod
     }
-    print(profile)
+    log.info(f'profile: {profile}')
     profileTable.put_item(
         Item=profile
     )
-    print("profile submitted")
+    log.debug("profile submitted")
 
-    client = boto3.client("sns")
-    message = {"profile": 1}
-    client.publish(
+    sns_client.publish(
         TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
         MessageStructure='string',
-        Message=json.dumps(message)
+        MessageAttributes={
+            'source': {
+                'DataType': 'String',
+                'StringValue': 'PROFILE'
+            }
+        },
+        Message=json.dumps({
+            'userId': userId,
+            'source': 'PROFILE',
+            'status': 'CREATED',
+            'awsRequestId': context['aws_request_id'],
+            'timestamp': created,
+            'signUpMethod': signupMethod
+        })
     )
-    print("profile added to sns")
+    log.debug("profile added to sns")
 
 
     return profile
@@ -343,7 +356,7 @@ def getTiles(userId, config):
 
         return tiles
 
-    except Exception as e:
-        print(e)
+    except Exception:
+        log.exception('Could not get tiles')
 
 
