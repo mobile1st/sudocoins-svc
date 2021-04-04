@@ -22,12 +22,6 @@ def lambda_handler(event, context):
 
     print(response['success'])
 
-    if response['success'] == "False":
-        verificationState = "FRAUD"
-
-    elif response['success'] == "True":
-        verificationState = "VERIFIED"
-
     userId = event['userId']
 
     verification_table.update_item(
@@ -37,7 +31,7 @@ def lambda_handler(event, context):
         UpdateExpression="set verificationState=:vs, lastUpdate=:lu,"
                          "verifiedBy=:vb",
         ExpressionAttributeValues={
-            ":vs": verificationState,
+            ":vs": response['success'],
             ":lu": datetime.utcnow().isoformat(),
             ":vb": "CashOut"
 
@@ -51,7 +45,7 @@ def lambda_handler(event, context):
         },
         UpdateExpression="set verificationState=:vs",
         ExpressionAttributeValues={
-            ":vs": verificationState
+            ":vs": response['success']
         },
         ReturnValues="ALL_NEW"
     )
