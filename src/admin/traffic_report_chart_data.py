@@ -21,7 +21,16 @@ def lambda_handler(event, context):
     items = response['Responses']['TrafficReports']
     reports = {}
     for item in items:
-        reports[item['date']] = item
+        acc = reports.get(item['date'])
+        if not acc:
+            acc = default_item.copy()
+            reports[item['date']] = acc
+
+        acc['completes'] += item.get('completes', 0)
+        acc['terms'] += item.get('terms', 0)
+        acc['profiles'] += item.get('profiles', 0)
+        acc['starts'] += item.get('starts', 0)
+        acc['revenue'] += item.get('revenue', 0)
 
     mva7_profiles_deque = collections.deque(maxlen=7)
     mva7_revenue_deque = collections.deque(maxlen=7)
@@ -35,8 +44,10 @@ def lambda_handler(event, context):
     profiles = []
     revenue = []
 
-    for index, key in enumerate(keys):
-        date = key['date']
+    key_dates = [a for a in {v['date'] for v in keys}]
+    key_dates.sort()
+    for index, key in enumerate(key_dates):
+        date = key
         epoch_date = to_epoch_millis(date)
         item = reports.get(date, default_item)
 
@@ -86,10 +97,15 @@ def lambda_handler(event, context):
 
 def generate_input_keys():  # this is controlling the flow, guarantees sorting
     result = []
-    for i in reversed(range(90)):
+    for i in reversed(range(16)):
         day = datetime.utcnow() - timedelta(days=i)
         key = day.strftime(date_key_format)
-        result.append({'date': key})
+        result.append({'date': key, 'reportType': 'BUYER#cint'})
+        result.append({'date': key, 'reportType': 'BUYER#dynata'})
+        result.append({'date': key, 'reportType': 'BUYER#peanutLabs'})
+        result.append({'date': key, 'reportType': 'BUYER#lucid'})
+        result.append({'date': key, 'reportType': 'BUYER#test'})
+        result.append({'date': key, 'reportType': 'PROFILE#unknown'})
     return result
 
 
@@ -102,3 +118,5 @@ def avg(deque):
     for e in deque:
         total += e
     return total / len(deque)
+
+print(lambda_handler(None, None))
