@@ -54,7 +54,7 @@ def lambda_handler(event, context):
         daily_completes = int(item.get('completes', 0))
         daily_terms = int(item.get('terms', 0))
         daily_profiles = int(item.get('profiles', 0))
-        daily_starts = int(item.get('starts', 0)) - daily_terms - daily_completes
+        daily_starts = max(int(item.get('starts', 0)) - daily_terms - daily_completes, 0)
         daily_revenue = int(item.get('revenue', 0) / 100)
 
         starts.append({'x': epoch_date, 'y': daily_starts})
