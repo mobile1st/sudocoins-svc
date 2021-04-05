@@ -261,7 +261,9 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         x = requests.get(url)
         try:
             iqps = json.loads(x.text)
+            print(iqps)
             fraud_score = iqps["fraud_score"]
+            print(fraud_score)
         except Exception as e:
             print(e)
             iqps = "None"
@@ -284,8 +286,8 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "balance": "0.00",
         "verificationState": "None",
         "signupMethod": signupMethod,
-        "fraud_score": fraud_score,
-        "iqps": iqps
+        "fraud_score": str(fraud_score),
+        "iqps": str(iqps)
     }
 
     log.info(f'profile: {profile}')
