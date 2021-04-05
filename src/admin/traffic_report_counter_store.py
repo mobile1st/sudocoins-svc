@@ -9,7 +9,7 @@ logging.getLogger().setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb')
 
 complete_statuses = {'Complete', 'C', 'success'}
-term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure', 'F', 'P'}
+term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure', 'F', 'P', 'np'}
 
 date_format = '%Y-%m-%d'
 

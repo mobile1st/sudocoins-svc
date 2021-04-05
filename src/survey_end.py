@@ -73,13 +73,12 @@ def pushMsg(msgValue):
 
 
 def verifyHash(hostUrl, params):
-    shaUrl = params["h"]
-    url = (hostUrl + "status={0}&sid={1}&tid={2}").format(params["status"], params["sid"], params["tid"])
-    hashState = checkSha(url, shaUrl)
-    if hashState:
-        return True
-    else:
+    shaUrl = params.get('h')
+    if not shaUrl:
         return False
+
+    url = (hostUrl + "status={0}&sid={1}&tid={2}").format(params["status"], params["sid"], params["tid"])
+    return checkSha(url, shaUrl)
 
 
 def getUrls():
@@ -104,9 +103,6 @@ def checkSha(url, hash):
         digestmod=hashlib.sha256
     ).hexdigest()
 
-    if signature == hash:
-        return True
-    else:
-        return False
+    return signature == hash
 
 
