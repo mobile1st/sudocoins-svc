@@ -281,7 +281,7 @@ def loadProfile(sub, email, facebook, signupMethod, context):
             'userId': userId,
             'source': 'PROFILE',
             'status': 'CREATED',
-            'awsRequestId': context['aws_request_id'],
+            'awsRequestId': context.aws_request_id,
             'timestamp': created,
             'signUpMethod': signupMethod
         })

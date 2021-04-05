@@ -1,11 +1,11 @@
 import boto3
 import json
-from src import sudocoins_logger
+import logging
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum, auto
 
-log = sudocoins_logger.get()
+logging.getLogger().setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb')
 
 complete_statuses = {'Complete', 'C', 'success'}
@@ -16,7 +16,7 @@ date_format = '%Y-%m-%d'
 
 def lambda_handler(event, context):
     message = json.loads(event['Records'][0]['Sns']['Message'])
-    log.debug(message)
+    logging.debug(message)
 
     date = datetime.utcnow().strftime(date_format) if message.get('date') is None else message['date']
     traffic_reports_table = dynamodb.Table('TrafficReports')
