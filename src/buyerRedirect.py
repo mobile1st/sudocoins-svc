@@ -47,16 +47,15 @@ class BuyerRedirect:
 
             url = survey['url'] + "&sid=" + str(survey['appId']) + '&pid=' + userId \
                   + '&clid=' + str(countryCode) + '&mid=' + transactionId + '&'
-            testUrl = url + '&'
 
             encodedKey = survey['secretkey'].encode('utf-8')
-            encodedUrl = testUrl.encode('utf-8')
+            encodedUrl = url.encode('utf-8')
             hashed = hmac.new(encodedKey, msg=encodedUrl, digestmod=hashlib.sha1)
             digestedHash = hashed.digest()
             base64_encoded_result = base64.b64encode(digestedHash)
             finalResult = base64_encoded_result.decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
 
-            entryUrl = testUrl + 'hash=' + finalResult
+            entryUrl = url + 'hash=' + finalResult
 
             return entryUrl
 
