@@ -4,6 +4,7 @@ import uuid
 from botocore.config import Config
 import json
 import sudocoins_logger
+import requests
 
 # from configuration import Configuration
 
@@ -47,12 +48,17 @@ def lambda_handler(event, context):
     else:
         signupMethod = ""
 
+    if 'ip' in jsonInput:
+        ip = jsonInput['ip']
+    else:
+        ip = ""
+
     global profile
 
     try:
         if sub != "":
             log.debug("about to load profile")
-            profile = loadProfile(sub, email, facebook, signupMethod, context)
+            profile = loadProfile(sub, email, facebook, signupMethod, context, ip)
             log.debug("profile loaded")
             userId = profile['userId']
         else:
@@ -96,7 +102,7 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, email, facebook, signupMethod, context):
+def loadProfile(sub, email, facebook, signupMethod, context, ip):
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': sub})
@@ -111,7 +117,7 @@ def loadProfile(sub, email, facebook, signupMethod, context):
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance,"
-                                 "verificationState, signupMethod"
+                                 "verificationState, signupMethod, fraud_score"
         )
         log.info(f'profileObject: {profileObject}')
         if 'history' not in profileObject['Item']:
@@ -180,7 +186,7 @@ def loadProfile(sub, email, facebook, signupMethod, context):
             },
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance,"
-                                 "verificationState, signupMethod"
+                                 "verificationState, signupMethod, fraud_score"
         )
         log.info(f'profileQuery: {profileQuery}')
         if profileQuery['Count'] > 0:
@@ -248,6 +254,23 @@ def loadProfile(sub, email, facebook, signupMethod, context):
         }
     )
 
+    if ip != "":
+        url = 'https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{' \
+              '0}?strictness=1&allow_public_access_points=true'.format(
+            ip)
+        x = requests.get(url)
+        try:
+            iqps = json.loads(x.text)
+            fraud_score = iqps["fraud_score"]
+        except Exception as e:
+            print(e)
+            iqps = "None"
+            fraud_score = "None"
+
+    else:
+        fraud_score = "None"
+        iqps = "None"
+
     profile = {
         "active": True,
         "email": email,
@@ -260,8 +283,11 @@ def loadProfile(sub, email, facebook, signupMethod, context):
         "history": [],
         "balance": "0.00",
         "verificationState": "None",
-        "signupMethod": signupMethod
+        "signupMethod": signupMethod,
+        "fraud_score": fraud_score,
+        "iqps": iqps
     }
+
     log.info(f'profile: {profile}')
     profileTable.put_item(
         Item=profile
@@ -359,5 +385,3 @@ def getTiles(userId, config):
 
     except Exception:
         log.exception('Could not get tiles')
-
-
