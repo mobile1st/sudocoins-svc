@@ -288,6 +288,7 @@ def loadProfile(sub, email, facebook, signupMethod, context):
     )
     log.debug("profile added to sns")
 
+    profile["new_user"] = True
 
     return profile
 
