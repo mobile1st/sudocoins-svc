@@ -118,5 +118,3 @@ def avg(deque):
     for e in deque:
         total += e
     return total / len(deque)
-
-print(lambda_handler(None, None))

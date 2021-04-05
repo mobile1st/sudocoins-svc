@@ -3,99 +3,69 @@ import os
 import boto3
 import hashlib
 import hmac
+import sudocoins_logger
+
+log = sudocoins_logger.get()
+sqs = boto3.resource('sqs')
+dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    print(event)
+    log.debug(f'event: {event}')
+
     try:
-        redirectUrl, hostUrl = getUrls()
-        if 'referer' in event["headers"]:
-            referer = event["headers"]["referer"]
-        else:
-            referer = "None"
+        redirect_url, host_url = get_urls()
+        referer = event['headers'].get('Referer', "")
 
-        hashState = verifyHash(hostUrl, event["queryStringParameters"])
+        hash_state = verify_hash(host_url, event["queryStringParameters"])
 
-        msgValue = {
+        msg_value = {
             "referer": referer,
             "queryStringParameters": event["queryStringParameters"],
-            "hashState": hashState,
+            "hashState": hash_state,
             "buyerName": "cint"
         }
+        enqueue(msg_value)
 
-        try:
-            messageResponse = pushMsg(msgValue)
+        token = 'valid' if hash_state else 'invalid'
 
-            if not msgValue['hashState']:
-                msgValue["message"] = "invalid"
-            else:
-                msgValue["message"] = "valid"
-
-            token = msgValue["message"]
-
-        except Exception as e:
-            print(e)
-            msgValue['status'] = 'Invalid'
-            msgValue["message"] = "invalid"
-            token = msgValue["message"]
-
-        response = createRedirect(redirectUrl, token)
-
-        return response
+        return create_redirect(redirect_url, token)
 
     except Exception as e:
-        print(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-
-        return response
+        log.exception(e)
+        return create_redirect('https://www.sudocoins.com/?', 'invalid')
 
 
-def createRedirect(redirectUrl, token):
-    data = {}
-    response = {
+def create_redirect(redirect_url, token):
+    return {
         "statusCode": 302,
-        "headers": {'Location': redirectUrl + "msg=" + token},
-        "body": json.dumps(data)
+        "headers": {'Location': f'{redirect_url}msg={token}'},
+        "body": '{}'
     }
-    return response
 
 
-def pushMsg(msgValue):
-    sqs = boto3.resource('sqs')
+def enqueue(msgValue):
     queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-    record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
-
-    return record
+    queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
 
 
-def verifyHash(hostUrl, params):
+def verify_hash(hostUrl, params):
     shaUrl = params.get('h')
     if not shaUrl:
         return False
 
     url = (hostUrl + "status={0}&sid={1}&tid={2}").format(params["status"], params["sid"], params["tid"])
-    return checkSha(url, shaUrl)
+    return check_hash(url, shaUrl)
 
 
-def getUrls():
-    dynamodb = boto3.resource('dynamodb')
-    configTableName = os.environ["CONFIG_TABLE"]
-    configTable = dynamodb.Table(configTableName)
-    configKey = "surveyEnd"
-
-    response = configTable.get_item(Key={'configKey': configKey})
-    redirectUrl = response['Item']["configValue"]["redirectUrl"]
-    hostUrl = response['Item']["configValue"]["hostUrl"]
-    #  expectedParams = response['Item']["configValue"]["expectedParams"]
-
-    return redirectUrl, hostUrl
+def get_urls():
+    table = dynamodb.Table('Config')
+    response = table.get_item(Key={'configKey': 'surveyEnd'})
+    config = response['Item']['configValue']
+    return config['redirectUrl'], config['hostUrl']
 
 
-def checkSha(url, hash):
+def check_hash(url, url_hash):
     secret = os.environ["keyId"]
     signature = hmac.new(
         secret.encode('utf-8'),
@@ -103,6 +73,5 @@ def checkSha(url, hash):
         digestmod=hashlib.sha256
     ).hexdigest()
 
-    return signature == hash
-
+    return signature == url_hash
 
