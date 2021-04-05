@@ -97,6 +97,7 @@ def lambda_handler(event, context):
         log.debug('entryUrl generated')
         body = {}
         response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
+        print(response)
 
         return response
 
