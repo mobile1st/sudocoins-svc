@@ -73,7 +73,7 @@ def lambda_handler(event, context):
                 'userId': userId,
                 'source': 'SURVEY_START',
                 'status': 'Started',
-                'awsRequestId': context['aws_request_id'],
+                'awsRequestId': context.aws_request_id,
                 'timestamp': timestamp,
                 'transactionId': data.get('transactionId'),
                 'buyerName': params.get('buyerName'),
