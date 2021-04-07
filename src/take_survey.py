@@ -6,6 +6,7 @@ from buyerRedirect import BuyerRedirect
 import history
 from datetime import datetime
 import sudocoins_logger
+import requests
 
 log = sudocoins_logger.get()
 sns_client = boto3.client('sns')
@@ -27,6 +28,25 @@ def lambda_handler(event, context):
         ip = ""
 
     log.info(f'IP: {ip}')
+
+    if ip != "":
+        url = 'https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{' \
+              '0}?strictness=1&allow_public_access_points=true'.format(
+            ip)
+        x = requests.get(url)
+        try:
+            ipqs = json.loads(x.text)
+            print(ipqs)
+            fraud_score = ipqs["fraud_score"]
+            print(fraud_score)
+        except Exception as e:
+            print(e)
+            ipqs = "None"
+            fraud_score = "None"
+
+    else:
+        fraud_score = "None"
+        ipqs = "None"
 
     try:
         if 'userId' in params:
@@ -57,7 +77,7 @@ def lambda_handler(event, context):
     try:
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
-        data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip)
+        data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip, fraud_score, ipqs)
         log.debug('transaction record inserted')
         timestamp = datetime.utcnow().isoformat()
         sns_client.publish(
@@ -90,6 +110,29 @@ def lambda_handler(event, context):
         }
 
         return response
+
+    if fraud_score > 75:
+        print("user is considered suspicious")
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+            "body": json.dumps({})
+        }
+        profileTable = dynamodb.Table('Profile')
+
+        profileTable.update_item(
+            Key={
+                "userId": userId
+            },
+            UpdateExpression="set fraud_score=:fs",
+            ExpressionAttributeValues={
+                ":fs": str(fraud_score)
+            },
+            ReturnValues="ALL_NEW"
+        )
+
+        return response
+
 
     try:
         log.info(f'buyer: {params["buyerName"]}')

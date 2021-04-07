@@ -210,7 +210,7 @@ class History:
 
         return updatedRecord
 
-    def insertTransactionRecord(self, userId, buyerName, ip):
+    def insertTransactionRecord(self, userId, buyerName, ip, fraud_score, ipqs):
         transactionTable = self.dynamodb.Table('Transaction')
 
         transactionId = uuid.uuid1()
@@ -224,7 +224,9 @@ class History:
             'ip': ip,
             'started': str(started),
             'buyer': buyerName,
-            "payout": 0
+            "payout": 0,
+            "fraud_score": str(fraud_score),
+            "ipqs": str(ipqs)
         }
 
         transactionTable.put_item(
