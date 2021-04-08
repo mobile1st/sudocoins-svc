@@ -19,7 +19,7 @@ class BuyerName(Enum):  # TODO eliminate!!!!!!
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
-complete_statuses = {'Complete', 'C', 'success'}
+complete_statuses = {'Complete', 'C', 'success', 'c'}
 term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure', 'F', 'P', 'np', 'N'}
 
 date_format = '%Y-%m-%d'
