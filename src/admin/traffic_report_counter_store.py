@@ -1,49 +1,93 @@
 import boto3
+import botocore
 import json
-import logging
+import sudocoins_logger
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum, auto
 
-logging.getLogger().setLevel(logging.INFO)
+
+class BuyerName(Enum):
+    DYNATA = 'dynata'
+    LUCID = 'lucid'
+    CINT = 'cint'
+    PEANUT_LABS = 'peanutLabs'
+    TEST = 'test'
+
+
+log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
 complete_statuses = {'Complete', 'C', 'success'}
-term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure', 'F', 'P', 'np'}
+term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure', 'F', 'P', 'np', 'N'}
 
 date_format = '%Y-%m-%d'
+default_buyer_level_attributes = {'starts': 0, 'terms': 0, 'completes': 0, 'revenue': 0}
+default_buyer_map = {buyer.value: default_buyer_level_attributes for buyer in BuyerName}  # TODO eliminate
 
 
 def lambda_handler(event, context):
     message = json.loads(event['Records'][0]['Sns']['Message'])
-    logging.debug(message)
+    log.debug(message)
 
     date = datetime.utcnow().strftime(date_format) if message.get('date') is None else message['date']
-    traffic_reports_table = dynamodb.Table('TrafficReports')
-    increment_counters(traffic_reports_table, date, message)
+    increment_counters(date, message)
 
 
-def increment_counters(table, date, message):
-    attribute_name, report_type, report_sub_type = get_update_details(message)
-    sort_key = f'{report_type.value}#{report_sub_type}'
+def increment_counters(date, message):
+    counter_name_enum, buyer = get_update_details(message)
+    counter_name = counter_name_enum.value
+    table = dynamodb.Table('TrafficReports')
+    insert_default_structure_if_not_exists(table, date)
+    if buyer:
+        increment_buyer_level_counter(table, date, buyer, counter_name)
+        if counter_name is CounterName.COMPLETES:
+            if 'revenue' not in message:
+                raise Exception(f'revenue is not present for message: {json.dumps(message)}')
+            # str cast to avoid decimal.Inexact
+            increment_buyer_level_counter(table, date, buyer, counter_name, Decimal(str(message['revenue'])))
+    else:
+        increment_attribute_level_counter(table, date, counter_name)
+
+
+def insert_default_structure_if_not_exists(table, date):
+    try:
+        table.update_item(
+            Key={'date': date},
+            UpdateExpression='SET buyer = :default',
+            ConditionExpression='attribute_not_exists(buyer)',
+            ExpressionAttributeValues={':default': default_buyer_map}
+        )
+    except botocore.exceptions.ClientError as e:
+        # Ignore the ConditionalCheckFailedException, bubble up other exceptions.
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+
+
+def increment_buyer_level_counter(table, date, buyer_name, counter_name, inc_value=1):
     table.update_item(
-        Key={
-            'date': date,
-            'reportType': sort_key
+        Key={'date': date},
+        UpdateExpression='SET buyer.#buyer_name.#counter_name = buyer.#buyer_name.#counter_name + :inc',
+        ExpressionAttributeNames={
+            '#buyer_name': buyer_name,
+            '#counter_name': counter_name,
         },
+        ExpressionAttributeValues={':inc': inc_value}
+    )
+
+
+def increment_attribute_level_counter(table, date, attribute_name, inc_value=1):
+    table.update_item(
+        Key={'date': date},
         UpdateExpression='SET #attribute_name = if_not_exists(#attribute_name, :start) + :inc',
         ExpressionAttributeNames={
-            '#attribute_name': attribute_name.value
+            '#attribute_name': attribute_name
         },
         ExpressionAttributeValues={
-            ':inc': 1,
+            ':inc': inc_value,
             ':start': 0
         }
     )
-    if attribute_name is AttributeName.COMPLETES:
-        if 'revenue' not in message:
-            raise Exception(f'revenue is not present for message: {json.dumps(message)}')
-        increment_revenue(table, date, sort_key, message['revenue'])
 
 
 def increment_revenue(table, date, sort_key, revenue):
@@ -65,7 +109,7 @@ def get_update_details(message):
         raise Exception('could not determine flow, because source is missing from the message')
     event_source = EventSource(message['source'])
     if event_source is EventSource.PROFILE:
-        return handle_profile_events(message)
+        return handle_profile_events()
     if event_source is EventSource.SURVEY_START:
         return handle_survey_start_events(message)
     if event_source is EventSource.SURVEY_END:
@@ -73,15 +117,14 @@ def get_update_details(message):
     raise Exception(f'cannot get update details for message: {json.dumps(message)}')
 
 
-def handle_profile_events(message):
-    report_sub_type = 'unknown' if message.get('signUpMethod') is None else message['signUpMethod']
-    return AttributeName.PROFILES, ReportType.PROFILE, report_sub_type
+def handle_profile_events():
+    return CounterName.PROFILES, None
 
 
 def handle_survey_start_events(message):
     if 'buyerName' not in message:
         raise Exception('buyerName is missing from the message')
-    return AttributeName.STARTS, ReportType.BUYER, message['buyerName']
+    return CounterName.STARTS, message['buyerName']
 
 
 def handle_survey_end_events(message):
@@ -90,12 +133,12 @@ def handle_survey_end_events(message):
     if 'buyerName' not in message:
         raise Exception('buyerName is missing from the message')
     status = message['status']
-    attribute_name = None
+    counter_name = None
     if status in complete_statuses:
-        attribute_name = AttributeName.COMPLETES
+        counter_name = CounterName.COMPLETES
     elif status in term_statuses:
-        attribute_name = AttributeName.TERMS
-    return attribute_name, ReportType.BUYER, message['buyerName']
+        counter_name = CounterName.TERMS
+    return counter_name, message['buyerName']
 
 
 class AutoName(Enum):
@@ -109,13 +152,7 @@ class EventSource(AutoName):
     SURVEY_END = auto()
 
 
-class ReportType(AutoName):
-    BUYER = auto()
-    PROFILE = auto()
-    CARD = auto()
-
-
-class AttributeName(Enum):
+class CounterName(Enum):
     STARTS = 'starts'
     PROFILES = 'profiles'
     COMPLETES = 'completes'

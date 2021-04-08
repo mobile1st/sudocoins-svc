@@ -5,8 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 dynamodb = boto3.resource('dynamodb')
 date_key_format = '%Y-%m-%d'
-default_item = {'completes': Decimal('0'), 'profiles': Decimal('0'), 'revenue': Decimal('0'),
-                'starts': Decimal('0'), 'terms': Decimal('0')}
+default_item = {'buyer': {}, 'profiles': Decimal('0')}
 
 
 def lambda_handler(event, context):
@@ -21,16 +20,7 @@ def lambda_handler(event, context):
     items = response['Responses']['TrafficReports']
     reports = {}
     for item in items:
-        acc = reports.get(item['date'])
-        if not acc:
-            acc = default_item.copy()
-            reports[item['date']] = acc
-
-        acc['completes'] += item.get('completes', 0)
-        acc['terms'] += item.get('terms', 0)
-        acc['profiles'] += item.get('profiles', 0)
-        acc['starts'] += item.get('starts', 0)
-        acc['revenue'] += item.get('revenue', 0)
+        reports[item['date']] = item
 
     mva7_profiles_deque = collections.deque(maxlen=7)
     mva7_revenue_deque = collections.deque(maxlen=7)
@@ -44,28 +34,31 @@ def lambda_handler(event, context):
     profiles = []
     revenue = []
 
-    key_dates = [a for a in {v['date'] for v in keys}]
-    key_dates.sort()
-    for index, key in enumerate(key_dates):
-        date = key
+    input_buyer_name = event['queryStringParameters']['buyerName']
+    for index, key in enumerate(keys):
+        date = key['date']
         epoch_date = to_epoch_millis(date)
-        item = reports.get(date, default_item)
+        item = reports.get(date, default_item.copy())
+        buyer = item.get('buyer', {})
 
-        daily_completes = int(item.get('completes', 0))
-        daily_terms = int(item.get('terms', 0))
+        daily_counters = DailyCounters()
+        if input_buyer_name:
+            daily_counters.add(buyer.get(input_buyer_name))
+        else:
+            for buyerName in buyer.keys():
+                daily_counters.add(buyer[buyerName])
+
         daily_profiles = int(item.get('profiles', 0))
-        daily_starts = max(int(item.get('starts', 0)) - daily_terms - daily_completes, 0)
-        daily_revenue = int(item.get('revenue', 0) / 100)
 
-        starts.append({'x': epoch_date, 'y': daily_starts})
-        completes.append({'x': epoch_date, 'y': daily_completes})
-        terms.append({'x': epoch_date, 'y': daily_terms})
+        starts.append({'x': epoch_date, 'y': daily_counters.daily_starts})
+        completes.append({'x': epoch_date, 'y': daily_counters.daily_completes})
+        terms.append({'x': epoch_date, 'y': daily_counters.daily_terms})
         profiles.append({'x': epoch_date, 'y': daily_profiles})
-        revenue.append({'x': epoch_date, 'y': daily_revenue})
+        revenue.append({'x': epoch_date, 'y': daily_counters.daily_revenue})
 
         mva7_profiles_deque.append(daily_profiles)
-        mva7_revenue_deque.append(daily_revenue)
-        mva7_completes_deque.append(daily_completes)
+        mva7_revenue_deque.append(daily_counters.daily_revenue)
+        mva7_completes_deque.append(daily_counters.daily_completes)
 
         if index >= 6:
             mva7_profiles.append({'x': epoch_date, 'y': round(avg(mva7_profiles_deque))})
@@ -97,15 +90,10 @@ def lambda_handler(event, context):
 
 def generate_input_keys():  # this is controlling the flow, guarantees sorting
     result = []
-    for i in reversed(range(16)):
+    for i in reversed(range(90)):
         day = datetime.utcnow() - timedelta(days=i)
         key = day.strftime(date_key_format)
-        result.append({'date': key, 'reportType': 'BUYER#cint'})
-        result.append({'date': key, 'reportType': 'BUYER#dynata'})
-        result.append({'date': key, 'reportType': 'BUYER#peanutLabs'})
-        result.append({'date': key, 'reportType': 'BUYER#lucid'})
-        result.append({'date': key, 'reportType': 'BUYER#test'})
-        result.append({'date': key, 'reportType': 'PROFILE#unknown'})
+        result.append({'date': key})
     return result
 
 
@@ -118,3 +106,20 @@ def avg(deque):
     for e in deque:
         total += e
     return total / len(deque)
+
+
+class DailyCounters:
+    daily_completes = 0
+    daily_terms = 0
+    daily_starts = 0
+    daily_revenue = 0
+
+    def add(self, buyer_counters):
+        if buyer_counters is None:
+            return
+        buyer_daily_completes = int(buyer_counters.get('completes', 0))
+        buyer_daily_terms = int(buyer_counters.get('terms', 0))
+        self.daily_completes += buyer_daily_completes
+        self.daily_terms += buyer_daily_terms
+        self.daily_starts += max(int(buyer_counters.get('starts', 0)) - buyer_daily_terms - buyer_daily_completes, 0)
+        self.daily_revenue += int(buyer_counters.get('revenue', 0) / 100)
