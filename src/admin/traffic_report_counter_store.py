@@ -7,11 +7,12 @@ from decimal import Decimal
 from enum import Enum, auto
 
 
-class BuyerName(Enum):
+class BuyerName(Enum):  # TODO eliminate!!!!!!
     DYNATA = 'dynata'
     LUCID = 'lucid'
     CINT = 'cint'
     PEANUT_LABS = 'peanutLabs'
+    PEANUT_LABS2 = 'peanutlabs'
     TEST = 'test'
 
 
@@ -41,11 +42,11 @@ def increment_counters(date, message):
     insert_default_structure_if_not_exists(table, date)
     if buyer:
         increment_buyer_level_counter(table, date, buyer, counter_name)
-        if counter_name is CounterName.COMPLETES:
+        if counter_name_enum is CounterName.COMPLETES:
             if 'revenue' not in message:
                 raise Exception(f'revenue is not present for message: {json.dumps(message)}')
             # str cast to avoid decimal.Inexact
-            increment_buyer_level_counter(table, date, buyer, counter_name, Decimal(str(message['revenue'])))
+            increment_buyer_level_counter(table, date, buyer, 'revenue', Decimal(str(message['revenue'])))
     else:
         increment_attribute_level_counter(table, date, counter_name)
 

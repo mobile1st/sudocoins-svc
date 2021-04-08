@@ -35,6 +35,7 @@ def lambda_handler(event, context):
     revenue = []
 
     input_buyer_name = None if event.get('queryStringParameters') is None else event['queryStringParameters'].get('buyerName')
+    buyers = {input_buyer_name} if input_buyer_name else set()
     for index, key in enumerate(keys):
         date = key['date']
         epoch_date = to_epoch_millis(date)
@@ -46,6 +47,7 @@ def lambda_handler(event, context):
             daily_counters.add(buyer.get(input_buyer_name))
         else:
             for buyerName in buyer.keys():
+                buyers.add(buyerName)
                 daily_counters.add(buyer[buyerName])
 
         daily_profiles = int(item.get('profiles', 0))
@@ -66,6 +68,7 @@ def lambda_handler(event, context):
             mva7_completes.append({'x': epoch_date, 'y': avg(mva7_completes_deque)})
 
     return {
+        'buyers': list(buyers),
         'lastMva7': {
             'completes': mva7_completes[len(mva7_completes) - 2]['y'],
             'profiles': mva7_profiles[len(mva7_profiles) - 2]['y'],
