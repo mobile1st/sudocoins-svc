@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     profiles = []
     revenue = []
 
-    input_buyer_name = event['queryStringParameters']['buyerName']
+    input_buyer_name = None if event.get('queryStringParameters') is None else event['queryStringParameters'].get('buyerName')
     for index, key in enumerate(keys):
         date = key['date']
         epoch_date = to_epoch_millis(date)
