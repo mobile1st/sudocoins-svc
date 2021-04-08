@@ -38,6 +38,7 @@ def lambda_handler(event, context):
     buyers = {input_buyer_name} if input_buyer_name else set()
     for index, key in enumerate(keys):
         date = key['date']
+        epoch_date = to_epoch_millis(date)
         item = reports.get(date, default_item.copy())
         buyer = item.get('buyer', {})
 
@@ -51,20 +52,20 @@ def lambda_handler(event, context):
 
         daily_profiles = int(item.get('profiles', 0))
 
-        starts.append({'x': date, 'y': daily_counters.daily_starts})
-        completes.append({'x': date, 'y': daily_counters.daily_completes})
-        terms.append({'x': date, 'y': daily_counters.daily_terms})
-        profiles.append({'x': date, 'y': daily_profiles})
-        revenue.append({'x': date, 'y': daily_counters.daily_revenue})
+        starts.append({'x': epoch_date, 'y': daily_counters.daily_starts})
+        completes.append({'x': epoch_date, 'y': daily_counters.daily_completes})
+        terms.append({'x': epoch_date, 'y': daily_counters.daily_terms})
+        profiles.append({'x': epoch_date, 'y': daily_profiles})
+        revenue.append({'x': epoch_date, 'y': daily_counters.daily_revenue})
 
         mva7_profiles_deque.append(daily_profiles)
         mva7_revenue_deque.append(daily_counters.daily_revenue)
         mva7_completes_deque.append(daily_counters.daily_completes)
 
         if index >= 6:
-            mva7_profiles.append({'x': date, 'y': round(avg(mva7_profiles_deque))})
-            mva7_revenue.append({'x': date, 'y': avg(mva7_revenue_deque)})
-            mva7_completes.append({'x': date, 'y': avg(mva7_completes_deque)})
+            mva7_profiles.append({'x': epoch_date, 'y': round(avg(mva7_profiles_deque))})
+            mva7_revenue.append({'x': epoch_date, 'y': avg(mva7_revenue_deque)})
+            mva7_completes.append({'x': epoch_date, 'y': avg(mva7_completes_deque)})
 
     return {
         'buyers': list(buyers),
@@ -97,6 +98,10 @@ def generate_input_keys():  # this is controlling the flow, guarantees sorting
         key = day.strftime(date_key_format)
         result.append({'date': key})
     return result
+
+
+def to_epoch_millis(date_string):
+    return int(datetime.strptime(date_string, date_key_format).replace(tzinfo=timezone.utc).timestamp() * 1000)
 
 
 def avg(deque):
