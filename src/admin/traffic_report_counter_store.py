@@ -19,8 +19,9 @@ class BuyerName(Enum):  # TODO eliminate!!!!!!
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
-complete_statuses = {'Complete', 'C', 'success', 'c'}
-term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project', 'failure', 'F', 'P', 'np', 'N'}
+complete_statuses = {'Complete', 'C', 'success', 'c', 't'}
+term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Project',
+                 'failure', 'invalid', 'F', 'P', 'np', 'N', 'p', 'bl', 's', 'oq'}
 
 date_format = '%Y-%m-%d'
 default_buyer_level_attributes = {'starts': 0, 'terms': 0, 'completes': 0, 'revenue': 0}
@@ -37,6 +38,8 @@ def lambda_handler(event, context):
 
 def increment_counters(date, message):
     counter_name_enum, buyer = get_update_details(message)
+    if counter_name_enum is None:
+        raise Exception(f'could not determine counter name from status field {message}')
     counter_name = counter_name_enum.value
     table = dynamodb.Table('TrafficReports')
     insert_default_structure_if_not_exists(table, date)
@@ -130,7 +133,7 @@ def handle_survey_start_events(message):
 
 def handle_survey_end_events(message):
     if 'status' not in message:
-        raise Exception('could not determine attribute name, because status is missing from the message')
+        raise Exception('could not determine counter name, because status is missing from the message')
     if 'buyerName' not in message:
         raise Exception('buyerName is missing from the message')
     status = message['status']
