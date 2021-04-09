@@ -10,7 +10,7 @@ import requests
 
 log = sudocoins_logger.get()
 sns_client = boto3.client('sns')
-
+dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     log.debug(f'event: {event}')
@@ -52,7 +52,6 @@ def lambda_handler(event, context):
         if 'userId' in params:
             userId = params['userId']
         elif 'sub' in params:
-            dynamodb = boto3.resource('dynamodb')
             subTable = dynamodb.Table('sub')
             subResponse = subTable.get_item(Key={'sub': params['sub']})
             userId = subResponse['Item']['userId']
@@ -98,7 +97,6 @@ def lambda_handler(event, context):
         return response
 
     try:
-        dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
         data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip, fraud_score, ipqs)
         log.debug('transaction record inserted')
@@ -155,7 +153,6 @@ def lambda_handler(event, context):
 
 
 def getSurveyObject(buyerName):
-    dynamodb = boto3.resource('dynamodb')
     configTableName = os.environ["CONFIG_TABLE"]
     configTable = dynamodb.Table(configTableName)
     configKey = "TakeSurveyPage"
@@ -184,7 +181,6 @@ def getSurveyObject(buyerName):
 
 def generateEntryUrl(userId, buyerName, transactionId, ip, profile):
     try:
-        dynamodb = boto3.resource('dynamodb')
         survey = getSurveyObject(buyerName)
         if survey is None:
             return None
