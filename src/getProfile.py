@@ -89,6 +89,11 @@ def lambda_handler(event, context):
         tiles = []
         log.exception('failed to load tiles')
 
+    try:
+        art = config['art']
+    except Exception:
+        art = ""
+
     log.debug("about to return the entire response")
 
     return {
@@ -97,7 +102,8 @@ def lambda_handler(event, context):
             "profile": profile,
             "tiles": tiles,
             "rate": str(rate),
-            "ethRate": str(ethRate)
+            "ethRate": str(ethRate),
+            "art": art
         }
     }
 
