@@ -51,7 +51,9 @@ def lambda_handler(event, context):
     try:
         if 'userId' in params:
             userId = params['userId']
+            print(userId)
         elif 'sub' in params:
+            print(params['sub'])
             subTable = dynamodb.Table('sub')
             subResponse = subTable.get_item(Key={'sub': params['sub']})
             userId = subResponse['Item']['userId']
