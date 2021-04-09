@@ -125,4 +125,4 @@ class DailyCounters:
         self.daily_completes += buyer_daily_completes
         self.daily_terms += buyer_daily_terms
         self.daily_starts += max(int(buyer_counters.get('starts', 0)) - buyer_daily_terms - buyer_daily_completes, 0)
-        self.daily_revenue += int(buyer_counters.get('revenue', 0) / 100)
+        self.daily_revenue += float(buyer_counters.get('revenue', 0) / 100)
