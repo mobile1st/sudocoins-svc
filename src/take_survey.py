@@ -74,6 +74,29 @@ def lambda_handler(event, context):
 
         return response
 
+    if fraud_score > 85:
+        print("user is considered suspicious")
+        response = {
+            "statusCode": 302,
+            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
+            "body": json.dumps({})
+        }
+        profileTable = dynamodb.Table('Profile')
+
+        profileTable.update_item(
+            Key={
+                "userId": userId
+            },
+            UpdateExpression="set fraud_score=:fs, active=:ac",
+            ExpressionAttributeValues={
+                ":fs": str(fraud_score),
+                ":ac": False
+            },
+            ReturnValues="ALL_NEW"
+        )
+
+        return response
+
     try:
         dynamodb = boto3.resource('dynamodb')
         transaction = history.History(dynamodb)
@@ -110,29 +133,6 @@ def lambda_handler(event, context):
         }
 
         return response
-
-    if fraud_score > 75:
-        print("user is considered suspicious")
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-        profileTable = dynamodb.Table('Profile')
-
-        profileTable.update_item(
-            Key={
-                "userId": userId
-            },
-            UpdateExpression="set fraud_score=:fs",
-            ExpressionAttributeValues={
-                ":fs": str(fraud_score)
-            },
-            ReturnValues="ALL_NEW"
-        )
-
-        return response
-
 
     try:
         log.info(f'buyer: {params["buyerName"]}')
