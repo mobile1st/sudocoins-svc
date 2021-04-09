@@ -1,20 +1,10 @@
 import boto3
-import botocore
 import json
 import sudocoins_logger
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum, auto
-
-
-class BuyerName(Enum):  # TODO eliminate!!!!!!
-    DYNATA = 'dynata'
-    LUCID = 'lucid'
-    CINT = 'cint'
-    PEANUT_LABS = 'peanutLabs'
-    PEANUT_LABS2 = 'peanutlabs'
-    TEST = 'test'
-
+from botocore.exceptions import ClientError
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -25,7 +15,6 @@ term_statuses = {'Blocked', 'Invalid', '', 'Overquota', 'Screen-out', 'No Projec
 
 date_format = '%Y-%m-%d'
 default_buyer_level_attributes = {'starts': 0, 'terms': 0, 'completes': 0, 'revenue': 0}
-default_buyer_map = {buyer.value: default_buyer_level_attributes for buyer in BuyerName}  # TODO eliminate
 
 
 def lambda_handler(event, context):
@@ -42,9 +31,14 @@ def increment_counters(date, message):
         raise Exception(f'could not determine counter name from status field {message}')
     counter_name = counter_name_enum.value
     table = dynamodb.Table('TrafficReports')
-    insert_default_structure_if_not_exists(table, date)
     if buyer:
-        increment_buyer_level_counter(table, date, buyer, counter_name)
+        try:
+            increment_buyer_level_counter(table, date, buyer, counter_name)
+        except ClientError as e:
+            # creating new top level attribute with nested properties the previous call failed
+            if e.response['Error']['Code'] == 'ValidationException':
+                insert_default_structure_if_not_exists(table, date, buyer)
+                increment_buyer_level_counter(table, date, buyer, counter_name)
         if counter_name_enum is CounterName.COMPLETES:
             if 'revenue' not in message:
                 raise Exception(f'revenue is not present for message: {json.dumps(message)}')
@@ -54,15 +48,27 @@ def increment_counters(date, message):
         increment_attribute_level_counter(table, date, counter_name)
 
 
-def insert_default_structure_if_not_exists(table, date):
+def insert_default_structure_if_not_exists(table, date, buyer):
     try:
         table.update_item(
             Key={'date': date},
-            UpdateExpression='SET buyer = :default',
+            UpdateExpression='SET buyer = :empty_map',
             ConditionExpression='attribute_not_exists(buyer)',
-            ExpressionAttributeValues={':default': default_buyer_map}
+            ExpressionAttributeValues={':empty_map': {}}
         )
-    except botocore.exceptions.ClientError as e:
+    except ClientError as e:
+        # Ignore the ConditionalCheckFailedException, bubble up other exceptions.
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+    try:
+        table.update_item(
+            Key={'date': date},
+            UpdateExpression='SET buyer.#buyer_name = :default',
+            ConditionExpression='attribute_not_exists(buyer.#buyer_name)',
+            ExpressionAttributeNames={'#buyer_name': buyer},
+            ExpressionAttributeValues={':default': default_buyer_level_attributes}
+        )
+    except ClientError as e:
         # Ignore the ConditionalCheckFailedException, bubble up other exceptions.
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise

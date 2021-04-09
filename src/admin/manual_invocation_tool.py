@@ -48,12 +48,15 @@ def fill_traffic_reports_table_from_transaction():
     transaction_table = dynamodb.Table('Transaction')
     transactions = transaction_table.scan()['Items']
     for item in transactions:
-        if item.get('started') is None or item.get('status') is None:
+        tr_date = item.get('completed') if item.get('started') is None else item['started']
+        if item.get('started') is None:
+            print('this is a previously not recorded transaction')
+        if tr_date is None or item.get('status') is None:
             print(f'skippedItem={item}')
             continue
-        date = datetime.fromisoformat(item['started'])
+        date = datetime.fromisoformat(tr_date)
         status = item['status']
-        buyer = item['buyer']
+        buyer = 'peanutLabs' if item.get('buyer') is None else item['buyer']
         revenue = item.get('revenue')
         source = 'SURVEY_START' if status == 'Started' else 'SURVEY_END'
         try:
