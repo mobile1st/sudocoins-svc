@@ -1,5 +1,6 @@
 from decimal import Decimal
 import boto3
+import json
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
@@ -221,12 +222,12 @@ class History:
             "userId": userId,
             'status': "Started",
             'type': 'Survey',
-            'ip': ip,
+            'ip': ip if ip else '',
             'started': str(started),
             'buyer': buyerName,
             "payout": 0,
-            "fraud_score": str(fraud_score),
-            "ipqs": str(ipqs)
+            "fraud_score": str(fraud_score) if fraud_score else '',
+            "ipqs": json.dumps(ipqs) if ipqs else '{}'
         }
 
         transactionTable.put_item(

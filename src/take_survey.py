@@ -1,6 +1,4 @@
-import os
 import boto3
-from botocore.exceptions import ClientError
 import json
 from buyerRedirect import BuyerRedirect
 import history
@@ -11,83 +9,28 @@ import requests
 log = sudocoins_logger.get()
 sns_client = boto3.client('sns')
 dynamodb = boto3.resource('dynamodb')
+quality_score_url_pattern = 'https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{0}?strictness=1&allow_public_access_points=true'
+invalid_response = {"statusCode": 302, "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'}, "body": '{}'}
+
 
 def lambda_handler(event, context):
     log.debug(f'event: {event}')
     if event.get('queryStringParameters') is None:
         log.warn('the request does not contain query parameters')
-        return {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
+        return invalid_response
+
     params = event['queryStringParameters']
-    try:
-        ip = event['requestContext']['identity']['sourceIp']
-    except Exception as e:
-        ip = ""
+    user_id = get_user_id(params)
+    if not user_id:
+        log.warn(f"userId was not determined from params: {params}")
+        return invalid_response
 
-    log.info(f'IP: {ip}')
-
-    if ip != "":
-        url = 'https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{' \
-              '0}?strictness=1&allow_public_access_points=true'.format(
-            ip)
-        x = requests.get(url)
-        try:
-            ipqs = json.loads(x.text)
-            print(ipqs)
-            fraud_score = ipqs["fraud_score"]
-            print(fraud_score)
-        except Exception as e:
-            print(e)
-            ipqs = "None"
-            fraud_score = "None"
-
-    else:
-        fraud_score = "None"
-        ipqs = "None"
-
-    try:
-        if 'userId' in params:
-            userId = params['userId']
-            print(userId)
-        elif 'sub' in params:
-            print(params['sub'])
-            subTable = dynamodb.Table('sub')
-            subResponse = subTable.get_item(Key={'sub': params['sub']})
-            userId = subResponse['Item']['userId']
-        else:
-            response = {
-                "statusCode": 302,
-                "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-                "body": json.dumps({})
-            }
-            return response
-
-    except Exception:
-        log.exception('could not retrieve user data')
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-
-        return response
-
-    if fraud_score > 85:
-        print("user is considered suspicious")
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-        profileTable = dynamodb.Table('Profile')
-
-        profileTable.update_item(
-            Key={
-                "userId": userId
-            },
+    ip = event.get('requestContext', {}).get('identity', {}).get('sourceIp')
+    fraud_score, ipqs = get_quality_score(ip)
+    if fraud_score and fraud_score > 85:
+        log.warn(f"userId: {user_id} is considered suspicious")
+        dynamodb.Table('Profile').update_item(
+            Key={"userId": user_id},
             UpdateExpression="set fraud_score=:fs, active=:ac",
             ExpressionAttributeValues={
                 ":fs": str(fraud_score),
@@ -96,12 +39,12 @@ def lambda_handler(event, context):
             ReturnValues="ALL_NEW"
         )
 
-        return response
+        return invalid_response
 
     try:
         transaction = history.History(dynamodb)
-        data, profile = transaction.insertTransactionRecord(userId, params['buyerName'], ip, fraud_score, ipqs)
-        log.debug('transaction record inserted')
+        data, profile = transaction.insertTransactionRecord(user_id, params['buyerName'], ip, fraud_score, ipqs)
+        log.debug(f'transaction record inserted data: {data}')
         timestamp = datetime.utcnow().isoformat()
         sns_client.publish(
             TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
@@ -113,7 +56,7 @@ def lambda_handler(event, context):
                 }
             },
             Message=json.dumps({
-                'userId': userId,
+                'userId': user_id,
                 'source': 'SURVEY_START',
                 'status': 'Started',
                 'awsRequestId': context.aws_request_id,
@@ -122,91 +65,61 @@ def lambda_handler(event, context):
                 'buyerName': params.get('buyerName'),
             })
         )
-        log.debug('start added to sns')
 
-    except Exception as e:
-        log.exception(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-
-        return response
-
-    try:
         log.info(f'buyer: {params["buyerName"]}')
-        entryUrl = generateEntryUrl(userId, params['buyerName'], data["transactionId"], ip, profile)
-        log.debug('entryUrl generated')
-        body = {}
-        response = {"statusCode": 302, "headers": {'Location': entryUrl}, "body": json.dumps(body)}
-        print(response)
-
-        return response
+        entry_url = generate_entry_url(user_id, params['buyerName'], data["transactionId"], ip, profile)
+        log.debug(f'entryUrl generated: {entry_url}')
+        return {"statusCode": 302, "headers": {'Location': entry_url}, "body": '{}'}
 
     except Exception as e:
         log.exception(e)
-        response = {
-            "statusCode": 302,
-            "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
-            "body": json.dumps({})
-        }
-        return response
+        return invalid_response
 
 
-def getSurveyObject(buyerName):
-    configTableName = os.environ["CONFIG_TABLE"]
-    configTable = dynamodb.Table(configTableName)
-    configKey = "TakeSurveyPage"
-
-    try:
-        response = configTable.get_item(Key={'configKey': configKey})
-
-    except ClientError as e:
-        log.warn(e.response['Error']['Message'])
+def get_user_id(params):
+    if 'userId' in params:
+        log.info(f"userId from query.userId: {params['userId']}")
+        return params['userId']
+    elif 'sub' in params:
+        subTable = dynamodb.Table('sub')
+        subResponse = subTable.get_item(Key={'sub': params['sub']})
+        user_id = subResponse['Item']['userId']
+        log.info(f"userId from query.sub: {params['sub']} -> userId: {user_id}")
+        return user_id
+    else:
         return None
 
-    else:
-        try:
-            configData = response['Item']["configValue"]
-            if buyerName in configData["buyer"].keys():
-                buyerObject = configData["buyer"][buyerName]
 
-                return buyerObject
+def get_quality_score(ip):
+    if not ip or ip == '':
+        log.info(f'No IP for executing quality score check')
+        return None, None
 
-        except Exception as e:
-            log.exception(e)
-            return None
+    try:
+        log.info(f'IP: {ip} executing quality score check')
+        url = quality_score_url_pattern.format(ip)
+        x = requests.get(url)
+        quality_score_response = json.loads(x.text)
+        log.debug(f'quality_score_response: {quality_score_response}')
+        return quality_score_response["fraud_score"], quality_score_response
+    except Exception as e:
+        log.exception(e)
+        return None, None
 
+
+def get_survey(buyer):
+    response = dynamodb.Table('Config').get_item(Key={'configKey': 'TakeSurveyPage'})
+    config = response['Item']["configValue"]
+    if buyer in config["buyer"].keys():
+        return config["buyer"][buyer]
     return None
 
 
-def generateEntryUrl(userId, buyerName, transactionId, ip, profile):
-    try:
-        survey = getSurveyObject(buyerName)
-        if survey is None:
-            return None
+def generate_entry_url(userId, buyerName, transactionId, ip, profile):
+    survey = get_survey(buyerName)
+    if not survey:
+        return None
 
-        else:
-            redirect = BuyerRedirect(dynamodb)
-            entryUrl = redirect.getRedirect(userId, buyerName, survey, ip, transactionId, profile)
+    redirect = BuyerRedirect(dynamodb)
+    return redirect.getRedirect(userId, buyerName, survey, ip, transactionId, profile)
 
-        return entryUrl
-    except Exception as e:
-        log.exception(e)
-
-
-'''
-def parseAccLang(headers):
-    acceptLanguage = headers['accept-language'][0]
-    part1 = acceptLanguage.split(',')[0]
-    country = part1.split('-')
-    cc = {}
-    if len(country) == 2:
-        cc['lang'] = country[0]
-        cc['cc'] = country[1]
-    else:
-        cc['lang'] = country[0]
-
-    return cc
-'''
