@@ -251,3 +251,11 @@ Resources:
       FunctionName: adminContactUpdate
       CodeUri: ./src/admin
 
+  artRedirect:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: artRedirect.lambda_handler
+      Runtime: python3.8
+      FunctionName: artRedirect
+      CodeUri: ./src/admin
+
