@@ -30,7 +30,17 @@ def print_statuses():
 
 def fill_traffic_reports_table_from_profile():
     profile_table = dynamodb.Table('Profile')
-    profiles = profile_table.scan()['Items']
+    profiles = []
+    scan_kwargs = {}
+    done = False
+    start_key = None
+    while not done:
+        if start_key:
+            scan_kwargs['ExclusiveStartKey'] = start_key
+        response = profile_table.scan(**scan_kwargs)
+        profiles.extend(response.get('Items', []))
+        start_key = response.get('LastEvaluatedKey', None)
+        done = start_key is None
     for item in profiles:
         if item.get('signupDate') is None:
             print(f'skippedItem={item}')
@@ -46,11 +56,19 @@ def fill_traffic_reports_table_from_profile():
 
 def fill_traffic_reports_table_from_transaction():
     transaction_table = dynamodb.Table('Transaction')
-    transactions = transaction_table.scan()['Items']
+    transactions = []
+    scan_kwargs = {}
+    done = False
+    start_key = None
+    while not done:
+        if start_key:
+            scan_kwargs['ExclusiveStartKey'] = start_key
+        response = transaction_table.scan(**scan_kwargs)
+        transactions.extend(response.get('Items', []))
+        start_key = response.get('LastEvaluatedKey', None)
+        done = start_key is None
     for item in transactions:
         tr_date = item.get('completed') if item.get('started') is None else item['started']
-        if item.get('started') is None:
-            print('this is a previously not recorded transaction')
         if tr_date is None or item.get('status') is None:
             print(f'skippedItem={item}')
             continue
