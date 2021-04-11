@@ -257,5 +257,5 @@ Resources:
       Handler: artRedirect.lambda_handler
       Runtime: python3.8
       FunctionName: artRedirect
-      CodeUri: ./src/admin
+      CodeUri: ./src
 
