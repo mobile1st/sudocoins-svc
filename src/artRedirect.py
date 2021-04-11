@@ -24,14 +24,16 @@ def lambda_handler(event, context):
     artTable = dynamodb.Table('art')
     artTable.update_item(
         Key={'id': row_id},
-        UpdateExpression="ADD #counter :increment",
-        ExpressionAttributeNames={'#counter': 'counter'},
-        ExpressionAttributeValues={':increment': {'N': '1'}}
-    )
+        UpdateExpression="SET clicks = if_not_exists(clicks , :start) + :inc",
+        ExpressionAttributeValues={
+                ':inc': 1,
+                ':start' : 0
+            },
+        ReturnValues="UPDATED_NEW"
+        )
 
-    artConfig = getConfig()
-
-    redirect_url = artConfig['id']['redirect']
+    row = artTable.get_item(Key={'id': row_id})
+    redirect_url = row['Item']['redirect']
 
     response = {
         "statusCode": 302,
@@ -41,13 +43,3 @@ def lambda_handler(event, context):
 
     return response
 
-
-
-def getConfig():
-    configTable = dynamodb.Table('Config')
-    configKey = "HomePage"
-
-    response = configTable.get_item(Key={'configKey': configKey})
-    config = response['Item']['art']
-
-    return config
