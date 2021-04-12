@@ -41,7 +41,7 @@ def lambda_handler(event, context):
     filter_to_buyer = None if event.get('queryStringParameters') is None else event['queryStringParameters'].get('buyerName')
     buyers = {filter_to_buyer} if filter_to_buyer else set()
 
-    log.debug(f'filter_to_buyer: {filter_to_buyer} event: {json.dumps(event)}')
+    log.debug(f'filter_to_buyer: {filter_to_buyer} event: {event}')
 
     for index, key in enumerate(keys):
         date = key['date']
@@ -126,5 +126,3 @@ class DailyCounters:
         self.daily_terms += buyer_daily_terms
         self.daily_starts += max(int(buyer_counters.get('starts', 0)) - buyer_daily_terms - buyer_daily_completes, 0)
         self.daily_revenue += float(buyer_counters.get('revenue', 0) / 100)
-
-print(lambda_handler({}, None))
