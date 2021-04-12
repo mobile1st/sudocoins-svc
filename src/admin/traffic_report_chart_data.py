@@ -1,12 +1,8 @@
-import json
-
 import boto3
 import collections
-import sudocoins_logger
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 
-log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 date_key_format = '%Y-%m-%d'
 default_item = {'buyer': {}, 'profiles': Decimal('0')}
@@ -38,10 +34,8 @@ def lambda_handler(event, context):
     profiles = []
     revenue = []
 
-    filter_to_buyer = None if event.get('queryStringParameters') is None else event['queryStringParameters'].get('buyerName')
-    buyers = {filter_to_buyer} if filter_to_buyer else set()
-
-    log.debug(f'filter_to_buyer: {filter_to_buyer} event: {event}')
+    buyer_name_filter = event.get('buyerName')
+    buyers = {buyer_name_filter} if buyer_name_filter else set()
 
     for index, key in enumerate(keys):
         date = key['date']
@@ -50,8 +44,8 @@ def lambda_handler(event, context):
         buyer = item.get('buyer', {})
 
         daily_counters = DailyCounters()
-        if filter_to_buyer:
-            daily_counters.add(buyer.get(filter_to_buyer))
+        if buyer_name_filter:
+            daily_counters.add(buyer.get(buyer_name_filter))
         else:
             for buyerName in buyer.keys():
                 buyers.add(buyerName)
