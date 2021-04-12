@@ -100,7 +100,7 @@ def lambda_handler(event, context):
 
 def generate_input_keys():  # this is controlling the flow, guarantees sorting
     result = []
-    for i in reversed(range(9)):
+    for i in reversed(range(90)):
         day = datetime.utcnow() - timedelta(days=i)
         key = day.strftime(date_key_format)
         result.append({'date': key})
