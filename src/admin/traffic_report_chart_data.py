@@ -34,9 +34,11 @@ def lambda_handler(event, context):
     profiles = []
     revenue = []
 
-    buyer_name_filter = event.get('buyerName')
-    buyers = {buyer_name_filter} if buyer_name_filter else set()
+    all_buyers = set()
+    for r in reports.values():
+        all_buyers.update(r.get('buyer', {}).keys())
 
+    buyer_filter = {event.get('buyerName')} if event.get('buyerName') else all_buyers
     for index, key in enumerate(keys):
         date = key['date']
         epoch_date = to_epoch_millis(date)
@@ -44,12 +46,8 @@ def lambda_handler(event, context):
         buyer = item.get('buyer', {})
 
         daily_counters = DailyCounters()
-        if buyer_name_filter:
-            daily_counters.add(buyer.get(buyer_name_filter))
-        else:
-            for buyerName in buyer.keys():
-                buyers.add(buyerName)
-                daily_counters.add(buyer[buyerName])
+        for buyer_name in buyer_filter.intersection(buyer.keys()):
+            daily_counters.add(buyer[buyer_name])
 
         daily_profiles = int(item.get('profiles', 0))
 
@@ -69,7 +67,7 @@ def lambda_handler(event, context):
             mva7_completes.append({'x': epoch_date, 'y': sum(mva7_completes_deque) / len(mva7_completes_deque)})
 
     return {
-        'buyers': list(buyers),
+        'buyers': sorted(all_buyers),
         'lastMva7': {
             'completes': mva7_completes[len(mva7_completes) - 2]['y'],
             'profiles': mva7_profiles[len(mva7_profiles) - 2]['y'],
