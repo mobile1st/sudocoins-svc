@@ -29,7 +29,7 @@ def lambda_handler(event, context):
         user_id = get_user_id(params)
         fraud_score, ipqs = get_quality_score(ip)
 
-        if fraud_score and fraud_score > 85:  # fraud check is optional
+        if fraud_score and fraud_score > 100:  # fraud check is optional
             log.warn(f"userId: {user_id} is considered suspicious")
             dynamodb.Table('Profile').update_item(
                 Key={"userId": user_id},
