@@ -53,25 +53,6 @@ def lambda_handler(event, context):
 
     result = {
         'buyers': sorted(all_buyers),
-        'lastMva7': {
-            'completes': total_report.mva7_completes[len(total_report.mva7_completes) - 2]['y'],
-            'profiles': total_profiles_mva7[len(total_profiles_mva7) - 2]['y'],
-            'revenue': total_report.mva7_revenue[len(total_report.mva7_revenue) - 2]['y']
-        },
-        'trafficChart': {
-            'starts': total_report.starts,
-            'completes': total_report.completes,
-            'terms': total_report.terms,
-            'mva7Completes': total_report.mva7_completes
-        },
-        'profileChart': {
-            'profiles': total_profiles_daily,
-            'mva7': total_profiles_mva7
-        },
-        'revenueChart': {
-            'revenue': total_report.revenue,
-            'mva7': total_report.mva7_revenue
-        },
         'total': {
             'totals': {
                 'completes': total_report.mva7_completes[len(total_report.mva7_completes) - 2]['y'],
