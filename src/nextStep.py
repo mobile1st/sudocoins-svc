@@ -56,7 +56,7 @@ def loadProfile(sub):
     subTable = dynamodb.Table('sub')
     profileTable = dynamodb.Table('Profile')
 
-    subResponse = subTable.get_item(Key={'sub': sub})
+    subResponse = subTable.get_item(Key={'sub': str(sub)})
 
     if 'Item' in subResponse:
         userId = subResponse['Item']['userId']
