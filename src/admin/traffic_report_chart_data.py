@@ -95,7 +95,7 @@ def lambda_handler(event, context):
     }
 
     for buyer, report in buyer_reports.items():
-        result |= {
+        result.update({
             buyer: {
                 'totals': {
                     'completes': report.mva7_completes[len(report.mva7_completes) - 2]['y'],
@@ -111,7 +111,7 @@ def lambda_handler(event, context):
                     'mva7': report.mva7_revenue
                 }
             }
-        }
+        })
 
     return result
 
