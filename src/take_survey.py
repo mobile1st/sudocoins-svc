@@ -122,8 +122,3 @@ def generate_entry_url(user_id, buyer_name, transaction_id, ip, profile):
 
     log.debug(f'generated entryUrl: {entry_url} for buyer: {buyer_name}')
     return entry_url
-
-s = requests.get('https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/126.0.30.226?strictness=1&allow_public_access_points=true').text
-#s = '{"success":true,"message":"Success","fraud_score":0,"country_code":"JP","region":"Kanagawa","city":"Miyatacho","ISP":"Softbank BB","ASN":17676,"organization":"Softbank BB","latitude":35.67,"longitude":139.78,"is_crawler":false,"timezone":"Asia\/Tokyo","mobile":false,"host":"softbank126000030226.bbtec.net","proxy":false,"vpn":false,"tor":false,"active_vpn":false,"active_tor":false,"recent_abuse":false,"bot_status":false,"connection_type":"Premium required.","abuse_velocity":"Premium required.","request_id":"4DpL5bKIF0cDFkz"}'
-quality_score_response = json.loads(s, parse_float=decimal.Decimal)
-print(s)
