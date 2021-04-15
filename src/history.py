@@ -227,7 +227,7 @@ class History:
             'buyer': buyerName,
             "payout": 0,
             "fraud_score": str(fraud_score) if fraud_score else '',
-            "ipqs": json.dumps(ipqs) if ipqs else '{}'
+            "ipqs": ipqs
         }
 
         transactionTable.put_item(
