@@ -259,3 +259,11 @@ Resources:
       FunctionName: artCounter
       CodeUri: ./src
 
+  addArt:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: addArt.lambda_handler
+      Runtime: python3.8
+      FunctionName: addArt
+      CodeUri: ./src
+
