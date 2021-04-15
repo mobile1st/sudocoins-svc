@@ -222,11 +222,11 @@ class History:
             "userId": userId,
             'status': "Started",
             'type': 'Survey',
-            'ip': ip if ip else '',
+            'ip': ip,
             'started': str(started),
             'buyer': buyerName,
             "payout": 0,
-            "fraud_score": str(fraud_score) if fraud_score else '',
+            "fraud_score": fraud_score,
             "ipqs": ipqs
         }
 
