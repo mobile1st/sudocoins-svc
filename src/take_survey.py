@@ -5,6 +5,7 @@ import history
 from datetime import datetime
 import sudocoins_logger
 import requests
+import decimal
 
 log = sudocoins_logger.get()
 sns_client = boto3.client('sns')
@@ -96,7 +97,7 @@ def get_quality_score(ip):
         log.info(f'IP: {ip} executing quality score check')
         url = quality_score_url_pattern.format(ip)
         x = requests.get(url)
-        quality_score_response = json.loads(x.text)
+        quality_score_response = json.loads(x.text, parse_float=decimal.Decimal)
         log.info(f'quality_score_response: {quality_score_response}')
         return quality_score_response["fraud_score"], quality_score_response
     except Exception as e:
