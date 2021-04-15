@@ -44,7 +44,7 @@ def lambda_handler(event, context):
             return invalid_response
 
         data, profile = transaction_history.insertTransactionRecord(user_id, params['buyerName'], ip, fraud_score, ipqs)
-        log.info(f"created transaction: {json.dumps(data)}")
+        log.info(f"created transaction: {data}")
 
         sns_client.publish(
             TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
