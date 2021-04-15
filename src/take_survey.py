@@ -96,10 +96,10 @@ def get_quality_score(ip):
     try:
         log.info(f'IP: {ip} executing quality score check')
         url = quality_score_url_pattern.format(ip)
-        x = requests.get(url)
-        quality_score_response = json.loads(x.text, parse_float=decimal.Decimal)
-        log.info(f'quality_score_response: {quality_score_response}')
-        return quality_score_response["fraud_score"], quality_score_response
+        http_response = requests.get(url).text
+        log.info(f'quality_score_response: {http_response}')
+        qs_response = json.loads(http_response, parse_float=decimal.Decimal)
+        return qs_response["fraud_score"], qs_response
     except Exception as e:
         log.exception(e)
         return None, None
@@ -122,3 +122,8 @@ def generate_entry_url(user_id, buyer_name, transaction_id, ip, profile):
 
     log.debug(f'generated entryUrl: {entry_url} for buyer: {buyer_name}')
     return entry_url
+
+s = requests.get('https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/126.0.30.226?strictness=1&allow_public_access_points=true').text
+#s = '{"success":true,"message":"Success","fraud_score":0,"country_code":"JP","region":"Kanagawa","city":"Miyatacho","ISP":"Softbank BB","ASN":17676,"organization":"Softbank BB","latitude":35.67,"longitude":139.78,"is_crawler":false,"timezone":"Asia\/Tokyo","mobile":false,"host":"softbank126000030226.bbtec.net","proxy":false,"vpn":false,"tor":false,"active_vpn":false,"active_tor":false,"recent_abuse":false,"bot_status":false,"connection_type":"Premium required.","abuse_velocity":"Premium required.","request_id":"4DpL5bKIF0cDFkz"}'
+quality_score_response = json.loads(s, parse_float=decimal.Decimal)
+print(s)
