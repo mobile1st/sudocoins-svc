@@ -13,16 +13,9 @@ def lambda_handler(event, context):
     try:
         inputUrl = event['url']
         userId = event['userId']
-        #userType = event['userType']
 
         contractId, tokenId = parseUrl(inputUrl)
-        # need to add statement if the url is bad and doesn't return what we need
-
-        open_sea_url_pattern = "https://api.opensea.io/api/v1/asset/{0}/{1}"
-        url = open_sea_url_pattern.format(contractId, tokenId)
-        x = requests.get(url)
-        open_sea_response = json.loads(x.text)
-        log.info(f'open_sea_response: {open_sea_response}')
+        open_sea_response = callOpenSea(contractId,tokenId)
 
         msg = {
             'id': str(uuid.uuid1()),
@@ -43,8 +36,17 @@ def lambda_handler(event, context):
         }
 
         dynamodb.Table('art').put_item(
-            Item=msg,
-            ReturnValues="ALL_OLD"
+            Item=msg
+        )
+
+        dynamodb.Table('profile').update_item(
+            Key={'userId': userId},
+            UpdateExpression="SET sudocoins = if_not_exists(sudo, :start) + :inc",
+            ExpressionAttributeValues={
+                ':inc': 10,
+                ':start': 0
+            },
+            ReturnValues="UPDATED_NEW"
         )
 
         return msg
@@ -77,3 +79,14 @@ def parseUrl(url):
         tokenId = ""
 
     return contractId, tokenId
+
+
+def callOpenSea(contractId, tokenId):
+    open_sea_url_pattern = "https://api.opensea.io/api/v1/asset/{0}/{1}"
+    url = open_sea_url_pattern.format(contractId, tokenId)
+    x = requests.get(url)
+    open_sea_response = json.loads(x.text)
+    log.info(f'open_sea_response: {open_sea_response}')
+
+    return open_sea_response
+
