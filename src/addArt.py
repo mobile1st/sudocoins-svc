@@ -13,7 +13,7 @@ def lambda_handler(event, context):
     try:
         inputUrl = event['url']
         userId = event['userId']
-        userType = event['userType']
+        #userType = event['userType']
 
         contractId, tokenId = parseUrl(inputUrl)
         # need to add statement if the url is bad and doesn't return what we need
@@ -26,6 +26,8 @@ def lambda_handler(event, context):
 
         msg = {
             'id': str(uuid.uuid1()),
+            "conractId": contractId,
+            "tokenId": tokenId,
             'redirect': inputUrl,
             'name': open_sea_response['name'],
             'description': open_sea_response['description'],
@@ -36,7 +38,7 @@ def lambda_handler(event, context):
             "animation_url": open_sea_response['animation_url'],
             "animation_original_url": open_sea_response['animation_original_url'],
             "addedBy": userId,
-            "userType": userType,
+            "userType": "user",
             "timestamp": str(datetime.utcnow().isoformat())
         }
 
@@ -50,6 +52,9 @@ def lambda_handler(event, context):
     except Exception as e:
         print(e)
         log.exception('Could not get art')
+        return {
+            "error": e
+        }
 
 
 def parseUrl(url):
