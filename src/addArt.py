@@ -38,7 +38,6 @@ def lambda_handler(event, context):
         dynamodb.Table('art').put_item(
             Item=msg
         )
-
         dynamodb.Table('profile').update_item(
             Key={'userId': userId},
             UpdateExpression="SET sudocoins = if_not_exists(sudo, :start) + :inc",
