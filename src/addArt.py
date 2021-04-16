@@ -26,7 +26,7 @@ def lambda_handler(event, context):
 
         msg = {
             'id': str(uuid.uuid1()),
-            "conractId": contractId,
+            "contractId": contractId,
             "tokenId": tokenId,
             'redirect': inputUrl,
             'name': open_sea_response['name'],
