@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         userId = event['userId']
 
         contractId, tokenId = parseUrl(inputUrl)
-        open_sea_response = callOpenSea(contractId,tokenId)
+        open_sea_response = callOpenSea(contractId, tokenId)
 
         msg = {
             'id': str(uuid.uuid1()),
@@ -30,17 +30,20 @@ def lambda_handler(event, context):
             "image_original_url": open_sea_response['image_original_url'],
             "animation_url": open_sea_response['animation_url'],
             "animation_original_url": open_sea_response['animation_original_url'],
-            "addedBy": userId,
+            "userId": userId,
             "userType": "user",
             "timestamp": str(datetime.utcnow().isoformat())
         }
 
+        # logic to make sure the user didn't already add this art.
+
         dynamodb.Table('art').put_item(
             Item=msg
         )
-        dynamodb.Table('profile').update_item(
+        print("here")
+        dynamodb.Table('Profile').update_item(
             Key={'userId': userId},
-            UpdateExpression="SET sudocoins = if_not_exists(sudo, :start) + :inc",
+            UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
             ExpressionAttributeValues={
                 ':inc': 10,
                 ':start': 0
