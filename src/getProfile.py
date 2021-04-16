@@ -123,7 +123,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance,"
-                                 "verificationState, signupMethod, fraud_score"
+                                 "verificationState, signupMethod, fraud_score, sudocoins"
         )
         log.info(f'profileObject: {profileObject}')
         if 'history' not in profileObject['Item']:
@@ -131,6 +131,9 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
 
         if 'balance' not in profileObject['Item']:
             profileObject['Item']['balance'] = '0.00'
+
+        if 'sudocoins' not in profileObject['Item']:
+            profileObject['Item']['sudocoins'] = '0'
 
         if 'verificationState' not in profileObject['Item']:
             profileObject['Item']['verificationState'] = 'None'
@@ -177,6 +180,8 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                     profileObject['Attributes']['history'] = []
                 if 'balance' not in profileObject['Attributes']:
                     profileObject['Attributes']['balance'] = '0.00'
+                if 'sudocoins' not in profileObject['Attributes']:
+                    profileObject['Attributes']['sudocoins'] = '0'
 
                 return profileObject['Attributes']
 
@@ -192,7 +197,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             },
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, balance,"
-                                 "verificationState, signupMethod, fraud_score"
+                                 "verificationState, signupMethod, fraud_score, sudocoins"
         )
         log.info(f'profileQuery: {profileQuery}')
         if profileQuery['Count'] > 0:
@@ -209,6 +214,8 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                 profileQuery['Items'][0]['history'] = []
             if 'balance' not in profileQuery['Items'][0]:
                 profileQuery['Items'][0]['balance'] = "0.00"
+            if 'sudocoins' not in profileQuery['Items'][0]:
+                profileQuery['Items'][0]['sudocoins'] = "0"
             if 'verificationState' not in profileQuery['Items'][0]:
                 profileQuery['Items'][0]['verificationState'] = "None"
                 profileTable.update_item(
@@ -290,6 +297,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "consent": "",
         "history": [],
         "balance": "0.00",
+        "sudocoins": "0",
         "verificationState": "None",
         "signupMethod": signupMethod,
         "fraud_score": str(fraud_score),
