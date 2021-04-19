@@ -41,7 +41,7 @@ def lambda_handler(event, context):
             Item=msg
         )
         print("here")
-        dynamodb.Table('Profile').update_item(
+        newSudo = dynamodb.Table('Profile').update_item(
             Key={'userId': userId},
             UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
             ExpressionAttributeValues={
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
             ReturnValues="UPDATED_NEW"
         )
 
-        return msg
+        return newSudo
 
     except Exception as e:
         print(e)
