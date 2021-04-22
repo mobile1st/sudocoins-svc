@@ -19,10 +19,13 @@ setuptools.setup(
     packages=setuptools.find_packages(where="sudocoins_stack"),
 
     install_requires=[
-        "aws-cdk.core==1.98.0",
+        "aws-cdk.core",
         "aws-cdk.aws-lambda",
         "aws-cdk.aws-dynamodb",
         "aws-cdk.aws-apigateway",
+        "aws-cdk.aws-apigatewayv2",
+        "aws-cdk.aws-apigatewayv2-integrations",
+        "aws-cdk.aws-cognito",
     ],
 
     python_requires=">=3.6",
