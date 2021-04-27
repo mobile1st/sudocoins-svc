@@ -4,9 +4,11 @@ import requests
 from datetime import datetime
 import uuid
 import sudocoins_logger
+from art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
+art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
@@ -17,50 +19,13 @@ def lambda_handler(event, context):
         contractId, tokenId = parseUrl(inputUrl)
         open_sea_response = callOpenSea(contractId, tokenId)
 
-        msg = {
-            'id': str(uuid.uuid1()),
-            "contractId": contractId,
-            "tokenId": tokenId,
-            'redirect': inputUrl,
-            'name': open_sea_response['name'],
-            'description': open_sea_response['description'],
-            "image_url": open_sea_response['image_url'],
-            "image_preview_url": open_sea_response['image_preview_url'],
-            "image_thumbnail_url": open_sea_response['image_thumbnail_url'],
-            "image_original_url": open_sea_response['image_original_url'],
-            "animation_url": open_sea_response['animation_url'],
-            "animation_original_url": open_sea_response['animation_original_url'],
-            "userId": userId,
-            "userType": "user",
-            "timestamp": str(datetime.utcnow().isoformat())
-        }
-
-        # logic to make sure the user didn't already add this art.
-
-        dynamodb.Table('art').put_item(
-            Item=msg
-        )
-
-        newSudo = dynamodb.Table('Profile').update_item(
-            Key={'userId': userId},
-            UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
-            ExpressionAttributeValues={
-                ':inc': 10,
-                ':start': 0
-            },
-            ReturnValues="UPDATED_NEW"
-        )
-
-        sudo = newSudo['Attributes']['sudocoins']
-        msg['sudocoins'] = sudo
-
-        return msg
+        Art.share(contractId, tokenId, open_sea_response, inputUrl, userId)
 
     except Exception as e:
         print(e)
         log.exception('Could not get art')
         return {
-            "error": e
+            "error": "The Art you shared has an invalid URL. Please search OpenSea and Rarible and try again."
         }
 
 
