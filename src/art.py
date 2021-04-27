@@ -28,7 +28,7 @@ class Art:
 
         # check to see if art already exists
         artObject = self.dynamodb.Table('art').get_item(
-            Key={'contractId#tokenId': userId}
+            Key={'contractId#tokenId': str(contractId) + "#" + str(tokenId)}
         )
 
         if 'Item' not in artObject:
@@ -91,3 +91,31 @@ class Art:
         # returns the user's uploaded art sorted by timestamp
 
         return
+
+    def get_art_uploads(self, shareId):
+        # returns the art_uploads_record based on shareId
+        art_uploads_record = self.dynamodb.Table('art').get_item(
+            Key={'shareId': shareId}
+        )
+
+        if 'Item' in art_uploads_record:
+            return art_uploads_record['Item']
+
+        else:
+            return {
+                "message": "Art doesn't exist in Gallery based on shareId"
+            }
+
+    def get_art(self, contractTokenId):
+        # returns the art_uploads_record based on shareId
+        art_record = self.dynamodb.Table('art').get_item(
+            Key={'contractId#tokenId': contractTokenId}
+        )
+
+        if 'Item' in art_record:
+            return art_record['Item']
+
+        else:
+            return {
+                "message": "Art doesn't exist in Gallery based on contractId#tokenId"
+            }
