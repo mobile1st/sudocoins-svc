@@ -34,13 +34,12 @@ class Art:
         if 'Item' not in artObject:
             art_record = {
                 'contractId#tokenId': str(contractId) + "#" + str(tokenId),
-                "contractId": contractId,
-                "tokenId": tokenId,
                 "open_sea_data": open_sea,
                 "timestamp": time_now,
                 "recent_sk": time_now + "#" + str(uuid.uuid1()),
-                "clicks": 0,
-                "first_user": userId
+                "click_count": 0,
+                "first_user": userId,
+                "sort_idx": True
             }
             self.dynamodb.Table('art').put_item(
                 Item=art_record
