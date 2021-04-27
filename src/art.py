@@ -1,7 +1,3 @@
-from decimal import Decimal
-import boto3
-import json
-from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
 import uuid
@@ -50,30 +46,48 @@ class Art:
                 Item=art_record
             )
 
-        art_uploads_record = {
-            "shareId": str(uuid.uuid1()),
-            'contractId#tokenId': str(contractId) + "#" + str(tokenId),
-            "url": inputUrl,
-            "user_id": userId,
-            "open_sea_data": open_sea,
-            "clicks": 0,
-            "timestamp": time_now
-        }
-        self.dynamodb.Table('art_uploads').put_item(
-            Item=art_uploads_record
-        )
+        # check to see if art_uploads record already exists
+        art_uploads_Object = self.dynamodb.Table('art_uploads').query(
+            KeyConditionExpression=Key("userId").eq(userId) & Key("User_upload_dedupe_idx").eq(str(contractId) + "#" + str(tokenId)),
+            IndexName='userId-started-index')
 
-        newSudo = self.dynamodb.Table('Profile').update_item(
-            Key={'userId': userId},
-            UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
-            ExpressionAttributeValues={
-                ':inc': 10,
-                ':start': 0
-            },
-            ReturnValues="UPDATED_NEW"
-        )
+        if art_uploads_Object['Count'] > 0:
+            msg = {
+                "message": "Art already added to Gallery",
+                "shareId": art_uploads_Object['Items'][0]['shareId']
+            }
 
-        sudo = newSudo['Attributes']['sudocoins']
-        art_uploads_record['sudocoins'] = sudo
+            return msg
 
-        return art_uploads_record
+        else:
+            art_uploads_record = {
+                "shareId": str(uuid.uuid1()),
+                'contractId#tokenId': str(contractId) + "#" + str(tokenId),
+                "url": inputUrl,
+                "user_id": userId,
+                "open_sea_data": open_sea,
+                "click_count": 0,
+                "timestamp": time_now
+            }
+            self.dynamodb.Table('art_uploads').put_item(
+                Item=art_uploads_record
+            )
+
+            newSudo = self.dynamodb.Table('Profile').update_item(
+                Key={'userId': userId},
+                UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
+                ExpressionAttributeValues={
+                    ':inc': 10,
+                    ':start': 0
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+            sudo = newSudo['Attributes']['sudocoins']
+            art_uploads_record['sudocoins'] = sudo
+
+            return art_uploads_record
+
+    def get_user_uploaded_art_view(self, user_id):
+        # returns the user's uploaded art sorted by timestamp
+
+        return
