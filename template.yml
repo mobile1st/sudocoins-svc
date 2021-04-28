@@ -267,3 +267,11 @@ Resources:
       FunctionName: addArt
       CodeUri: ./src
 
+  artPrompt:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: artPrompt.lambda_handler
+      Runtime: python3.8
+      FunctionName: artPrompt
+      CodeUri: ./src
+
