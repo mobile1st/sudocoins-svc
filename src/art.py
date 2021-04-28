@@ -86,14 +86,14 @@ class Art:
 
             return art_uploads_record
 
-    def get_user_uploaded_art_view(self, user_id):
+    def get_uploads(self, user_id):
         # returns the user's uploaded art sorted by timestamp
 
         return
 
-    def get_art_uploads(self, shareId):
-        # returns the art_uploads_record based on shareId
-        art_uploads_record = self.dynamodb.Table('art').get_item(
+    def get_by_share_id(self, shareId):
+        # returns the art_uploads record based on shareId
+        art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
             Key={'shareId': shareId}
         )
 
@@ -105,8 +105,8 @@ class Art:
                 "message": "Art doesn't exist in Gallery based on shareId"
             }
 
-    def get_art(self, contractTokenId):
-        # returns the art_uploads_record based on shareId
+    def get_arts(self, contractTokenId):
+        # returns art records. Single or batch
         art_record = self.dynamodb.Table('art').get_item(
             Key={'contractId#tokenId': contractTokenId}
         )
@@ -118,3 +118,8 @@ class Art:
             return {
                 "message": "Art doesn't exist in Gallery based on contractId#tokenId"
             }
+
+    def get_recent(self, recent_sk, count):
+        # returns recent art records paginated
+        return
+
