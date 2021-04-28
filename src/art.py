@@ -13,6 +13,7 @@ class Art:
 
     def share(self, contractId, tokenId, open_sea_response, inputUrl, userId):
         time_now = str(datetime.utcnow().isoformat())
+        contractTokenId = str(contractId) + "#" + str(tokenId)
 
         open_sea = {
             'redirect': inputUrl,
@@ -28,27 +29,32 @@ class Art:
 
         # check to see if art already exists
         artObject = self.dynamodb.Table('art').get_item(
-            Key={'contractId#tokenId': str(contractId) + "#" + str(tokenId)}
+            Key={'contractId#tokenId': contractTokenId}
         )
 
         if 'Item' not in artObject:
             art_record = {
-                'contractId#tokenId': str(contractId) + "#" + str(tokenId),
+                'contractId#tokenId': contractTokenId,
                 "open_sea_data": open_sea,
                 "timestamp": time_now,
                 "recent_sk": time_now + "#" + str(uuid.uuid1()),
                 "click_count": 0,
                 "first_user": userId,
-                "sort_idx": True
+                "sort_idx": 'true'
             }
             self.dynamodb.Table('art').put_item(
                 Item=art_record
             )
 
         # check to see if art_uploads record already exists
+
+        print("check for repeat art_uploads")
+        print(userId)
+        print(contractTokenId)
+
         art_uploads_Object = self.dynamodb.Table('art_uploads').query(
-            KeyConditionExpression=Key("userId").eq(userId) & Key("User_upload_dedupe_idx").eq(str(contractId) + "#" + str(tokenId)),
-            IndexName='userId-started-index')
+            KeyConditionExpression=Key("user_id").eq(userId) & Key("contractId#tokenId").eq(contractTokenId),
+            IndexName='User_upload_dedupe_idx')
 
         if art_uploads_Object['Count'] > 0:
             msg = {
