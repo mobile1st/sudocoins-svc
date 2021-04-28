@@ -94,8 +94,14 @@ class Art:
 
     def get_uploads(self, user_id):
         # returns the user's uploaded art sorted by timestamp
+        art_uploads = self.dynamodb.Table('art_uploads').query(
+            KeyConditionExpression=Key("userId").eq(user_id),
+            ScanIndexForward=False,
+            IndexName='User_uploaded_art_view_idx',
+            ProjectionExpression="shareId, click_count, url,"
+                                 "contractId#tokenId, open_sea_data, timestamp")
 
-        return
+        return art_uploads['Items']
 
     def get_by_share_id(self, shareId):
         # returns the art_uploads record based on shareId
@@ -111,19 +117,34 @@ class Art:
                 "message": "Art doesn't exist in Gallery based on shareId"
             }
 
-    def get_arts(self, contractTokenId):
-        # returns art records. Single or batch
-        art_record = self.dynamodb.Table('art').get_item(
-            Key={'contractId#tokenId': contractTokenId}
-        )
+    def get_arts(self, contractTokenIds):
+        # returns art records. Single or batch. Argument must be a list
 
-        if 'Item' in art_record:
-            return art_record['Item']
+        for i in contractTokenIds:
 
-        else:
-            return {
-                "message": "Art doesn't exist in Gallery based on contractId#tokenId"
-            }
+
+
+            art_record = self.dynamodb.Table('art').batch_get_item(
+                RequestItems={
+                    'art': {
+                        'Keys': [
+                            {
+                                'item_ID': {
+                                    'S': '1'
+                                }
+                            },
+                            {
+                                'item_ID': {
+                                    'S': '2'
+                                }
+                            }
+                        ],
+                        'ProjectionExpression': 'item_ID, color',
+                    }
+                }
+            )
+
+
 
     def get_recent(self, recent_sk, count):
         # returns recent art records paginated
