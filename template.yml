@@ -275,3 +275,11 @@ Resources:
       FunctionName: artPrompt
       CodeUri: ./src
 
+  setTrending:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: set_trending.lambda_handler
+      Runtime: python3.8
+      FunctionName: setTrending
+      CodeUri: ./src
+
