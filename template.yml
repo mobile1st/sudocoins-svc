@@ -283,3 +283,11 @@ Resources:
       FunctionName: setTrending
       CodeUri: ./src
 
+  getRecent:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getRecent.lambda_handler
+      Runtime: python3.8
+      FunctionName: getRecent
+      CodeUri: ./src
+

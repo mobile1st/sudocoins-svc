@@ -1,3 +1,4 @@
+import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
 import uuid
@@ -119,18 +120,36 @@ class Art:
 
     def get_arts(self, contractTokenIds):
         # returns art records. Single or batch. Argument must be a list
-
+        client = boto3.client('dynamodb')
         art_keys = []
+
         for i in contractTokenIds:
-            element = {
-                'contractId#tokenId': {
-                    'S': str(i)
-                }
+            art_record = self.dynamodb.Table('art_uploads').get_item(
+                Key={'shareId': i},
+                ExpressionAttributeNames={'#u': 'url'},
+                ProjectionExpression="shareId, click_count, #u, open_sea_data"
+            )
+
+            art = {
+                "url": art_record['Item']["open_sea_data"]["image_url"],
+                "name": art_record['Item']["open_sea_data"]["name"],
+                "id": art_record['Item']["shareId"],
+                "click_count": art_record['Item']["click_count"]
             }
 
-            art_keys.append(element)
+            art_keys.append(art)
 
-        art_record = self.dynamodb.Table('art').batch_get_item(
+            '''
+            element = {'contractId#tokenId': {'S': i} }
+
+            print(type(element))
+
+            art_keys.append(element)
+            '''
+
+        # print(art_keys)
+        '''
+        art_record = client.batch_get_item(
             RequestItems={
                 'art': {
                     'Keys': art_keys,
@@ -138,12 +157,20 @@ class Art:
                 }
             }
         )
+        '''
 
-        return art_record
+        return art_keys
 
-
-
-    def get_recent(self, recent_sk, count):
+    def get_recent(self, count):
         # returns recent art records paginated
-        return
+
+        recent_art = self.dynamodb.Table('art').query(
+            KeyConditionExpression=Key("sort_idx").eq('true'),
+            ScanIndexForward=False,
+            Limit=count,
+            IndexName='Recent_index',
+            ProjectionExpression="timestamp, click_count, recent_sk,"
+                                 "contractId#tokenId, open_sea_data")
+
+        return recent_art
 
