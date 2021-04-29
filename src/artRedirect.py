@@ -1,6 +1,5 @@
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError
 import json
 import sudocoins_logger
 
@@ -21,19 +20,21 @@ def lambda_handler(event, context):
     params = event['queryStringParameters']
     row_id = params["id"]
 
-    artTable = dynamodb.Table('art')
+    artTable = dynamodb.Table('art_uploads')
     artTable.update_item(
-        Key={'id': row_id},
-        UpdateExpression="SET clicks = if_not_exists(clicks , :start) + :inc",
+        Key={'shareId': row_id},
+        UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
         ExpressionAttributeValues={
-                ':inc': 1,
-                ':start' : 0
-            },
+            ':inc': 1,
+            ':start': 0
+        },
         ReturnValues="UPDATED_NEW"
-        )
+    )
 
-    row = artTable.get_item(Key={'id': row_id})
-    redirect_url = row['Item']['redirect']
+    row = artTable.get_item(Key={'shareId': row_id})
+    print(row)
+
+    redirect_url = row['Item']['url']
 
     response = {
         "statusCode": 302,

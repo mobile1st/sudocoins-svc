@@ -120,29 +120,26 @@ class Art:
     def get_arts(self, contractTokenIds):
         # returns art records. Single or batch. Argument must be a list
 
+        art_keys = []
         for i in contractTokenIds:
-
-
-
-            art_record = self.dynamodb.Table('art').batch_get_item(
-                RequestItems={
-                    'art': {
-                        'Keys': [
-                            {
-                                'item_ID': {
-                                    'S': '1'
-                                }
-                            },
-                            {
-                                'item_ID': {
-                                    'S': '2'
-                                }
-                            }
-                        ],
-                        'ProjectionExpression': 'item_ID, color',
-                    }
+            element = {
+                'contractId#tokenId': {
+                    'S': str(i)
                 }
-            )
+            }
+
+            art_keys.append(element)
+
+        art_record = self.dynamodb.Table('art').batch_get_item(
+            RequestItems={
+                'art': {
+                    'Keys': art_keys,
+                    'ProjectionExpression': 'item_ID, color',
+                }
+            }
+        )
+
+        return art_record
 
 
 
