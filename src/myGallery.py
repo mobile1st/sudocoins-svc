@@ -11,10 +11,10 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     # returns the art shared by the user
 
-    my_art = art.get_recent(event['userId'])
+    my_art = art.get_uploads(event['userId'])
 
 
     return {
         'statusCode': 200,
-        'art': my_art['Items']
+        'art': my_art
     }

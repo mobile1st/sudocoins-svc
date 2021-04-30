@@ -96,11 +96,12 @@ class Art:
     def get_uploads(self, user_id):
         # returns the user's uploaded art sorted by timestamp
         art_uploads = self.dynamodb.Table('art_uploads').query(
-            KeyConditionExpression=Key("userId").eq(user_id),
+            KeyConditionExpression=Key("user_id").eq(user_id),
             ScanIndexForward=False,
             IndexName='User_uploaded_art_view_idx',
-            ProjectionExpression="shareId, click_count, url,"
-                                 "contractId#tokenId, open_sea_data, timestamp")
+            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp', "#ul": 'url'},
+            ProjectionExpression="shareId, click_count, #ul,"
+                                 "#ct, open_sea_data, #t")
 
         return art_uploads['Items']
 
