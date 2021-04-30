@@ -161,11 +161,11 @@ class Art:
 
         return art_keys
 
-    def get_recent(self, count):
+    def get_recent(self, count, timestamp):
         # returns recent art records paginated
 
         recent_art = self.dynamodb.Table('art').query(
-            KeyConditionExpression=Key("sort_idx").eq('true'),
+            KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(timestamp),
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
