@@ -291,3 +291,11 @@ Resources:
       FunctionName: getRecent
       CodeUri: ./src
 
+  myGallery:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: myGallery.lambda_handler
+      Runtime: python3.8
+      FunctionName: myGallery
+      CodeUri: ./src
+
