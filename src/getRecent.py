@@ -18,5 +18,5 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'art': recent_art
+        'art': recent_art['Items']
     }

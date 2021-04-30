@@ -169,7 +169,7 @@ class Art:
             Limit=count,
             IndexName='Recent_index',
             ProjectionExpression="#t, click_count, recent_sk,"
-                                 "open_sea_data, #ct",
+                                 "open_sea_data, #ct, art_id",
             ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art
