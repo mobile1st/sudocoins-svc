@@ -163,14 +163,14 @@ class Art:
 
     def get_recent(self, count, timestamp):
         # returns recent art records paginated
-
         recent_art = self.dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(timestamp),
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="timestamp, click_count, recent_sk,"
-                                 "contractId#tokenId, open_sea_data")
+            ProjectionExpression="#t, click_count, recent_sk,"
+                                 "open_sea_data, #ct",
+            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art
 

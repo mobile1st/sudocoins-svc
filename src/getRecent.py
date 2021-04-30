@@ -13,7 +13,8 @@ def lambda_handler(event, context):
 
     time_now = str(datetime.utcnow().isoformat())
 
-    recent_art = art.get_recent(event['count'], event["time_now"])
+    recent_art = art.get_recent(event['count'], event['timestamp'])
+    # event["time_now"]
 
     return {
         'statusCode': 200,
