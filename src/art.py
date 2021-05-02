@@ -28,17 +28,21 @@ class Art:
             "animation_original_url": open_sea_response['animation_original_url'],
         }
 
-        # check to see if art already exists
-        artObject = self.dynamodb.Table('art').get_item(
-            Key={'contractId#tokenId': contractTokenId}
-        )
+        art_object = self.dynamodb.Table('art').query(
+            KeyConditionExpression=Key('contractId#tokenId').eq(contractTokenId),
+            ScanIndexForward=False,
+            IndexName='Art_dedupe_idx')
 
-        if 'Item' not in artObject:
+        print(art_object)
+
+        if not art_object['Count'] > 0:
+            art_id = str(uuid.uuid1())
             art_record = {
+                'art_id': art_id,
                 'contractId#tokenId': contractTokenId,
                 "open_sea_data": open_sea,
                 "timestamp": time_now,
-                "recent_sk": time_now + "#" + str(uuid.uuid1()),
+                "recent_sk": time_now + "#" + art_id,
                 "click_count": 0,
                 "first_user": userId,
                 "sort_idx": 'true'
@@ -46,15 +50,15 @@ class Art:
             self.dynamodb.Table('art').put_item(
                 Item=art_record
             )
+        elif art_object['Count'] > 0:
+            art_id = art_object['Items'][0]['art_id']
 
         # check to see if art_uploads record already exists
 
-        print("check for repeat art_uploads")
-        print(userId)
-        print(contractTokenId)
+        dedupe_key = str(userId) + '#' + str(contractId) + "#" + str(tokenId)
 
         art_uploads_Object = self.dynamodb.Table('art_uploads').query(
-            KeyConditionExpression=Key("user_id").eq(userId) & Key("contractId#tokenId").eq(contractTokenId),
+            KeyConditionExpression=Key("dedupe_key").eq(dedupe_key),
             IndexName='User_upload_dedupe_idx')
 
         if art_uploads_Object['Count'] > 0:
@@ -73,7 +77,9 @@ class Art:
                 "user_id": userId,
                 "open_sea_data": open_sea,
                 "click_count": 0,
-                "timestamp": time_now
+                "timestamp": time_now,
+                "dedupe_key": dedupe_key,
+                "art_id": art_id
             }
             self.dynamodb.Table('art_uploads').put_item(
                 Item=art_uploads_record
@@ -174,4 +180,3 @@ class Art:
             ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art
-

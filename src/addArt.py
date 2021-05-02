@@ -27,11 +27,7 @@ def lambda_handler(event, context):
         return art_uploads_record
 
     except Exception as e:
-        print(e)
-        log.exception('Could not get art')
-        return {
-            "error": "The Art you shared has an invalid URL. Please search OpenSea and Rarible and try again."
-        }
+        log.exception(e)
 
 
 def parseUrl(url):
