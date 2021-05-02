@@ -20,8 +20,8 @@ def lambda_handler(event, context):
     params = event['queryStringParameters']
     row_id = params["id"]
 
-    artTable = dynamodb.Table('art_uploads')
-    artTable.update_item(
+    art_uploads_table = dynamodb.Table('art_uploads')
+    art_uploads_table.update_item(
         Key={'shareId': row_id},
         UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
         ExpressionAttributeValues={
@@ -31,10 +31,24 @@ def lambda_handler(event, context):
         ReturnValues="UPDATED_NEW"
     )
 
-    row = artTable.get_item(Key={'shareId': row_id})
+    row = art_uploads_table.get_item(Key={'shareId': row_id})
     print(row)
 
     redirect_url = row['Item']['url']
+    art_id = row['Item']['art_id']
+
+    art_table = dynamodb.Table('art')
+    art_table.update_item(
+        Key={'art_id': art_id},
+        UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
+        ExpressionAttributeValues={
+            ':inc': 1,
+            ':start': 0
+        },
+        ReturnValues="UPDATED_NEW"
+    )
+
+
 
     response = {
         "statusCode": 302,
