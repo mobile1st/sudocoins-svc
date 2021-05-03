@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_apigateway as apigw,
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as api_integrations,
+    aws_apigatewayv2_authorizers as api_authorizers,
     aws_cognito as cognito
 )
 
@@ -45,13 +46,22 @@ class SudocoinsStack(cdk.Stack):
             self, 'AdminApiV2',
             cors_preflight={
                 'allow_methods': [apigwv2.CorsHttpMethod.ANY],
-                'allow_origins': ['*']
+                'allow_origins': ['*'],
+                'allow_headers': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token',
+                                  'X-Amz-User-Agent']
             }
         )
+        sudocoins_admin_ui_client = cognito.UserPoolClient.from_user_pool_client_id(self, 'SudocoinsAdminUIClient', '1emc1ko93cb7priri26dtih1pq')
+
+        authorizer = api_authorizers.HttpUserPoolAuthorizer(
+            user_pool=sudocoins_admin_pool,
+            user_pool_client=sudocoins_admin_ui_client
+        )
         admin_api_v2.add_routes(
-            path="/trafficreport",
+            path='/trafficreport',
             methods=[apigwv2.HttpMethod.GET],
-            integration=traffic_report_chart_data_integration
+            integration=traffic_report_chart_data_integration,
+            authorizer=authorizer
         )
 
     def build_admin_api_v1(self, traffic_report_chart_data_function, sudocoins_admin_auth):

@@ -25,6 +25,7 @@ setuptools.setup(
         "aws-cdk.aws-apigateway",
         "aws-cdk.aws-apigatewayv2",
         "aws-cdk.aws-apigatewayv2-integrations",
+        "aws-cdk.aws-apigatewayv2-authorizers",
         "aws-cdk.aws-cognito",
     ],
 
