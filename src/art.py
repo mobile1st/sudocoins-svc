@@ -159,3 +159,13 @@ class Art:
             ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art
+
+    def get_trending(self):
+        # returns art sorted by click_count
+        trending_art = self.dynamodb.Table('art').query(
+            KeyConditionExpression=Key("sort_idx").eq('true'),
+            ScanIndexForward=False,
+            IndexName='Trending-index',
+            ProjectionExpression="art_id, click_count")
+
+        return trending_art

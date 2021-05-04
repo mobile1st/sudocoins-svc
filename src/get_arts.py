@@ -8,6 +8,10 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
+    if not len(event['arts']) > 0:
+        return {
+            "arts": "None"
+        }
 
     art_uploads_record = art.get_arts(event['arts'])
 

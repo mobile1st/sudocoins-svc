@@ -9,12 +9,12 @@ art = Art(dynamodb)
 
 def lambda_handler(event, context):
 
-    art_uploads_record = art.get_arts(event['arts'])
+    trending_art = art.get_trending()
 
-    set_config(art_uploads_record)
+    #set_config(art_uploads_record)
 
     return {
-        'arts': art_uploads_record
+        'trending': trending_art
     }
 
 
