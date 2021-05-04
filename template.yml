@@ -299,3 +299,11 @@ Resources:
       FunctionName: myGallery
       CodeUri: ./src
 
+  getArts:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get_arts.lambda_handler
+      Runtime: python3.8
+      FunctionName: getArts
+      CodeUri: ./src
+

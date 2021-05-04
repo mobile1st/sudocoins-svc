@@ -123,48 +123,29 @@ class Art:
                 "message": "Art doesn't exist in Gallery based on shareId"
             }
 
-    def get_arts(self, contractTokenIds):
+    def get_arts(self, art_ids):
         # returns art records. Single or batch. Argument must be a list
         client = boto3.client('dynamodb')
         art_keys = []
 
-        for i in contractTokenIds:
-            art_record = self.dynamodb.Table('art_uploads').get_item(
-                Key={'shareId': i},
-                ExpressionAttributeNames={'#u': 'url'},
-                ProjectionExpression="shareId, click_count, #u, open_sea_data"
-            )
-
-            art = {
-                "url": art_record['Item']["open_sea_data"]["image_url"],
-                "name": art_record['Item']["open_sea_data"]["name"],
-                "id": art_record['Item']["shareId"],
-                "click_count": art_record['Item']["click_count"]
-            }
-
-            art_keys.append(art)
-
-            '''
-            element = {'contractId#tokenId': {'S': i} }
+        for i in art_ids:
+            element = {'art_id': {'S': i}}
 
             print(type(element))
 
             art_keys.append(element)
-            '''
 
-        # print(art_keys)
-        '''
+        print(art_keys)
         art_record = client.batch_get_item(
             RequestItems={
                 'art': {
                     'Keys': art_keys,
-                    'ProjectionExpression': 'item_ID, color',
+                    'ProjectionExpression': 'art_id'
                 }
             }
         )
-        '''
 
-        return art_keys
+        return art_record['Responses']['art']
 
     def get_recent(self, count, timestamp):
         # returns recent art records paginated
