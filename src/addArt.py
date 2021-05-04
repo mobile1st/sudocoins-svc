@@ -19,9 +19,6 @@ def lambda_handler(event, context):
         contractId, tokenId = parseUrl(inputUrl)
         open_sea_response = callOpenSea(contractId, tokenId)
 
-        print("user id")
-        print(userId)
-
         art_uploads_record = art.share(contractId, tokenId, open_sea_response, inputUrl, userId)
 
         return art_uploads_record
@@ -38,9 +35,9 @@ def parseUrl(url):
         variables = rest.split(':')
         contractId = variables[0]
         tokenId = variables[1]
-    elif url.find('opensea.com') != -1:
+    elif url.find('opensea.io') != -1:
         sub1 = url.find('assets/')
-        start = sub1 + 8
+        start = sub1 + 7
         rest = url[start:]
         variables = rest.split('/')
         contractId = variables[0]

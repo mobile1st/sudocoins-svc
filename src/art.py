@@ -33,8 +33,6 @@ class Art:
             ScanIndexForward=False,
             IndexName='Art_dedupe_idx')
 
-        print(art_object)
-
         if not art_object['Count'] > 0:
             art_id = str(uuid.uuid1())
             art_record = {
