@@ -10,11 +10,8 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     trending_art = getConfig()
 
-    art_data = art.get_arts(trending_art[0:10])
-
     return {
-        'top_trending': art_data,
-        'remaining': trending_art[10:]
+        'trending': trending_art
     }
 
 

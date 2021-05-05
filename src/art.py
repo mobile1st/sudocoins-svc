@@ -130,10 +130,17 @@ class Art:
         if 'Item' in art_uploads_record:
             return art_uploads_record['Item']
 
-        else:
-            return {
-                "message": "Art doesn't exist in Gallery based on shareId"
-            }
+        art_record = self.dynamodb.Table('art').get_item(Key={'art_id': shareId})
+
+        if 'Item' in art_record:
+            return art_record['Item']
+
+        return {
+            "message": "art not found"
+        }
+
+
+
 
     def get_arts(self, art_ids):
         # returns art records. Single or batch. Argument must be a list
