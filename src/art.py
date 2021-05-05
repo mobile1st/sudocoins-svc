@@ -44,6 +44,7 @@ class Art:
             art_id = str(uuid.uuid1())
             art_record = {
                 'art_id': art_id,
+                'url': inputUrl,
                 'contractId#tokenId': contractTokenId,
                 'preview_url': preview_url,
                 'art_url': art_url,
