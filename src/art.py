@@ -29,11 +29,11 @@ class Art:
         }
 
         if open_sea['animation_url'] is None:
-            preview_url = open_sea["image_url"]
-            art_url = open_sea['image_url']
+            preview_url = open_sea["image_preview_url"]
+            art_url = open_sea["image_original_url"]
         else:
-            preview_url = open_sea["image_url"]
-            art_url = open_sea_response['animation_url']
+            preview_url = open_sea["image_preview_url"]
+            art_url = open_sea_response['animation_original_url']
 
         art_object = self.dynamodb.Table('art').query(
             KeyConditionExpression=Key('contractId#tokenId').eq(contractTokenId),
@@ -153,7 +153,7 @@ class Art:
                 'art': {
                     'Keys': art_keys,
                     'ProjectionExpression': 'art_id, open_sea_data, click_count, '
-                                            'recent_sk, preview_url, art_url'
+                                            'recent_sk, preview_url, art_url, url'
                 }
             }
         )

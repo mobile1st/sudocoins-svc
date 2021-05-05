@@ -11,16 +11,17 @@ def lambda_handler(event, context):
 
     trending_art = getConfig()
 
-    art_data = art.get_arts(trending_art)
+    art_data = art.get_arts(trending_art[0:10])
 
     return {
-        'trending': art_data
+        'top_trending': art_data,
+        'remaining': trending_art[10:]
     }
 
 
 def getConfig():
     configTable = dynamodb.Table('Config')
-    configKey = "HomePage"
+    configKey = "TrendingArt"
 
     response = configTable.get_item(Key={'configKey': configKey})
     config = response['Item']

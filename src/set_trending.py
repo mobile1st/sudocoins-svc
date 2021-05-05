@@ -29,7 +29,7 @@ def set_config(arts):
 
     updated_art = config_table.update_item(
         Key={
-            'configKey': 'HomePage'
+            'configKey': 'TrendingArt'
         },
         UpdateExpression="set art=:art",
         ExpressionAttributeValues={
