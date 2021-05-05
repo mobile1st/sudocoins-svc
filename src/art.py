@@ -30,7 +30,7 @@ class Art:
 
         if open_sea['animation_url'] is None:
             preview_url = open_sea["image_preview_url"]
-            art_url = open_sea["image_original_url"]
+            art_url = open_sea["image_url"]
         else:
             preview_url = open_sea["image_preview_url"]
             art_url = open_sea_response['animation_original_url']
@@ -44,7 +44,7 @@ class Art:
             art_id = str(uuid.uuid1())
             art_record = {
                 'art_id': art_id,
-                'url': inputUrl,
+                'buy_url': inputUrl,
                 'contractId#tokenId': contractTokenId,
                 'preview_url': preview_url,
                 'art_url': art_url,
@@ -81,7 +81,7 @@ class Art:
             art_uploads_record = {
                 "shareId": str(uuid.uuid1()),
                 'contractId#tokenId': str(contractId) + "#" + str(tokenId),
-                "url": inputUrl,
+                "buy_url": inputUrl,
                 "user_id": userId,
                 'preview_url': preview_url,
                 'art_url': art_url,
@@ -115,9 +115,9 @@ class Art:
             KeyConditionExpression=Key("user_id").eq(user_id),
             ScanIndexForward=False,
             IndexName='User_uploaded_art_view_idx',
-            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp', "#ul": 'url'},
+            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'},
             ProjectionExpression="shareId, click_count, #ul,"
-                                 "#ct, open_sea_data, preview_url, art_url #t")
+                                 "#ct, open_sea_data, preview_url, buy_url, #t, redirect_url")
 
         return art_uploads['Items']
 
@@ -153,7 +153,7 @@ class Art:
                 'art': {
                     'Keys': art_keys,
                     'ProjectionExpression': 'art_id, open_sea_data, click_count, '
-                                            'recent_sk, preview_url, art_url, url'
+                                            'recent_sk, preview_url, art_url, buy_url'
                 }
             }
         )
@@ -168,7 +168,7 @@ class Art:
             Limit=count,
             IndexName='Recent_index',
             ProjectionExpression="#t, click_count, recent_sk,"
-                                 "open_sea_data, #ct, art_id, preview_url, art_url",
+                                 "open_sea_data, #ct, art_id, preview_url, art_url, buy_url",
             ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art

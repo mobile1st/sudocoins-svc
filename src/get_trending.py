@@ -8,7 +8,6 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
-
     trending_art = getConfig()
 
     art_data = art.get_arts(trending_art[0:10])
