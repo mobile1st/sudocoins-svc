@@ -9,6 +9,7 @@ default_item = {'buyer': {}, 'profiles': Decimal('0')}
 
 
 def lambda_handler(event, context):
+    print(event)
     keys = generate_input_keys()
     response = dynamodb.batch_get_item(
         RequestItems={
