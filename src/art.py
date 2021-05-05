@@ -140,7 +140,7 @@ class Art:
             RequestItems={
                 'art': {
                     'Keys': art_keys,
-                    'ProjectionExpression': 'art_id'
+                    'ProjectionExpression': 'art_id, open_sea_data, click_count, recent_sk'
                 }
             }
         )

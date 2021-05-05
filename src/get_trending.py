@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     art_data = art.get_arts(trending_art)
 
     return {
-        'trending': art_data['Items']
+        'trending': art_data
     }
 
 
