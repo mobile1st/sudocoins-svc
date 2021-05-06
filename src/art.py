@@ -44,6 +44,7 @@ class Art:
             art_id = str(uuid.uuid1())
             art_record = {
                 'art_id': art_id,
+                "name": open_sea['name'],
                 'buy_url': inputUrl,
                 'contractId#tokenId': contractTokenId,
                 'preview_url': preview_url,
@@ -81,6 +82,7 @@ class Art:
             art_uploads_record = {
                 "shareId": str(uuid.uuid1()),
                 'contractId#tokenId': str(contractId) + "#" + str(tokenId),
+                "name": open_sea['name'],
                 "buy_url": inputUrl,
                 "user_id": userId,
                 'preview_url': preview_url,
@@ -116,8 +118,8 @@ class Art:
             ScanIndexForward=False,
             IndexName='User_uploaded_art_view_idx',
             ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'},
-            ProjectionExpression="shareId, click_count, #ul,"
-                                 "#ct, open_sea_data, preview_url, buy_url, #t, redirect_url")
+            ProjectionExpression="shareId, click_count, art_url"
+                                 "#ct, open_sea_data, preview_url, #t, name")
 
         return art_uploads['Items']
 
@@ -160,7 +162,7 @@ class Art:
                 'art': {
                     'Keys': art_keys,
                     'ProjectionExpression': 'art_id, open_sea_data, click_count, '
-                                            'recent_sk, preview_url, art_url, buy_url'
+                                            'recent_sk, preview_url, art_url, name'
                 }
             }
         )
@@ -175,7 +177,7 @@ class Art:
             Limit=count,
             IndexName='Recent_index',
             ProjectionExpression="#t, click_count, recent_sk,"
-                                 "open_sea_data, #ct, art_id, preview_url, art_url, buy_url",
+                                 "open_sea_data, #ct, art_id, preview_url, art_url, name",
             ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art
