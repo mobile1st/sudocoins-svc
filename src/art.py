@@ -116,6 +116,8 @@ class Art:
         art_uploads = self.dynamodb.Table('art_uploads').query(
             KeyConditionExpression=Key("user_id").eq(user_id),
             ScanIndexForward=False,
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression="shareId, art_id, click_count, name, preview_url, art_url",
             IndexName='User_uploaded_art_view_idx')
 
         return art_uploads['Items']
@@ -123,13 +125,18 @@ class Art:
     def get_by_share_id(self, shareId):
         # returns the art_uploads record based on shareId
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
-            Key={'shareId': shareId}
-        )
+            Key={'shareId': shareId},
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression="shareId, click_count, name, preview_url, art_url")
 
         if 'Item' in art_uploads_record:
             return art_uploads_record['Item']
 
-        art_record = self.dynamodb.Table('art').get_item(Key={'art_id': shareId})
+        art_record = self.dynamodb.Table('art').get_item(
+            Key={'art_id': shareId},
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression="art_id, click_count, name, preview_url, art_url")
+
 
         if 'Item' in art_record:
             return art_record['Item']
@@ -137,8 +144,6 @@ class Art:
         return {
             "message": "art not found"
         }
-
-
 
 
     def get_arts(self, art_ids):
@@ -149,11 +154,8 @@ class Art:
         for i in art_ids:
             element = {'art_id': {'S': i}}
 
-            print(type(element))
-
             art_keys.append(element)
 
-        print(art_keys)
         art_record = client.batch_get_item(
             RequestItems={
                 'art': {
@@ -170,7 +172,9 @@ class Art:
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(timestamp),
             ScanIndexForward=False,
             Limit=count,
-            IndexName='Recent_index')
+            IndexName='Recent_index',
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression="art_id, click_count, name, preview_url, art_url, recent_sk")
 
         return recent_art
 
@@ -180,6 +184,8 @@ class Art:
             KeyConditionExpression=Key("sort_idx").eq('true'),
             ScanIndexForward=False,
             IndexName='Trending-index',
-            ProjectionExpression="art_id, click_count")
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression="art_id, click_count, name, preview_url, art_url")
 
         return trending_art
+
