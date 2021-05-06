@@ -117,9 +117,9 @@ class Art:
             KeyConditionExpression=Key("user_id").eq(user_id),
             ScanIndexForward=False,
             IndexName='User_uploaded_art_view_idx',
-            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'},
-            ProjectionExpression="shareId, click_count, art_url"
-                                 "#ct, open_sea_data, preview_url, #t, name")
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression="shareId, click_count, art_url, art_id,"
+                                 "preview_url, #n")
 
         return art_uploads['Items']
 
@@ -140,7 +140,6 @@ class Art:
         return {
             "message": "art not found"
         }
-
 
 
 
