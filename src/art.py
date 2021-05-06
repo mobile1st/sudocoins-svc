@@ -126,13 +126,17 @@ class Art:
     def get_by_share_id(self, shareId):
         # returns the art_uploads record based on shareId
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
-            Key={'shareId': shareId}
+            Key={'shareId': shareId},
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+            ExpressionAttributeNames={'#n': 'name'}
         )
 
         if 'Item' in art_uploads_record:
             return art_uploads_record['Item']
 
-        art_record = self.dynamodb.Table('art').get_item(Key={'art_id': shareId})
+        art_record = self.dynamodb.Table('art').get_item(Key={'art_id': shareId},
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+            ExpressionAttributeNames={'#n': 'name'})
 
         if 'Item' in art_record:
             return art_record['Item']
@@ -177,9 +181,8 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="#t, click_count, recent_sk,"
-                                 "open_sea_data, #ct, art_id, preview_url, art_url, name",
-            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+            ExpressionAttributeNames={'#n': 'name'})
 
         return recent_art
 
