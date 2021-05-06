@@ -116,10 +116,7 @@ class Art:
         art_uploads = self.dynamodb.Table('art_uploads').query(
             KeyConditionExpression=Key("user_id").eq(user_id),
             ScanIndexForward=False,
-            IndexName='User_uploaded_art_view_idx',
-            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'},
-            ProjectionExpression="shareId, click_count, art_url"
-                                 "#ct, open_sea_data, preview_url, #t, name")
+            IndexName='User_uploaded_art_view_idx')
 
         return art_uploads['Items']
 
@@ -160,9 +157,7 @@ class Art:
         art_record = client.batch_get_item(
             RequestItems={
                 'art': {
-                    'Keys': art_keys,
-                    'ProjectionExpression': 'art_id, open_sea_data, click_count, '
-                                            'recent_sk, preview_url, art_url, name'
+                    'Keys': art_keys
                 }
             }
         )
