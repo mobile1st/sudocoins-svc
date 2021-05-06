@@ -156,7 +156,6 @@ class Art:
 
             art_keys.append(element)
 
-        print(art_keys)
         art_record = client.batch_get_item(
             RequestItems={
                 'art': {
@@ -164,7 +163,7 @@ class Art:
                     'ExpressionAttributeNames': {
                 '#N': 'name'
             },
-                    'ProjectionExpression': 'art_id, open_sea_data, click_count, '
+                    'ProjectionExpression': 'art_id, click_count, '
                                             'recent_sk, preview_url, #N'
                 }
             }
