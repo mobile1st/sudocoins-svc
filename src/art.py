@@ -170,10 +170,7 @@ class Art:
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(timestamp),
             ScanIndexForward=False,
             Limit=count,
-            IndexName='Recent_index',
-            ProjectionExpression="#t, click_count, recent_sk,"
-                                 "open_sea_data, #ct, art_id, preview_url, art_url, name",
-            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
+            IndexName='Recent_index')
 
         return recent_art
 
