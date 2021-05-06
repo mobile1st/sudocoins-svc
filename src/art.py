@@ -127,7 +127,7 @@ class Art:
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
             Key={'shareId': shareId},
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="shareId, click_count, name, preview_url, art_url")
+            ProjectionExpression="shareId, click_count, #n, preview_url, art_url")
 
         if 'Item' in art_uploads_record:
             return art_uploads_record['Item']
@@ -135,7 +135,7 @@ class Art:
         art_record = self.dynamodb.Table('art').get_item(
             Key={'art_id': shareId},
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="art_id, click_count, name, preview_url, art_url")
+            ProjectionExpression="art_id, click_count, #n, preview_url, art_url")
 
 
         if 'Item' in art_record:
@@ -174,7 +174,7 @@ class Art:
             Limit=count,
             IndexName='Recent_index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="art_id, click_count, name, preview_url, art_url, recent_sk")
+            ProjectionExpression="art_id, click_count, #n, preview_url, art_url, recent_sk")
 
         return recent_art
 
@@ -185,7 +185,7 @@ class Art:
             ScanIndexForward=False,
             IndexName='Trending-index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="art_id, click_count, name, preview_url, art_url")
+            ProjectionExpression="art_id, click_count, #n, preview_url, art_url")
 
         return trending_art
 
