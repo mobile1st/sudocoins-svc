@@ -116,27 +116,23 @@ class Art:
         art_uploads = self.dynamodb.Table('art_uploads').query(
             KeyConditionExpression=Key("user_id").eq(user_id),
             ScanIndexForward=False,
-            ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="shareId, art_id, click_count, name, preview_url, art_url",
-            IndexName='User_uploaded_art_view_idx')
+            IndexName='User_uploaded_art_view_idx',
+            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'},
+            ProjectionExpression="shareId, click_count, art_url"
+                                 "#ct, open_sea_data, preview_url, #t, name")
 
         return art_uploads['Items']
 
     def get_by_share_id(self, shareId):
         # returns the art_uploads record based on shareId
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
-            Key={'shareId': shareId},
-            ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="shareId, click_count, #n, preview_url, art_url")
+            Key={'shareId': shareId}
+        )
 
         if 'Item' in art_uploads_record:
             return art_uploads_record['Item']
 
-        art_record = self.dynamodb.Table('art').get_item(
-            Key={'art_id': shareId},
-            ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="art_id, click_count, #n, preview_url, art_url")
-
+        art_record = self.dynamodb.Table('art').get_item(Key={'art_id': shareId})
 
         if 'Item' in art_record:
             return art_record['Item']
@@ -144,6 +140,8 @@ class Art:
         return {
             "message": "art not found"
         }
+
+
 
 
     def get_arts(self, art_ids):
@@ -154,12 +152,20 @@ class Art:
         for i in art_ids:
             element = {'art_id': {'S': i}}
 
+            print(type(element))
+
             art_keys.append(element)
 
+        print(art_keys)
         art_record = client.batch_get_item(
             RequestItems={
                 'art': {
-                    'Keys': art_keys
+                    'Keys': art_keys,
+                    'ExpressionAttributeNames': {
+                '#N': 'name'
+            },
+                    'ProjectionExpression': 'art_id, open_sea_data, click_count, '
+                                            'recent_sk, preview_url, #N'
                 }
             }
         )
@@ -173,8 +179,9 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="art_id, click_count, #n, preview_url, art_url, recent_sk")
+            ProjectionExpression="#t, click_count, recent_sk,"
+                                 "open_sea_data, #ct, art_id, preview_url, art_url, name",
+            ExpressionAttributeNames={'#ct': 'contractId#tokenId', '#t': 'timestamp'})
 
         return recent_art
 
@@ -184,8 +191,6 @@ class Art:
             KeyConditionExpression=Key("sort_idx").eq('true'),
             ScanIndexForward=False,
             IndexName='Trending-index',
-            ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression="art_id, click_count, #n, preview_url, art_url")
+            ProjectionExpression="art_id, click_count")
 
         return trending_art
-
