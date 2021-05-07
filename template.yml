@@ -257,7 +257,7 @@ Resources:
       Handler: artRedirect.lambda_handler
       Runtime: python3.8
       FunctionName: artCounter
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   addArt:
     Type: AWS::Serverless::Function
@@ -265,7 +265,7 @@ Resources:
       Handler: addArt.lambda_handler
       Runtime: python3.8
       FunctionName: addArt
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   artPrompt:
     Type: AWS::Serverless::Function
@@ -273,7 +273,7 @@ Resources:
       Handler: artPrompt.lambda_handler
       Runtime: python3.8
       FunctionName: artPrompt
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   setTrending:
     Type: AWS::Serverless::Function
@@ -281,7 +281,7 @@ Resources:
       Handler: set_trending.lambda_handler
       Runtime: python3.8
       FunctionName: setTrending
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   getRecent:
     Type: AWS::Serverless::Function
@@ -289,7 +289,7 @@ Resources:
       Handler: getRecent.lambda_handler
       Runtime: python3.8
       FunctionName: getRecent
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   myGallery:
     Type: AWS::Serverless::Function
@@ -297,7 +297,7 @@ Resources:
       Handler: myGallery.lambda_handler
       Runtime: python3.8
       FunctionName: myGallery
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   getArts:
     Type: AWS::Serverless::Function
@@ -305,13 +305,13 @@ Resources:
       Handler: get_arts.lambda_handler
       Runtime: python3.8
       FunctionName: getArts
-      CodeUri: ./src
+      CodeUri: ./src/art
 
   getTrending:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get_trending.lambda_handler
       Runtime: python3.8
-      FunctionName: getTrending
-      CodeUri: ./src
+      FunctionName: get
+      CodeUri: ./src/art
 
