@@ -134,7 +134,8 @@ class Art:
         if 'Item' in art_uploads_record:
             return art_uploads_record['Item']
 
-        art_record = self.dynamodb.Table('art').get_item(Key={'art_id': shareId},
+        art_record = self.dynamodb.Table('art').get_item(
+            Key={'art_id': shareId},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
             ExpressionAttributeNames={'#n': 'name'})
 
@@ -144,8 +145,6 @@ class Art:
         return {
             "message": "art not found"
         }
-
-
 
     def get_arts(self, art_ids):
         # returns art records. Single or batch. Argument must be a list
@@ -164,8 +163,8 @@ class Art:
                 'art': {
                     'Keys': art_keys,
                     'ExpressionAttributeNames': {
-                '#N': 'name'
-            },
+                        '#N': 'name'
+                    },
                     'ProjectionExpression': 'art_id, click_count, '
                                             'recent_sk, preview_url, #N'
                 }
