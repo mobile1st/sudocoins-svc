@@ -181,7 +181,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk",
             ExpressionAttributeNames={'#n': 'name'})
 
         return recent_art
