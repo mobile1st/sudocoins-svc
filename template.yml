@@ -312,6 +312,6 @@ Resources:
     Properties:
       Handler: get_trending.lambda_handler
       Runtime: python3.8
-      FunctionName: get
+      FunctionName: getTrending
       CodeUri: ./src/art
 
