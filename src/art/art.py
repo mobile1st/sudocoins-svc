@@ -154,8 +154,6 @@ class Art:
         for i in art_ids:
             element = {'art_id': {'S': i}}
 
-            print(type(element))
-
             art_keys.append(element)
 
         art_record = client.batch_get_item(
