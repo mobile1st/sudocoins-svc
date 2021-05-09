@@ -2,14 +2,16 @@ import boto3
 import collections
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
+from util import sudocoins_logger
 
+log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 date_key_format = '%Y-%m-%d'
 default_item = {'buyer': {}, 'profiles': Decimal('0')}
 
 
 def lambda_handler(event, context):
-    print(event)
+    log.debug(event)
     keys = generate_input_keys()
     response = dynamodb.batch_get_item(
         RequestItems={

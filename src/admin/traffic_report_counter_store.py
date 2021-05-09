@@ -1,6 +1,6 @@
 import boto3
 import json
-import sudocoins_logger
+from util import sudocoins_logger
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum, auto

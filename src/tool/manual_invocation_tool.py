@@ -1,11 +1,11 @@
 import boto3
-import traffic_report_counter_store
 import json
 from collections import Counter
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum, auto
-from src import sudocoins_logger
+from util import sudocoins_logger
+from admin import traffic_report_counter_store
 
 dynamodb = boto3.resource('dynamodb')
 log = sudocoins_logger.get()
@@ -187,6 +187,8 @@ class EventSource(AutoName):
 
 def main():
     print('main')
+    log.info('asd')
+    traffic_report_counter_store.lambda_handler({'Records': [{'Sns': {'Message': '{"test":"imports"}'}}]}, None)
     # print_statuses()
     # fill_traffic_reports_table_from_profile()
     # fill_traffic_reports_table_from_transaction()

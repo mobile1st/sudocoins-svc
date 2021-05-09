@@ -22,11 +22,11 @@ setuptools.setup(
         "aws-cdk.core",
         "aws-cdk.aws-lambda",
         "aws-cdk.aws-dynamodb",
-        "aws-cdk.aws-apigateway",
         "aws-cdk.aws-apigatewayv2",
         "aws-cdk.aws-apigatewayv2-integrations",
         "aws-cdk.aws-apigatewayv2-authorizers",
         "aws-cdk.aws-cognito",
+        "aws-cdk.aws-iam",
     ],
 
     python_requires=">=3.6",

@@ -170,14 +170,6 @@ Resources:
       FunctionName: rfgCallback
       CodeUri: ./src
 
-  updateCashOutFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: updateCashOut.lambda_handler
-      Runtime: python3.8
-      FunctionName: updateCashOut
-      CodeUri: ./src
-
   adminTrafficReportCounterStoreFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -192,32 +184,6 @@ Resources:
           Type: SNS
           Properties:
             Topic: arn:aws:sns:us-west-2:977566059069:transaction-event
-
-  adminTrafficReportChartDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: traffic_report_chart_data.lambda_handler
-      Runtime: python3.8
-      FunctionName: adminTrafficReportChartData
-      CodeUri: ./src/admin
-      Policies:
-        - AmazonDynamoDBReadOnlyAccess
-
-  adminPayoutListFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: payouts.lambda_handler
-      Runtime: python3.8
-      FunctionName: adminPayoutList
-      CodeUri: ./src/admin
-
-  adminUserDetailsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: user_details.lambda_handler
-      Runtime: python3.8
-      FunctionName: adminUserDetails
-      CodeUri: ./src/admin
 
   adminVerify:
     Type: AWS::Serverless::Function

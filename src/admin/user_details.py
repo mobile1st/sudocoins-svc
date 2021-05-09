@@ -1,11 +1,12 @@
 import boto3
+import json
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    user_id = event['userId']
+    user_id = json.loads(event['body'])['userId']
 
     ledger_table = dynamodb.Table('Ledger')
     transaction_table = dynamodb.Table('Transaction')

@@ -1,4 +1,5 @@
 import boto3
+import json
 from datetime import datetime
 import history
 
@@ -7,7 +8,7 @@ def lambda_handler(event, context):
     success = []
     fail = []
 
-    for i in event["records"]:
+    for i in json.loads(event['body'])['records']:
         try:
             userId = i['userId']
             transactionId = i['transactionId']
