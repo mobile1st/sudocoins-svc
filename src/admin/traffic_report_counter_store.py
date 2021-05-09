@@ -1,12 +1,12 @@
 import boto3
 import json
-from util import sudocoins_logger
+# from util import sudocoins_logger
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum, auto
 from botocore.exceptions import ClientError
 
-log = sudocoins_logger.get()
+# log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
 complete_statuses = {'Complete', 'C', 'success', 'c', 't'}
@@ -19,7 +19,7 @@ default_buyer_level_attributes = {'starts': 0, 'terms': 0, 'completes': 0, 'reve
 
 def lambda_handler(event, context):
     message = json.loads(event['Records'][0]['Sns']['Message'])
-    log.debug(message)
+    # log.debug(message)
 
     date = datetime.utcnow().strftime(date_format) if message.get('date') is None else message['date']
     increment_counters(date, message)
