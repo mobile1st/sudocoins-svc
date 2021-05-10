@@ -1,29 +1,30 @@
 import boto3
 import json
-from datetime import datetime
 import history
+from datetime import datetime
+from util import sudocoins_logger
+
+log = sudocoins_logger.get()
+dynamodb = boto3.resource('dynamodb')
+profile = history.History(dynamodb)
 
 
 def lambda_handler(event, context):
+    body = json.loads(event['body'])
+    log.debug(f'data: {body}')
     success = []
     fail = []
 
-    for i in json.loads(event['body'])['records']:
+    for i in body['records']:
+        transaction_id = i['transactionId']
         try:
-            userId = i['userId']
-            transactionId = i['transactionId']
-
-            if "userStatus" in i:
-                userStatus = i["userStatus"]
-            else:
-                userStatus = "Complete"
-
-            updateCashOut(userId, transactionId, userStatus)
-            success.append(transactionId)
-
-        except Exception as e:
-            print(e)
-            fail.append(i['transactionId'])
+            user_id = i['userId']
+            user_status = 'Complete' if 'userStatus' not in i else i['userStatus']
+            update_cash_out(user_id, transaction_id, user_status)
+            success.append(transaction_id)
+        except Exception:
+            log.exception('could not update cash out')
+            fail.append(transaction_id)
 
     return {
         'success': success,
@@ -31,41 +32,36 @@ def lambda_handler(event, context):
     }
 
 
-def updateCashOut(userId, transactionId, userStatus):
-    dynamodb = boto3.resource('dynamodb')
-    ledgerTable = dynamodb.Table('Ledger')
-    payoutTable = dynamodb.Table('Payouts')
+def update_cash_out(user_id, transaction_id, user_status):
+    ledger_table = dynamodb.Table('Ledger')
+    payouts_table = dynamodb.Table('Payouts')
 
     now = str(datetime.utcnow().isoformat())
 
-    payoutTable.update_item(
+    payouts_table.update_item(
         Key={
-            "paymentId": transactionId
+            "paymentId": transaction_id
         },
         UpdateExpression="set #s=:s, lastUpdate=:lu",
         ExpressionAttributeValues={
-            ":s": userStatus,
+            ":s": user_status,
             ":lu": now
-
         },
-        ExpressionAttributeNames={'#s': 'status'},
-        ReturnValues="ALL_NEW"
+        ExpressionAttributeNames={'#s': 'status'}
     )
 
-    ledgerTable.update_item(
+    ledger_table.update_item(
         Key={
-            "userId": userId,
-            "transactionId": transactionId
+            "userId": user_id,
+            "transactionId": transaction_id
         },
         UpdateExpression="set #s=:s, lastUpdate=:lu",
         ExpressionAttributeValues={
-            ":s": userStatus,
+            ":s": user_status,
             ":lu": now
 
         },
-        ExpressionAttributeNames={'#s': 'status'},
-        ReturnValues="ALL_NEW"
+        ExpressionAttributeNames={'#s': 'status'}
     )
 
-    profile = history.History(dynamodb)
-    profile.updateProfile(userId)
+    profile.updateProfile(user_id)
