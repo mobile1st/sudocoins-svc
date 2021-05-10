@@ -1,0 +1,69 @@
+from resources import SudocoinsImportedResources
+from aws_cdk import (
+    core as cdk,
+    aws_lambda as _lambda,
+    aws_iam as iam
+)
+
+lambda_code_path = '../src'
+
+
+class SudocoinsAdminLambdas:
+    def __init__(self,
+                 scope: cdk.Construct,
+                 resources: SudocoinsImportedResources):
+        self.traffic_report_chart_data_function = _lambda.Function(
+            scope,
+            'AdminTrafficReportChartDataV2',
+            function_name='AdminTrafficReportChartDataV2',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            handler='admin.traffic_report_chart_data.lambda_handler',
+            code=_lambda.Code.asset(lambda_code_path)
+        )
+        resources.traffic_reports_table.grant_read_data(self.traffic_report_chart_data_function)
+        self.payouts_function = _lambda.Function(
+            scope,
+            'AdminPayoutsV2',
+            function_name='AdminPayoutsV2',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            handler='admin.payouts.lambda_handler',
+            code=_lambda.Code.asset(lambda_code_path)
+        )
+        resources.payouts_table.grant_read_data(self.payouts_function)
+        self.payouts_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Payouts/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+        self.user_details_function = _lambda.Function(
+            scope,
+            'AdminUserDetailsV2',
+            function_name='AdminUserDetailsV2',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            handler='admin.user_details.lambda_handler',
+            code=_lambda.Code.asset(lambda_code_path)
+        )
+        resources.ledger_table.grant_read_data(self.user_details_function)
+        resources.transaction_table.grant_read_data(self.user_details_function)
+        self.user_details_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=[
+                    'arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*',
+                    'arn:aws:dynamodb:us-west-2:977566059069:table/Transaction/index/*'
+                ],
+                actions=['dynamodb:Query']
+            )
+        )
+        self.update_cash_out_function = _lambda.Function(
+            scope,
+            'AdminUpdateCashOutV2',
+            function_name='AdminUpdateCashOutV2',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            handler='admin.update_cash_out.lambda_handler',
+            code=_lambda.Code.asset(lambda_code_path)
+        )
+        resources.ledger_table.grant_read_data(self.update_cash_out_function)
+        resources.payouts_table.grant_read_data(self.update_cash_out_function)
