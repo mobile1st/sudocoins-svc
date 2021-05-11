@@ -2,7 +2,8 @@ from aws_cdk import (
     core as cdk,
     aws_dynamodb as dynamodb,
     aws_apigatewayv2_authorizers as api_authorizers,
-    aws_cognito as cognito
+    aws_cognito as cognito,
+    aws_sns as sns
 )
 
 
@@ -29,6 +30,11 @@ class SudocoinsImportedResources:
             'arn:aws:dynamodb:us-west-2:977566059069:table/Transaction'
         )
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
+        self.transaction_topic = sns.Topic.from_topic_arn(
+            scope,
+            "TransactionTopic",
+            topic_arn='arn:aws:sns:us-west-2:977566059069:transaction-event'
+        )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
         sudocoins_admin_pool = cognito.UserPool.from_user_pool_id(scope, 'SudoCoins-Admin', 'us-west-2_TpPw8Ed2z')

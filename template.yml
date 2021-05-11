@@ -162,21 +162,6 @@ Resources:
       FunctionName: nextStep
       CodeUri: ./src
 
-  adminTrafficReportCounterStoreFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: traffic_report_counter_store.lambda_handler
-      Runtime: python3.8
-      FunctionName: adminTrafficReportCounterStore
-      CodeUri: ./src/admin
-      Policies:
-        - AmazonDynamoDBFullAccess
-      Events:
-        SnsEvent:
-          Type: SNS
-          Properties:
-            Topic: arn:aws:sns:us-west-2:977566059069:transaction-event
-
   autoVerify:
     Type: AWS::Serverless::Function
     Properties:
