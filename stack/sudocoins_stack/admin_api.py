@@ -49,7 +49,7 @@ class SudocoinsAdminApi:
             handler=lambdas.user_details_function
         )
         admin_api_v2.add_routes(
-            path='/user/details',
+            path='/user/{userId}/details',
             methods=[apigwv2.HttpMethod.POST],
             integration=user_details_integration,
             authorizer=resources.sudocoins_admin_authorizer
