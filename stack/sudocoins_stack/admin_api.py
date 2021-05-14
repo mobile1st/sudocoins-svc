@@ -50,7 +50,7 @@ class SudocoinsAdminApi:
         )
         admin_api_v2.add_routes(
             path='/user/{userId}/details',
-            methods=[apigwv2.HttpMethod.POST],
+            methods=[apigwv2.HttpMethod.GET],
             integration=user_details_integration,
             authorizer=resources.sudocoins_admin_authorizer
         )
