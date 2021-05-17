@@ -207,8 +207,8 @@ class Art:
 
         return trending_art
 
-    def art_counter(self, data):
-        # see if this is a custom share url
+    def register_click(self, data):
+        # if a custom share url
         if 'shareId' in data:
             #update view count for art in art_uploads
             self.dynamodb.Table('art_uploads').update_item(
@@ -220,24 +220,44 @@ class Art:
                 },
                 ReturnValues="UPDATED_NEW"
             )
-            #get some data about this art
+            # get some data about this art in art_uploads
             art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
                 Key={'shareId': data['shareId']},
-                ProjectionExpression="art_id, click_count, user_id")
-            # see if art has enough views for sudo coins
-            views = int(art_uploads_record['Item']['click_count']) % 1000
-            if views == 0:
-                # pay 10 sudo coins if art has 1000 views
-                newSudo = self.dynamodb.Table('Profile').update_item(
+                ProjectionExpression="art_id, user_id")
+
+            # update user profile click_count
+            self.dynamodb.Table('Profile').update_item(
+                Key={'userId': art_uploads_record['Item']['user_id']},
+                UpdateExpression="SET click_count = if_not_exists(click_count, :start) + :inc",
+                ExpressionAttributeValues={
+                    ':inc': 1,
+                    ':start': 0
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+            #get some user data about click count
+            profile_record = self.dynamodb.Table('Profile').get_item(
+                Key={'shareId': art_uploads_record['Item']['user_id']},
+                ProjectionExpression="click_count, click_count_paid")
+            click_count = profile_record['Item']['click_count']
+            if 'click_count_paid' in profile_record['Item']:
+                click_count_paid = profile_record['Item']['click_count_paid']
+            else:
+                click_count_paid = 0
+            #pay user if they earned sudocoins
+            if click_count - click_count_paid > 1000:
+                self.dynamodb.Table('Profile').update_item(
                     Key={'userId': art_uploads_record['Item']['user_id']},
-                    UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
+                    UpdateExpression="SET click_count_paid = if_not_exists(click_count_paid, :start) + :inc, "
+                                     "sudocoins = if_not_exists(sudocoins, :start) + :inc2",
                     ExpressionAttributeValues={
-                        ':inc': 10,
-                        ':start': 0
+                        ':inc': 1000,
+                        ':start': 0,
+                        ':inc2': 1
                     },
                     ReturnValues="UPDATED_NEW"
                 )
-            #get art record and update views
+            #get art record in art table and update click count
             art_id = art_uploads_record['Item']['art_id']
             self.dynamodb.Table('art').update_item(
                 Key={'art_id': art_id},
@@ -248,9 +268,10 @@ class Art:
                 },
                 ReturnValues="UPDATED_NEW"
             )
-        # if not a custom art url, then a generic art url
+
+        # if it's not a custom art url, then it's a generic art url
         elif 'art_id' in data:
-            #add to view count
+            #add to click count
             self.dynamodb.Table('art').update_item(
                 Key={'art_id': data['art_id']},
                 UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",

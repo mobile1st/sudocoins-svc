@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         log.info(f'payload: {payload}')
 
         data = json.loads(payload)
-        art.art_counter(data)
+        art.register_click(data)
 
         log.info('record updated')
 
