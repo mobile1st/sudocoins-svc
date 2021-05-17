@@ -234,3 +234,11 @@ Resources:
       FunctionName: getTrending
       CodeUri: ./src/art
 
+  art_counter:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: art_counter.lambda_handler
+      Runtime: python3.8
+      FunctionName: art_counter
+      CodeUri: ./src/art
+
