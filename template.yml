@@ -242,3 +242,4 @@ Resources:
       FunctionName: art_counter
       CodeUri: ./src/art
 
+
