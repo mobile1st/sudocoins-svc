@@ -208,7 +208,7 @@ class Art:
         return trending_art
 
     def register_click(self, data):
-        # if a custom share url
+        # if a user's share url
         if 'shareId' in data:
             #update view count for art in art_uploads
             self.dynamodb.Table('art_uploads').update_item(
