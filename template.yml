@@ -11,6 +11,10 @@ Resources:
       FunctionName: SudoCoinsSurveyEnd
       CodeUri: ./src
       MemorySize: 512
+      Policies:
+        - AmazonSQSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSNSFullAccess
 
   SudoCoinsTakeSurveyFunction:
     Type: AWS::Serverless::Function
@@ -19,6 +23,10 @@ Resources:
       Runtime: python3.8
       FunctionName: SudoCoinsTakeSurvey
       CodeUri: ./src
+      Policies:
+        - AmazonSQSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSNSFullAccess
 
   SudoCoinsEndTransactionFunction:
     Type: AWS::Serverless::Function
@@ -87,6 +95,10 @@ Resources:
       Runtime: python3.8
       FunctionName: dynataRedirect
       CodeUri: ./src
+      Policies:
+        - AmazonSQSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSNSFullAccess
 
   dynataCallbackFunction:
     Type: AWS::Serverless::Function
@@ -95,6 +107,10 @@ Resources:
       Runtime: python3.8
       FunctionName: dynataCallback
       CodeUri: ./src
+      Policies:
+        - AmazonSQSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSNSFullAccess
 
   setConsentFunction:
     Type: AWS::Serverless::Function
@@ -153,6 +169,10 @@ Resources:
       Runtime: python3.8
       FunctionName: lucidRedirect
       CodeUri: ./src
+      Policies:
+        - AmazonSQSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSNSFullAccess
 
   nextStepFunction:
     Type: AWS::Serverless::Function
