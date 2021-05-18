@@ -1,7 +1,7 @@
 import sudocoins_logger
 from history import History
 from datetime import datetime
-from rev_shares import RevenueData
+from survey.rev_shares import RevenueData
 import json
 
 log = sudocoins_logger.get()

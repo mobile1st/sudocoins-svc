@@ -21,6 +21,8 @@ setuptools.setup(
     install_requires=[
         "aws-cdk.core==1.102.0",
         "aws-cdk.aws-lambda==1.102.0",
+        "aws-cdk.aws-lambda-event-sources==1.102.0",
+        "aws-cdk.aws-lambda-python==1.102.0",
         "aws-cdk.aws-dynamodb==1.102.0",
         "aws-cdk.aws-apigatewayv2==1.102.0",
         "aws-cdk.aws-apigatewayv2-integrations==1.102.0",
@@ -29,6 +31,7 @@ setuptools.setup(
         "aws-cdk.aws-iam==1.102.0",
         "aws-cdk.aws-sns==1.102.0",
         "aws-cdk.aws-sns-subscriptions==1.102.0",
+        "aws-cdk.aws-sqs==1.102.0",
     ],
 
     python_requires=">=3.6",

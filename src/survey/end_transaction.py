@@ -1,7 +1,7 @@
 import boto3
 import json
-import sudocoins_logger
-from transaction import Transaction
+from util import sudocoins_logger
+from survey.transaction import Transaction
 
 log = sudocoins_logger.get()
 

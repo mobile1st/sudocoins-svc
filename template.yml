@@ -6,7 +6,7 @@ Resources:
   SudoCoinsSurveyEndFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: survey_end.lambda_handler
+      Handler: survey.survey_end.lambda_handler
       Runtime: python3.8
       FunctionName: SudoCoinsSurveyEnd
       CodeUri: ./src
@@ -15,7 +15,7 @@ Resources:
   SudoCoinsTakeSurveyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: take_survey.lambda_handler
+      Handler: survey.take_survey.lambda_handler
       Runtime: python3.8
       FunctionName: SudoCoinsTakeSurvey
       CodeUri: ./src
@@ -23,7 +23,7 @@ Resources:
   SudoCoinsEndTransactionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: end_transaction.lambda_handler
+      Handler: survey.end_transaction.lambda_handler
       Runtime: python3.8
       FunctionName: SudoCoinsEndTransaction
       CodeUri: ./src
@@ -83,7 +83,7 @@ Resources:
   dynataRedirectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dynataRedirect.lambda_handler
+      Handler: survey.dynata_redirect.lambda_handler
       Runtime: python3.8
       FunctionName: dynataRedirect
       CodeUri: ./src
@@ -91,7 +91,7 @@ Resources:
   dynataCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dynataCallback.lambda_handler
+      Handler: survey.dynata_callback.lambda_handler
       Runtime: python3.8
       FunctionName: dynataCallback
       CodeUri: ./src
@@ -149,7 +149,7 @@ Resources:
   lucidRedirectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: lucidRedirect.lambda_handler
+      Handler: survey.lucid_redirect.lambda_handler
       Runtime: python3.8
       FunctionName: lucidRedirect
       CodeUri: ./src

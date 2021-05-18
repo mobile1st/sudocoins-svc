@@ -1,6 +1,6 @@
 import json
 import unittest
-from src.lucid import Lucid
+from lucid import Lucid
 
 
 class TestLucidLocales(unittest.TestCase):

@@ -1,9 +1,9 @@
 import boto3
 import json
-from buyerRedirect import BuyerRedirect
+from survey.buyerRedirect import BuyerRedirect
 import history
 from datetime import datetime
-import sudocoins_logger
+from util import sudocoins_logger
 import requests
 import decimal
 

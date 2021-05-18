@@ -1,4 +1,4 @@
-import sudocoins_logger
+from util import sudocoins_logger
 from decimal import Decimal
 
 log = sudocoins_logger.get()

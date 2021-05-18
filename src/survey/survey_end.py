@@ -3,7 +3,7 @@ import os
 import boto3
 import hashlib
 import hmac
-import sudocoins_logger
+from util import sudocoins_logger
 
 log = sudocoins_logger.get()
 sqs = boto3.resource('sqs')
