@@ -128,7 +128,7 @@ class Art:
         # returns the art_uploads record based on shareId
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
             Key={'shareId': shareId},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url",
             ExpressionAttributeNames={'#n': 'name'}
         )
 
@@ -145,7 +145,7 @@ class Art:
 
         art_record = self.dynamodb.Table('art').get_item(
             Key={'art_id': shareId},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url",
             ExpressionAttributeNames={'#n': 'name'})
 
         if 'Item' in art_record:
@@ -210,6 +210,7 @@ class Art:
     def register_click(self, data):
         # if a user's share url
         if 'shareId' in data:
+            print("shareId:" + data['shareId'])
             #update view count for art in art_uploads
             self.dynamodb.Table('art_uploads').update_item(
                 Key={'shareId': data['shareId']},
@@ -220,6 +221,7 @@ class Art:
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            print("art_uploads click_count increased")
             # get some data about this art in art_uploads
             art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
                 Key={'shareId': data['shareId']},
@@ -235,9 +237,10 @@ class Art:
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            print("user profile click_count increased")
             #get some user data about click count
             profile_record = self.dynamodb.Table('Profile').get_item(
-                Key={'shareId': art_uploads_record['Item']['user_id']},
+                Key={'userId': art_uploads_record['Item']['user_id']},
                 ProjectionExpression="click_count, click_count_paid")
             click_count = profile_record['Item']['click_count']
             if 'click_count_paid' in profile_record['Item']:
@@ -268,6 +271,7 @@ class Art:
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            print("art record click count increased")
 
         # if it's not a custom art url, then it's a generic art url
         elif 'art_id' in data:
@@ -281,6 +285,7 @@ class Art:
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            print("art record click count increased")
             #no need to add points to user profile
 
 
