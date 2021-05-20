@@ -9,97 +9,97 @@ class RevenueData:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
-    def get_revShare(self, data, buyerName):
-        configTable = self.dynamodb.Table("Config")
+    def get_rev_share(self, data, buyer_name):
+        config_table = self.dynamodb.Table("Config")
 
-        if buyerName in ['test', 'cint']:
+        if buyer_name in ['test', 'cint']:
 
             if not data["hashState"]:
-                surveyCode = "F"
+                survey_code = "F"
             else:
-                surveyCode = data["queryStringParameters"]["status"]
+                survey_code = data["queryStringParameters"]["status"]
 
             log.info("trying getConfig")
-            buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
-            revenue = Decimal(buyerObject["Item"]["configValue"]["buyer"][buyerName]["defaultCpi"])
-            surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
+            buyer_object = config_table.get_item(Key={'configKey': 'TakeSurveyPage'})
+            revenue = Decimal(buyer_object["Item"]["configValue"]["buyer"][buyer_name]["defaultCpi"])
+            survey_status = buyer_object["Item"]["configValue"]["buyer"][buyer_name]["surveyStatus"]
 
-            if data["queryStringParameters"]["status"] in surveyStatus:
-                userStatus = surveyStatus[surveyCode]["userStatus"]
-                revShare = Decimal(surveyStatus[surveyCode]["revShare"])
-                if 'cut' in surveyStatus[surveyCode]:
-                    cut = Decimal(surveyStatus[surveyCode]['cut'])
+            if data["queryStringParameters"]["status"] in survey_status:
+                user_status = survey_status[survey_code]["userStatus"]
+                rev_share = Decimal(survey_status[survey_code]["revShare"])
+                if 'cut' in survey_status[survey_code]:
+                    cut = Decimal(survey_status[survey_code]['cut'])
                 else:
                     cut = Decimal(0)
             else:
-                userStatus = data["queryStringParameters"]["status"]
-                revShare = Decimal(0)
+                user_status = data["queryStringParameters"]["status"]
+                rev_share = Decimal(0)
                 cut = Decimal(0)
 
-            payment = revenue * revShare
+            payment = revenue * rev_share
 
-            return revenue, payment, userStatus, revShare, cut
+            return revenue, payment, user_status, rev_share, cut
 
-        elif buyerName in ['peanutLabs', 'dynata']:
-            surveyCode = data["queryStringParameters"]["status"]
-            buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
+        elif buyer_name in ['peanutLabs', 'dynata']:
+            survey_code = data["queryStringParameters"]["status"]
+            buyer_object = config_table.get_item(Key={'configKey': 'TakeSurveyPage'})
 
             if 'amt' in data["queryStringParameters"]:
                 revenue = Decimal(data["queryStringParameters"]['amt'])*100
             else:
                 revenue = Decimal('0.00')
 
-            surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
+            survey_status = buyer_object["Item"]["configValue"]["buyer"][buyer_name]["surveyStatus"]
 
-            if surveyCode in surveyStatus:
-                userStatus = surveyStatus[surveyCode]["userStatus"]
-                revShare = Decimal(surveyStatus[surveyCode]["revShare"])
-                if 'cut' in surveyStatus[surveyCode]:
-                    cut = Decimal(surveyStatus[surveyCode]['cut'])
+            if survey_code in survey_status:
+                user_status = survey_status[survey_code]["userStatus"]
+                rev_share = Decimal(survey_status[survey_code]["revShare"])
+                if 'cut' in survey_status[survey_code]:
+                    cut = Decimal(survey_status[survey_code]['cut'])
                 else:
                     cut = Decimal(0)
             else:
-                userStatus = data["queryStringParameters"]["status"]
-                revShare = Decimal(0)
+                user_status = data["queryStringParameters"]["status"]
+                rev_share = Decimal(0)
                 cut = Decimal(0)
 
-            payment = revenue * revShare
+            payment = revenue * rev_share
 
-            return revenue, payment, userStatus, revShare, cut
+            return revenue, payment, user_status, rev_share, cut
 
-        elif buyerName in ['lucid']:
-            surveyCode = data["status"]
-            buyerObject = configTable.get_item(Key={'configKey': 'TakeSurveyPage'})
-            surveyStatus = buyerObject["Item"]["configValue"]["buyer"][buyerName]["surveyStatus"]
+        elif buyer_name in ['lucid']:
+            survey_code = data["status"]
+            buyer_object = config_table.get_item(Key={'configKey': 'TakeSurveyPage'})
+            survey_status = buyer_object["Item"]["configValue"]["buyer"][buyer_name]["surveyStatus"]
 
             if 'revenue' in data:
                 revenue = Decimal(data['revenue']) * 100
             else:
                 revenue = Decimal('0.00')
 
-            if surveyCode in surveyStatus:
-                userStatus = surveyStatus[surveyCode]["userStatus"]
-                revShare = Decimal(surveyStatus[surveyCode]["revShare"])
-                log.info(f'revShare: {revShare}')
-                if 'cut' in surveyStatus[surveyCode]:
-                    cut = Decimal(surveyStatus[surveyCode]['cut'])
+            if survey_code in survey_status:
+                user_status = survey_status[survey_code]["userStatus"]
+                rev_share = Decimal(survey_status[survey_code]["revShare"])
+                log.info(f'revShare: {rev_share}')
+                if 'cut' in survey_status[survey_code]:
+                    cut = Decimal(survey_status[survey_code]['cut'])
                 else:
                     cut = Decimal(0)
-                if 'lucidCut' in surveyStatus[surveyCode]:
-                    lucidCut = Decimal(surveyStatus[surveyCode]['lucidCut'])
+                if 'lucidCut' in survey_status[survey_code]:
+                    lucid_cut = Decimal(survey_status[survey_code]['lucidCut'])
                 else:
-                    lucidCut = Decimal('1')
+                    lucid_cut = Decimal('1')
 
             else:
-                userStatus = data["status"]
-                revShare = Decimal(0)
+                user_status = data["status"]
+                rev_share = Decimal(0)
                 cut = Decimal(0)
 
             log.info(f'revenue {revenue}')
-            log.info(f'lucidCut {lucidCut}')
-            log.info(f'revShare {revShare}')
-            payment = revenue * lucidCut * revShare
-            revenue = revenue * lucidCut
+            log.info(f'lucidCut {lucid_cut}')
+            log.info(f'revShare {rev_share}')
+            payment = revenue * lucid_cut * rev_share
+            revenue = revenue * lucid_cut
 
-            return revenue, payment, userStatus, revShare, cut
+            return revenue, payment, user_status, rev_share, cut
 

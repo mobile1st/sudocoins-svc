@@ -4,13 +4,14 @@ import boto3
 
 dynamodb = boto3.resource('dynamodb')
 sqs = boto3.resource('sqs')
+config_table_name = os.environ["CONFIG_TABLE"]
 
 
 def lambda_handler(event, context):
     print(event)
 
     try:
-        redirectUrl, expectedParams = getUrls()
+        redirect_url, expected_params = get_urls()
 
         if event["headers"] is None:
             referer = ""
@@ -31,58 +32,51 @@ def lambda_handler(event, context):
         msg_value = {
             "referer": referer,
             "queryStringParameters": query_params,
-            "missingParams": missingParams(query_params, expectedParams)
+            "missingParams": get_missing_params(query_params, expected_params)
         }
-
-        response = createRedirect(redirectUrl, token)
-
         print(msg_value)
 
         enqueue_transaction_end_if_not_complete(query_params)
 
-        return response
+        return create_redirect(redirect_url, token)
 
     except Exception as e:
         print(e)
-        response = {
+        return {
             "statusCode": 302,
             "headers": {'Location': 'https://www.sudocoins.com/?msg=invalid'},
             "body": json.dumps({})
         }
 
-        return response
 
-
-def createRedirect(redirectUrl, token):
+def create_redirect(redirect_url, token):
     data = {}
     response = {
         "statusCode": 302,
-        "headers": {'Location': redirectUrl + "msg=" + token},
+        "headers": {'Location': redirect_url + "msg=" + token},
         "body": json.dumps(data)
     }
     return response
 
 
-def getUrls():
-    dynamodb = boto3.resource('dynamodb')
-    configTableName = os.environ["CONFIG_TABLE"]
-    configTable = dynamodb.Table(configTableName)
-    configKey = 'dynataRedirect'
+def get_urls():
+    config_table = dynamodb.Table(config_table_name)
+    config_key = 'dynataRedirect'
 
-    response = configTable.get_item(Key={'configKey': configKey})
-    redirectUrl = response['Item']["configValue"]["redirectUrl"]
-    expectedParams = response['Item']["configValue"]["expectedParams"]
+    response = config_table.get_item(Key={'configKey': config_key})
+    redirect_url = response['Item']["configValue"]["redirectUrl"]
+    expected_params = response['Item']["configValue"]["expectedParams"]
 
-    return redirectUrl, expectedParams
+    return redirect_url, expected_params
 
 
-def missingParams(params, expectedParams):
-    receivedParams = params.keys()
-    missingParams = []
-    for i in expectedParams:
-        if i not in receivedParams:
-            missingParams.append(i)
-    return missingParams
+def get_missing_params(params, expected_params):
+    received_params = params.keys()
+    missing_params = []
+    for i in expected_params:
+        if i not in received_params:
+            missing_params.append(i)
+    return missing_params
 
 
 def enqueue_transaction_end_if_not_complete(params):
@@ -111,4 +105,3 @@ def enqueue_transaction_end_if_not_complete(params):
 
         queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='EndTransaction')
-

@@ -1,12 +1,13 @@
 import json
 import os
 import boto3
-from decimal import Decimal
 import hmac
 import hashlib
 import base64
 from urllib.parse import urlparse, parse_qs
 from typing import AnyStr, Dict, List
+
+sqs = boto3.resource('sqs')
 
 
 def lambda_handler(event, context):
@@ -61,7 +62,6 @@ def check_lucid_hash(url, expected_hash):
 
 
 def enqueue_end_transaction(msg):
-    sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
     return queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='EndTransaction')
 

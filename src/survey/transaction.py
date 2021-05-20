@@ -13,7 +13,7 @@ class Transaction:
         self.dynamodb = dynamodb
         self.sns_client = sns_client
         self.history = History(self.dynamodb)
-        self.revData = RevenueData(self.dynamodb)
+        self.rev_data = RevenueData(self.dynamodb)
 
     def end(self, data):
         timestamp = str(datetime.utcnow().isoformat())
@@ -46,7 +46,7 @@ class Transaction:
             log.warn(f'Transaction.end - Unsupported buyer={buyer_name} data={data}')
             return
 
-        revenue, payment, user_status, rev_share, cut = self.revData.get_revShare(data, buyer_name)
+        revenue, payment, user_status, rev_share, cut = self.rev_data.get_rev_share(data, buyer_name)
         log.info(f'Transaction.end buyer={buyer_name} transactionId={transaction_id} status={status} userId={user_id}'
                  f' userStatus={user_status} revenue={revenue} share={rev_share} cut={cut} payment={payment} data={data}')
 

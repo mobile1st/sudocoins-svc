@@ -11,8 +11,8 @@ def lambda_handler(event, context):
 
     try:
         data = event['queryStringParameters']
-        txnHash = data['txnHash']
-        transactionId = data['transactionId']
+        txn_hash = data['txnHash']
+        transaction_id = data['transactionId']
 
     except Exception as e:
 
@@ -25,26 +25,26 @@ def lambda_handler(event, context):
 
     try:
         print("step 2")
-        confirmHash = (hashlib.md5((transactionId + key).encode('utf-8'))).hexdigest()
+        confirm_hash = (hashlib.md5((transaction_id + key).encode('utf-8'))).hexdigest()
         print("step 3")
-        if txnHash == confirmHash:
-            hashState = True
-
+        if txn_hash == confirm_hash:
+            hash_state = True
+            msg_value = None
             if event["queryStringParameters"]['transactionSource'] == 'iframe':
-                msgValue = {
+                msg_value = {
                     "queryStringParameters": event["queryStringParameters"],
-                    "hashState": hashState,
+                    "hashState": hash_state,
                     "buyerName": "peanutLabs"
                 }
 
             elif event["queryStringParameters"]['transactionSource'] == 'directlink':
-                msgValue = {
+                msg_value = {
                     "queryStringParameters": event["queryStringParameters"],
-                    "hashState": hashState,
+                    "hashState": hash_state,
                     "buyerName": "dynata"
                 }
 
-            pushMsg(msgValue)
+            push_message(msg_value)
             print("message pushed")
 
             return {
@@ -72,29 +72,7 @@ def lambda_handler(event, context):
         }
 
 
-def pushMsg(msgValue):
+def push_message(msg_value):
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName='EndTransaction.fifo')
-    record = queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='EndTransaction')
-
-    return record
-
-
-def missingParams(params, expectedParams):
-    receivedParams = params.keys()
-    missingParams = []
-    for i in expectedParams:
-        if i not in receivedParams:
-            missingParams.append(i)
-    return missingParams
-
-
-def getExpectedParams():
-    dynamodb = boto3.resource('dynamodb')
-    configTable = dynamodb.Table('Config')
-    configKey = "dynataRedirect"
-
-    response = configTable.get_item(Key={'configKey': configKey})
-    expectedParams = response['Item']["configValue"]["expectedParams"]
-
-    return expectedParams
+    queue.send_message(MessageBody=json.dumps(msg_value), MessageGroupId='EndTransaction')

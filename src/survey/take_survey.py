@@ -1,6 +1,6 @@
 import boto3
 import json
-from survey.buyerRedirect import BuyerRedirect
+from survey.buyer_redirect import BuyerRedirect
 import history
 from datetime import datetime
 from util import sudocoins_logger
@@ -116,7 +116,7 @@ def get_survey(buyer):
 
 def generate_entry_url(user_id, buyer_name, transaction_id, ip, profile):
     survey = get_survey(buyer_name)
-    entry_url = buyer_redirect.getRedirect(user_id, buyer_name, survey, ip, transaction_id, profile)
+    entry_url = buyer_redirect.get_redirect(user_id, buyer_name, survey, ip, transaction_id, profile)
     if not entry_url or entry_url == '':
         raise Exception(f'could generate entry url for buyer: {buyer_name} survey: {json.dumps(survey)}')
 
