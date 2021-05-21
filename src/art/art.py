@@ -13,7 +13,7 @@ class Art:
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
 
-    def share(self, contractId, tokenId, open_sea_response, inputUrl, userId):
+    def add(self, contractId, tokenId, open_sea_response, inputUrl, userId):
         time_now = str(datetime.utcnow().isoformat())
         contractTokenId = str(contractId) + "#" + str(tokenId)
 
@@ -128,7 +128,7 @@ class Art:
         # returns the art_uploads record based on shareId
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
             Key={'shareId': shareId},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
             ExpressionAttributeNames={'#n': 'name'}
         )
 
@@ -177,7 +177,7 @@ class Art:
                     'ExpressionAttributeNames': {
                         '#N': 'name'
                     },
-                    'ProjectionExpression': 'art_id, click_count, '
+                    'ProjectionExpression': 'art_id, click_count, art_url'
                                             'recent_sk, preview_url, #N'
                 }
             }
@@ -287,5 +287,33 @@ class Art:
             )
             print("art record click count increased")
             #no need to add points to user profile
+'''
+    def share(self, user_id, art_id):
 
+        art_record = self.dynamodb.Table('art').get_item(
+            Key={'art_id': art_id},
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url, contractId#tokenId,"
+                                 "open_sea_data, ",
+            ExpressionAttributeNames={'#n': 'name'})
+
+        dedupe_key = str(user_id) + '#' + art_record['Item']['contractId#tokenId']
+
+        art_uploads_record = {
+            "shareId": str(uuid.uuid1()),
+            'contractId#tokenId': art_record['Item']['contractId#tokenId'],
+            "name": open_sea['name'],
+            "buy_url": inputUrl,
+            "user_id": userId,
+            'preview_url': preview_url,
+            'art_url': art_url,
+            "open_sea_data": open_sea,
+            "click_count": 0,
+            "timestamp": time_now,
+            "dedupe_key": dedupe_key,
+            "art_id": art_id
+        }
+
+        return
+
+'''
 
