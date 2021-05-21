@@ -11,8 +11,9 @@ def lambda_handler(event, context):
     try:
         user_id = event['userId']
         art_id = event['art_id']
+        print(art_id)
 
-        shareId = art.share(art_id, user_id )
+        shareId = art.share(user_id, art_id)
 
         return shareId
 

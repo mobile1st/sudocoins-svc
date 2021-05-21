@@ -177,7 +177,7 @@ class Art:
                     'ExpressionAttributeNames': {
                         '#N': 'name'
                     },
-                    'ProjectionExpression': 'art_id, click_count, art_url'
+                    'ProjectionExpression': 'art_id, click_count, art_url,'
                                             'recent_sk, preview_url, #N'
                 }
             }
@@ -294,9 +294,9 @@ class Art:
 
         art_record = self.dynamodb.Table('art').get_item(
             Key={'art_id': art_id},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url, contractId#tokenId,"
-                                 "open_sea_data, ",
-            ExpressionAttributeNames={'#n': 'name'})
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url, #tc,"
+                                 "open_sea_data ",
+            ExpressionAttributeNames={'#n': 'name', '#tc': 'contractId#tokenId'})
 
         dedupe_key = str(user_id) + '#' + art_record['Item']['contractId#tokenId']
 
