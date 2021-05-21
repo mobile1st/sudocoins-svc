@@ -287,8 +287,10 @@ class Art:
             )
             print("art record click count increased")
             #no need to add points to user profile
-'''
+
     def share(self, user_id, art_id):
+
+        time_now = str(datetime.utcnow().isoformat())
 
         art_record = self.dynamodb.Table('art').get_item(
             Key={'art_id': art_id},
@@ -298,22 +300,42 @@ class Art:
 
         dedupe_key = str(user_id) + '#' + art_record['Item']['contractId#tokenId']
 
-        art_uploads_record = {
-            "shareId": str(uuid.uuid1()),
-            'contractId#tokenId': art_record['Item']['contractId#tokenId'],
-            "name": open_sea['name'],
-            "buy_url": inputUrl,
-            "user_id": userId,
-            'preview_url': preview_url,
-            'art_url': art_url,
-            "open_sea_data": open_sea,
-            "click_count": 0,
-            "timestamp": time_now,
-            "dedupe_key": dedupe_key,
-            "art_id": art_id
-        }
+        art_uploads_Object = self.dynamodb.Table('art_uploads').query(
+            KeyConditionExpression=Key("dedupe_key").eq(dedupe_key),
+            IndexName='User_upload_dedupe_idx')
 
-        return
+        if art_uploads_Object['Count'] > 0:
+            msg = {
+                "shareId": art_uploads_Object['Items'][0]['shareId']
+            }
 
-'''
+            return msg
+
+        else:
+            shareId = str(uuid.uuid1())
+            art_uploads_record = {
+                "shareId": shareId,
+                'contractId#tokenId': art_record['Item']['contractId#tokenId'],
+                "name": art_record['Item']['name'],
+                "buy_url": art_record['Item']['buy_url'],
+                "user_id": user_id,
+                'preview_url': art_record['Item']['preview_url'],
+                'art_url': art_record['Item']['art_url'],
+                "open_sea_data": art_record['Item']['open_sea_data'],
+                "click_count": 0,
+                "timestamp": time_now,
+                "dedupe_key": dedupe_key,
+                "art_id": art_id
+            }
+
+            self.dynamodb.Table('art_uploads').put_item(
+                Item=art_uploads_record
+            )
+
+            msg = {
+                "shareId": shareId
+            }
+
+            return msg
+
 

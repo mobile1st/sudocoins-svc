@@ -262,4 +262,12 @@ Resources:
       FunctionName: registerClick
       CodeUri: ./src/art
 
+  shareArt:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: shareArt.lambda_handler
+      Runtime: python3.8
+      FunctionName: shareArt
+      CodeUri: ./src/art
+
 

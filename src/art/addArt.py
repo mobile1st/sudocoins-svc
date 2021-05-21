@@ -19,7 +19,7 @@ def lambda_handler(event, context):
         contractId, tokenId = parseUrl(inputUrl)
         open_sea_response = callOpenSea(contractId, tokenId)
 
-        art_uploads_record = art.share(contractId, tokenId, open_sea_response, inputUrl, userId)
+        art_uploads_record = art.add(contractId, tokenId, open_sea_response, inputUrl, userId)
 
         return art_uploads_record
 
