@@ -13,7 +13,6 @@ def lambda_handler(event, context):
 
     my_art = art.get_uploads(event['userId'])
 
-
     return {
         'statusCode': 200,
         'art': my_art
