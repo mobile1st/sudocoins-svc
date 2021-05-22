@@ -11,36 +11,30 @@ def lambda_handler(event, context):
     payoutTable = dynamodb.Table("Payouts")
     profileTable = dynamodb.Table("Profile")
 
-    loadHistory = History(dynamodb)
-
-    jsonInput = event
-    sub = jsonInput['sub']
-    userId, verificationState = loadProfile(sub)
-
     lastUpdate = datetime.utcnow().isoformat()
     transactionId = str(uuid.uuid1())
 
-    if "rate" not in jsonInput:
-        rate = "1"
-    else:
-        rate = str(jsonInput["rate"])
-
-    payoutAmount = convertAmount(jsonInput['amount'], jsonInput['type'])
+    sub = event['sub']
+    userId, verificationState = loadProfile(sub)
+    rate = str(event["rate"])
+    sudoRate = str(event["sudoRate"])
+    payoutAmount = Decimal(str(event['amount'])) / sudoRate
 
     payout = {
         "paymentId": transactionId,
         "userId": userId,
         "amount": payoutAmount,
+        "sudoAmount": event["amount"],
         "lastUpdate": lastUpdate,
-        "type": jsonInput["type"],
-        "address": jsonInput["address"],
+        "type": event["type"],
+        "address": event["address"],
         "status": "Pending",
         "usdBtcRate": rate,
-        "userInput": jsonInput["amount"],
-        "payoutType": jsonInput['type'],
+        "sudoRate": sudoRate,
+        "payoutType": event['type'],
         "verificationState": verificationState
     }
-    # withdraw record added to ledger table
+
     withdraw = {
         "userId": userId,
         "amount": payoutAmount,
@@ -49,19 +43,27 @@ def lambda_handler(event, context):
         "status": "Pending",
         "transactionId": transactionId,
         "usdBtcRate": rate,
-        "userInput": jsonInput["amount"],
-        "payoutType": jsonInput['type'],
+        "userInput": event["amount"],
+        "payoutType": event['type'],
         "verificationState": verificationState
     }
 
-    payoutResponse = payoutTable.put_item(
+    payoutTable.put_item(
         Item=payout
     )
-    print("payout submitted")
-    ledgerResponse = ledgerTable.put_item(
+
+    ledgerTable.put_item(
         Item=withdraw
     )
-    print("cash out submitted")
+
+    profileTable.update_item(
+        Key={'userId': userId},
+        UpdateExpression="SET sudocoins = :val",
+        ExpressionAttributeValues={
+            ':val': 0
+        },
+        ReturnValues="UPDATED_NEW"
+    )
 
     client = boto3.client("sns")
     client.publish(
@@ -69,23 +71,15 @@ def lambda_handler(event, context):
         Message="Cash Out submitted"
     )
 
+    loadHistory = History(dynamodb)
+
     loadHistory.updateProfile(userId)
-
-    profileObject = profileTable.get_item(
-        Key={'userId': userId},
-        ProjectionExpression="history, balance"
-    )
-
-    if 'history' not in profileObject['Item']:
-        profileObject['Item']['history'] = []
-
-    if 'balance' not in profileObject['Item']:
-        profileObject['Item']['balance'] = '0.00'
 
     return {
         'statusCode': 200,
-        'history': profileObject['Item']['history'],
-        'balance': profileObject['Item']['balance']
+        'sudocoins': 0,
+        'history': "",
+        'balance': ""
     }
 
 
@@ -114,38 +108,3 @@ def loadProfile(sub):
     else:
 
         return None
-
-
-def convertAmount(amount, type):
-    payoutAmount = str((Decimal(amount) * Decimal('100')))
-    return str(payoutAmount)
-
-
-def getBalance(history):
-    """Iterates through the user's history and computes the user's balance
-    Arguments: list of ledger records, user's preferred currency
-    Returns: the user's balance.
-    """
-    precision = 2
-    debit = 0
-    credit = 0
-
-    for i in history:
-        if 'type' in i.keys():
-            if i["type"] == "Cash Out":
-                credit += Decimal(i["amount"])
-
-            elif 'amount' in i.keys() and i['amount'] != "":
-                debit += Decimal(i["amount"])
-
-    balance = debit - credit
-
-    if balance <= 0:
-        precision = 2
-        balance = str(Decimal(0).quantize(Decimal(10) ** ((-1) * int(precision))))
-    else:
-        balance = str(balance.quantize(Decimal(10) ** ((-1) * int(precision))))
-
-    return balance
-
-
