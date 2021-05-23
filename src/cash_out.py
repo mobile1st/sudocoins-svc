@@ -34,7 +34,6 @@ def lambda_handler(event, context):
         "payoutType": event['type'],
         "verificationState": verificationState
     }
-
     withdraw = {
         "userId": userId,
         "amount": payoutAmount,
@@ -51,11 +50,9 @@ def lambda_handler(event, context):
     payoutTable.put_item(
         Item=payout
     )
-
     ledgerTable.put_item(
         Item=withdraw
     )
-
     profileTable.update_item(
         Key={'userId': userId},
         UpdateExpression="SET sudocoins = :val",
@@ -72,14 +69,20 @@ def lambda_handler(event, context):
     )
 
     loadHistory = History(dynamodb)
-
     loadHistory.updateProfile(userId)
+    profileObject = profileTable.get_item(
+        Key={'userId': userId},
+        ProjectionExpression="history"
+    )
+
+    if 'history' not in profileObject['Item']:
+        profileObject['Item']['history'] = []
 
     return {
         'statusCode': 200,
         'sudocoins': 0,
-        'history': "",
-        'balance': ""
+        'history': profileObject['Item']['history'],
+        'balance': "0.00"
     }
 
 
