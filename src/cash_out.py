@@ -16,33 +16,28 @@ def lambda_handler(event, context):
 
     sub = event['sub']
     userId, verificationState = loadProfile(sub)
-    rate = str(event["rate"])
-    sudoRate = str(event["sudoRate"])
-    payoutAmount = Decimal(str(event['amount'])) / sudoRate
 
     payout = {
         "paymentId": transactionId,
         "userId": userId,
-        "amount": payoutAmount,
-        "sudoAmount": event["amount"],
+        "amount": event['amount'],
         "lastUpdate": lastUpdate,
         "type": event["type"],
         "address": event["address"],
         "status": "Pending",
-        "usdBtcRate": rate,
-        "sudoRate": sudoRate,
+        "usdBtcRate": event['rate'],
+        "sudoRate": event['sudoRate'],
         "payoutType": event['type'],
         "verificationState": verificationState
     }
     withdraw = {
         "userId": userId,
-        "amount": payoutAmount,
+        "amount": event['amount'],
         "lastUpdate": lastUpdate,
         "type": "Cash Out",
         "status": "Pending",
         "transactionId": transactionId,
-        "usdBtcRate": rate,
-        "userInput": event["amount"],
+        "usdBtcRate": event['rate'],
         "payoutType": event['type'],
         "verificationState": verificationState
     }
