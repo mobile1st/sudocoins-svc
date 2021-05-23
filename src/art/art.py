@@ -256,7 +256,7 @@ class Art:
                     ExpressionAttributeValues={
                         ':inc': 1000,
                         ':start': 0,
-                        ':inc2': 1
+                        ':inc2': 10
                     },
                     ReturnValues="UPDATED_NEW"
                 )
