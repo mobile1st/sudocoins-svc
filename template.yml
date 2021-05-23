@@ -270,4 +270,14 @@ Resources:
       FunctionName: shareArt
       CodeUri: ./src/art
 
+  gdprCallback:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: gdprCallback.lambda_handler
+      Runtime: python3.8
+      FunctionName: gdprCallback
+      CodeUri: ./src
+
+
+
 
