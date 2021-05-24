@@ -40,40 +40,13 @@ class RevenueData:
 
             return revenue, payment, user_status, rev_share, cut
 
-        elif buyer_name in ['peanutLabs', 'dynata']:
-            survey_code = data["queryStringParameters"]["status"]
-            buyer_object = config_table.get_item(Key={'configKey': 'TakeSurveyPage'})
-
-            if 'amt' in data["queryStringParameters"]:
-                revenue = Decimal(data["queryStringParameters"]['amt'])*100
-            else:
-                revenue = Decimal('0.00')
-
-            survey_status = buyer_object["Item"]["configValue"]["buyer"][buyer_name]["surveyStatus"]
-
-            if survey_code in survey_status:
-                user_status = survey_status[survey_code]["userStatus"]
-                rev_share = Decimal(survey_status[survey_code]["revShare"])
-                if 'cut' in survey_status[survey_code]:
-                    cut = Decimal(survey_status[survey_code]['cut'])
-                else:
-                    cut = Decimal(0)
-            else:
-                user_status = data["queryStringParameters"]["status"]
-                rev_share = Decimal(0)
-                cut = Decimal(0)
-
-            payment = revenue * rev_share
-
-            return revenue, payment, user_status, rev_share, cut
-
         elif buyer_name in ['lucid']:
             survey_code = data["status"]
             buyer_object = config_table.get_item(Key={'configKey': 'TakeSurveyPage'})
             survey_status = buyer_object["Item"]["configValue"]["buyer"][buyer_name]["surveyStatus"]
 
             if 'revenue' in data:
-                revenue = Decimal(data['revenue']) * 100
+                revenue = Decimal(data['revenue']) * 10000
             else:
                 revenue = Decimal('0.00')
 

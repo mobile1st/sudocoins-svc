@@ -24,16 +24,6 @@ class Transaction:
             status = data["status"]
             user_id = data["userId"]
 
-        elif buyer_name == 'peanutLabs':
-            transaction_id = data["queryStringParameters"]['transactionId']
-            status = data["queryStringParameters"]['status']
-            user_id = data["queryStringParameters"]['endUserId']
-
-        elif buyer_name == 'dynata':
-            transaction_id = data["queryStringParameters"]['sub_id']
-            status = data["queryStringParameters"]['status']
-            user_id = data["queryStringParameters"]['endUserId']
-
         elif buyer_name == 'cint' or buyer_name == 'test':
             transaction_id = data["queryStringParameters"]['sid']
             status = data["queryStringParameters"]['status']

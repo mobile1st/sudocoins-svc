@@ -100,15 +100,15 @@ class Art:
 
             newSudo = self.dynamodb.Table('Profile').update_item(
                 Key={'userId': userId},
-                UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
+                UpdateExpression="SET balance = if_not_exists(balance, :start) + :inc",
                 ExpressionAttributeValues={
                     ':inc': 10,
                     ':start': 0
                 },
                 ReturnValues="UPDATED_NEW"
             )
-            sudo = newSudo['Attributes']['sudocoins']
-            art_uploads_record['sudocoins'] = sudo
+            sudo = newSudo['Attributes']['balance']
+            art_uploads_record['balance'] = sudo
 
             return art_uploads_record
 
@@ -252,7 +252,7 @@ class Art:
                 self.dynamodb.Table('Profile').update_item(
                     Key={'userId': art_uploads_record['Item']['user_id']},
                     UpdateExpression="SET click_count_paid = if_not_exists(click_count_paid, :start) + :inc, "
-                                     "sudocoins = if_not_exists(sudocoins, :start) + :inc2",
+                                     "balance = if_not_exists(balance, :start) + :inc2",
                     ExpressionAttributeValues={
                         ':inc': 1000,
                         ':start': 0,
