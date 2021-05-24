@@ -275,7 +275,7 @@ class Art:
 
         # if it's not a custom art url, then it's a generic art url
         elif 'art_id' in data:
-            #add to click count
+            # add to click count
             self.dynamodb.Table('art').update_item(
                 Key={'art_id': data['art_id']},
                 UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
