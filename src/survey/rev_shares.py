@@ -46,7 +46,7 @@ class RevenueData:
             survey_status = buyer_object["Item"]["configValue"]["buyer"][buyer_name]["surveyStatus"]
 
             if 'revenue' in data:
-                revenue = Decimal(data['revenue']) * 10000
+                revenue = Decimal(data['revenue']) * 100
             else:
                 revenue = Decimal('0.00')
 
