@@ -23,12 +23,11 @@ def lambda_handler(event, context):
         "amount": event['amount'],
         "lastUpdate": lastUpdate,
         "type": event["type"],
-        "address": event["address"],
         "status": "Pending",
         "usdBtcRate": event['rate'],
         "sudoRate": event['sudoRate'],
-        "payoutType": event['type'],
-        "verificationState": verificationState
+        "verificationState": verificationState,
+        "address": event["address"]
     }
     withdraw = {
         "userId": userId,
@@ -38,7 +37,6 @@ def lambda_handler(event, context):
         "status": "Pending",
         "transactionId": transactionId,
         "usdBtcRate": event['rate'],
-        "payoutType": event['type'],
         "verificationState": verificationState
     }
 
@@ -65,6 +63,7 @@ def lambda_handler(event, context):
 
     loadHistory = History(dynamodb)
     loadHistory.updateProfile(userId)
+
     profileObject = profileTable.get_item(
         Key={'userId': userId},
         ProjectionExpression="history"
