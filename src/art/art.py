@@ -27,6 +27,7 @@ class Art:
             "image_original_url": open_sea_response['image_original_url'],
             "animation_url": open_sea_response['animation_url'],
             "animation_original_url": open_sea_response['animation_original_url'],
+            "open_sea_response": open_sea_response
         }
 
         if open_sea['animation_url'] is None:
@@ -102,7 +103,7 @@ class Art:
                 Key={'userId': userId},
                 UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
                 ExpressionAttributeValues={
-                    ':inc': 10,
+                    ':inc': 5,
                     ':start': 0
                 },
                 ReturnValues="UPDATED_NEW"
@@ -248,13 +249,13 @@ class Art:
             else:
                 click_count_paid = 0
             #pay user if they earned sudocoins
-            if click_count - click_count_paid > 1000:
+            if click_count - click_count_paid > 100:
                 self.dynamodb.Table('Profile').update_item(
                     Key={'userId': art_uploads_record['Item']['user_id']},
                     UpdateExpression="SET click_count_paid = if_not_exists(click_count_paid, :start) + :inc, "
                                      "sudocoins = if_not_exists(sudocoins, :start) + :inc2",
                     ExpressionAttributeValues={
-                        ':inc': 1000,
+                        ':inc': 100,
                         ':start': 0,
                         ':inc2': 10
                     },
