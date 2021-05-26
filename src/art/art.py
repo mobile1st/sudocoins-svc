@@ -27,7 +27,7 @@ class Art:
             "image_original_url": open_sea_response['image_original_url'],
             "animation_url": open_sea_response['animation_url'],
             "animation_original_url": open_sea_response['animation_original_url'],
-            "open_sea_response": open_sea_response
+            "open_sea_response": str(open_sea_response)
         }
 
         if open_sea['animation_url'] is None:
