@@ -23,13 +23,12 @@ def lambda_handler(event, context):
 
         return art_uploads_record
 
+
     except Exception as e:
         log.exception(e)
         return {
             "msg": "Sorry, we can't find this Art. Please Add a different Art."
         }
-
-
 
 
 def parseUrl(url):
