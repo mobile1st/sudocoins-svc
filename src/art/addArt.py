@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         log.exception(e)
         return {
             "error": True,
-            "msg": "Sorry, we can't find this Art. Please Add a different Art."
+            "msg": "Sorry, your input doesn't return any Art. Please Add another Art."
         }
 
 
