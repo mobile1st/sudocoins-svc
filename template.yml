@@ -278,6 +278,14 @@ Resources:
       FunctionName: gdprCallback
       CodeUri: ./src
 
+  addView:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: add_view.lambda_handler
+      Runtime: python3.8
+      FunctionName: addView
+      CodeUri: ./src/art
+
 
 
 

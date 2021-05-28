@@ -111,6 +111,8 @@ class Art:
             sudo = newSudo['Attributes']['sudocoins']
             art_uploads_record['sudocoins'] = sudo
 
+            self.addLedgerRecord(self, 5, userId, 'Add Art')
+
             return art_uploads_record
 
     def get_uploads(self, user_id):
@@ -212,7 +214,7 @@ class Art:
         # if a user's share url
         if 'shareId' in data:
             print("shareId:" + data['shareId'])
-            #update view count for art in art_uploads
+            # update view count for art in art_uploads
             self.dynamodb.Table('art_uploads').update_item(
                 Key={'shareId': data['shareId']},
                 UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
@@ -239,7 +241,7 @@ class Art:
                 ReturnValues="UPDATED_NEW"
             )
             print("user profile click_count increased")
-            #get some user data about click count
+            # get some user data about click count
             profile_record = self.dynamodb.Table('Profile').get_item(
                 Key={'userId': art_uploads_record['Item']['user_id']},
                 ProjectionExpression="click_count, click_count_paid")
@@ -248,7 +250,7 @@ class Art:
                 click_count_paid = profile_record['Item']['click_count_paid']
             else:
                 click_count_paid = 0
-            #pay user if they earned sudocoins
+            # pay user if they earned sudocoins
             if click_count - click_count_paid > 100:
                 self.dynamodb.Table('Profile').update_item(
                     Key={'userId': art_uploads_record['Item']['user_id']},
@@ -261,7 +263,9 @@ class Art:
                     },
                     ReturnValues="UPDATED_NEW"
                 )
-            #get art record in art table and update click count
+                self.addLedgerRecord(self, 5, art_uploads_record['Item']['user_id'], '100 Views')
+
+            # get art record in art table and update click count
             art_id = art_uploads_record['Item']['art_id']
             self.dynamodb.Table('art').update_item(
                 Key={'art_id': art_id},
@@ -287,7 +291,7 @@ class Art:
                 ReturnValues="UPDATED_NEW"
             )
             print("art record click count increased")
-            #no need to add points to user profile
+            # no need to add points to user profile
 
     def share(self, user_id, art_id):
 
@@ -338,5 +342,42 @@ class Art:
             }
 
             return msg
+
+    def addLedgerRecord(self, amount, userId, type_value):
+        ledgerTable = self.dynamodb.Table('Ledger')
+        transactionId = uuid.uuid1()
+        updated = datetime.utcnow().isoformat()
+
+        ledgerTable.put_item(
+            Item={
+                'userId': userId,
+                'transactionId': transactionId,
+                'amount': amount,
+                'status': 'Complete',
+                'lastUpdate': updated,
+                'type': type_value
+            }
+        )
+
+        # self.updateProfile(userId)
+
+    def addView(self, amount, userId, type_value):
+        ledgerTable = self.dynamodb.Table('Ledger')
+        transactionId = uuid.uuid1()
+        updated = datetime.utcnow().isoformat()
+
+        ledgerTable.put_item(
+            Item={
+                'userId': userId,
+                'transactionId': transactionId,
+                'amount': amount,
+                'status': 'Complete',
+                'lastUpdate': updated,
+                'type': type_value
+            }
+        )
+
+        # self.updateProfile(userId)
+
 
 
