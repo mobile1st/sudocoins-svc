@@ -4,6 +4,7 @@ from datetime import datetime
 import uuid
 import sudocoins_logger
 import json
+from art_history import ArtHistory
 
 log = sudocoins_logger.get()
 
@@ -12,6 +13,7 @@ class Art:
 
     def __init__(self, dynamodb):
         self.dynamodb = dynamodb
+        self.art_history = ArtHistory(self.dynamodb)
 
     def add(self, contractId, tokenId, open_sea_response, inputUrl, userId):
         time_now = str(datetime.utcnow().isoformat())
@@ -362,6 +364,8 @@ class Art:
                 'type': type_value
             }
         )
+
+        self.art_history.updateProfile(userId)
 
 
 
