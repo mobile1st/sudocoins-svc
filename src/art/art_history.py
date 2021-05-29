@@ -59,7 +59,7 @@ class ArtHistory:
         ledger = self.getLedger(userId)
         log.info(f"ledger {ledger}")
 
-        return history
+        return ledger
 
 
     def getLedger(self, userId):
@@ -74,10 +74,11 @@ class ArtHistory:
         ledger = ledgerHistory["Items"]
 
         for i in ledger:
-
             if 'lastUpdate' in i:
                 utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
                 epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                 i['epochTime'] = int(epochTime)
+
+        ledger = sorted(ledger, key=lambda k: k['epochTime'], reverse=True)
 
         return ledger
