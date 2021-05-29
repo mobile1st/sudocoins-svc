@@ -111,7 +111,7 @@ class Art:
             sudo = newSudo['Attributes']['sudocoins']
             art_uploads_record['sudocoins'] = sudo
 
-            self.addLedgerRecord(self, 5, userId, 'Add Art')
+            self.addLedgerRecord(5, userId, 'Add Art')
 
             return art_uploads_record
 
@@ -263,7 +263,7 @@ class Art:
                     },
                     ReturnValues="UPDATED_NEW"
                 )
-                self.addLedgerRecord(self, 5, art_uploads_record['Item']['user_id'], '100 Views')
+                self.addLedgerRecord(5, art_uploads_record['Item']['user_id'], '100 Views')
 
             # get art record in art table and update click count
             art_id = art_uploads_record['Item']['art_id']
@@ -345,8 +345,8 @@ class Art:
 
     def addLedgerRecord(self, amount, userId, type_value):
         ledgerTable = self.dynamodb.Table('Ledger')
-        transactionId = uuid.uuid1()
-        updated = datetime.utcnow().isoformat()
+        transactionId = str(uuid.uuid1())
+        updated = str(datetime.utcnow().isoformat())
 
         ledgerTable.put_item(
             Item={
@@ -359,25 +359,6 @@ class Art:
             }
         )
 
-        # self.updateProfile(userId)
-
-    def addView(self, amount, userId, type_value):
-        ledgerTable = self.dynamodb.Table('Ledger')
-        transactionId = uuid.uuid1()
-        updated = datetime.utcnow().isoformat()
-
-        ledgerTable.put_item(
-            Item={
-                'userId': userId,
-                'transactionId': transactionId,
-                'amount': amount,
-                'status': 'Complete',
-                'lastUpdate': updated,
-                'type': type_value
-            }
-        )
-
-        # self.updateProfile(userId)
 
 
 
