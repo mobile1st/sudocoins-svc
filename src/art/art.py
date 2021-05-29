@@ -186,7 +186,11 @@ class Art:
             }
         )
 
-        return art_record['Responses']['art']
+        print(type(art_record['Responses']['art']))
+
+        newlist = sorted(art_record['Responses']['art'], key=lambda k: int(k['click_count']['N']), reverse=True)
+
+        return newlist
 
     def get_recent(self, count, timestamp):
         # returns recent art records paginated
