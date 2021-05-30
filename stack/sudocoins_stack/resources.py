@@ -45,6 +45,16 @@ class SudocoinsImportedResources:
             'SubTable',
             'arn:aws:dynamodb:us-west-2:977566059069:table/sub'
         )
+        self.art_table = dynamodb.Table.from_table_arn(
+            scope,
+            'ArtTable',
+            'arn:aws:dynamodb:us-west-2:977566059069:table/art'
+        )
+        self.art_uploads_table = dynamodb.Table.from_table_arn(
+            scope,
+            'ArtUploadsTable',
+            'arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads'
+        )
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
         self.sudocoins_authorizer = self.init_authorizer(scope)
         self.transaction_topic = sns.Topic.from_topic_arn(
@@ -56,6 +66,11 @@ class SudocoinsImportedResources:
             scope,
             'EndTransactionQueue',
             'arn:aws:sqs:us-west-2:977566059069:EndTransaction.fifo'
+        )
+        self.art_counter_queue = sqs.Queue.from_queue_arn(
+            scope,
+            'ArtCounterQueue',
+            'arn:aws:sqs:us-west-2:977566059069:art_counter.fifo'
         )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
