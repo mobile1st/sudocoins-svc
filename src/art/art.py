@@ -4,7 +4,7 @@ from datetime import datetime
 import uuid
 import sudocoins_logger
 import json
-from art_history import ArtHistory
+from art.art_history import ArtHistory
 
 log = sudocoins_logger.get()
 

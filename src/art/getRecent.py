@@ -1,6 +1,6 @@
 import boto3
-from art import Art
 import sudocoins_logger
+from art.art import Art
 from datetime import datetime
 
 log = sudocoins_logger.get()
@@ -12,11 +12,12 @@ def lambda_handler(event, context):
     # need to make sure list doesn't contain duplicates or the batch function will break
 
     time_now = str(datetime.utcnow().isoformat())
-
-    recent_art = art.get_recent(event['count'], event['timestamp'])
+    query_params = event['queryStringParameters']
+    count = int(query_params['count'])
+    from_utc = datetime.fromtimestamp(int(query_params['timestamp']) / 1000).isoformat()
+    recent_art = art.get_recent(count, from_utc)
     # event["time_now"]
 
     return {
-        'statusCode': 200,
         'art': recent_art['Items']
     }

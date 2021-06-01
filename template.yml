@@ -3,51 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
 
-  SudoCoinsSurveyEndFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: survey.survey_end.lambda_handler
-      Runtime: python3.8
-      FunctionName: SudoCoinsSurveyEnd
-      CodeUri: ./src
-      MemorySize: 512
-      Policies:
-        - AmazonSQSFullAccess
-        - AmazonDynamoDBFullAccess
-        - AmazonSNSFullAccess
-
-  SudoCoinsTakeSurveyFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: survey.take_survey.lambda_handler
-      Runtime: python3.8
-      FunctionName: SudoCoinsTakeSurvey
-      CodeUri: ./src
-      Policies:
-        - AmazonSQSFullAccess
-        - AmazonDynamoDBFullAccess
-        - AmazonSNSFullAccess
-
-  SudoCoinsEndTransactionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: survey.end_transaction.lambda_handler
-      Runtime: python3.8
-      FunctionName: SudoCoinsEndTransaction
-      CodeUri: ./src
-      Policies:
-        - AmazonSQSFullAccess
-        - AmazonDynamoDBFullAccess
-        - AmazonSNSFullAccess
-      MemorySize: 512
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: arn:aws:sqs:us-west-2:977566059069:EndTransaction.fifo
-            BatchSize: 10
-            Enabled: true
-
   CashOutFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -87,30 +42,6 @@ Resources:
       Runtime: python3.8
       FunctionName: getRates
       CodeUri: ./src/ecommerce
-
-  dynataRedirectFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: survey.dynata_redirect.lambda_handler
-      Runtime: python3.8
-      FunctionName: dynataRedirect
-      CodeUri: ./src
-      Policies:
-        - AmazonSQSFullAccess
-        - AmazonDynamoDBFullAccess
-        - AmazonSNSFullAccess
-
-  dynataCallbackFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: survey.dynata_callback.lambda_handler
-      Runtime: python3.8
-      FunctionName: dynataCallback
-      CodeUri: ./src
-      Policies:
-        - AmazonSQSFullAccess
-        - AmazonDynamoDBFullAccess
-        - AmazonSNSFullAccess
 
   setConsentFunction:
     Type: AWS::Serverless::Function
@@ -162,18 +93,6 @@ Resources:
       FunctionName: coinbaseCallback
       CodeUri: ./src
 
-  lucidRedirectFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: survey.lucid_redirect.lambda_handler
-      Runtime: python3.8
-      FunctionName: lucidRedirect
-      CodeUri: ./src
-      Policies:
-        - AmazonSQSFullAccess
-        - AmazonDynamoDBFullAccess
-        - AmazonSNSFullAccess
-
   nextStepFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -190,86 +109,6 @@ Resources:
       FunctionName: autoVerify
       CodeUri: ./src
 
-  artCounter:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: artRedirect.lambda_handler
-      Runtime: python3.8
-      FunctionName: artCounter
-      CodeUri: ./src/art
-
-  addArt:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: addArt.lambda_handler
-      Runtime: python3.8
-      FunctionName: addArt
-      CodeUri: ./src/art
-
-  artPrompt:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: artPrompt.lambda_handler
-      Runtime: python3.8
-      FunctionName: artPrompt
-      CodeUri: ./src/art
-
-  setTrending:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: set_trending.lambda_handler
-      Runtime: python3.8
-      FunctionName: setTrending
-      CodeUri: ./src/art
-
-  getRecent:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: getRecent.lambda_handler
-      Runtime: python3.8
-      FunctionName: getRecent
-      CodeUri: ./src/art
-
-  myGallery:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: myGallery.lambda_handler
-      Runtime: python3.8
-      FunctionName: myGallery
-      CodeUri: ./src/art
-
-  getArts:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: get_arts.lambda_handler
-      Runtime: python3.8
-      FunctionName: getArts
-      CodeUri: ./src/art
-
-  getTrending:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: get_trending.lambda_handler
-      Runtime: python3.8
-      FunctionName: getTrending
-      CodeUri: ./src/art
-
-  registerClick:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: register_click.lambda_handler
-      Runtime: python3.8
-      FunctionName: registerClick
-      CodeUri: ./src/art
-
-  shareArt:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: shareArt.lambda_handler
-      Runtime: python3.8
-      FunctionName: shareArt
-      CodeUri: ./src/art
-
   gdprCallback:
     Type: AWS::Serverless::Function
     Properties:
@@ -277,15 +116,3 @@ Resources:
       Runtime: python3.8
       FunctionName: gdprCallback
       CodeUri: ./src
-
-  addView:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: add_view.lambda_handler
-      Runtime: python3.8
-      FunctionName: addView
-      CodeUri: ./src/art
-
-
-
-

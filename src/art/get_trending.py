@@ -1,6 +1,6 @@
 import boto3
-from art import Art
 import sudocoins_logger
+from art.art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')

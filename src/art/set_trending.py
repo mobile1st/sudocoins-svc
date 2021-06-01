@@ -1,5 +1,5 @@
 import boto3
-from art import Art
+from art.art import Art
 import sudocoins_logger
 
 log = sudocoins_logger.get()

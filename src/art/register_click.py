@@ -1,7 +1,7 @@
 import boto3
 import json
 import sudocoins_logger
-from art import Art
+from art.art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -18,6 +18,3 @@ def lambda_handler(event, context):
         art.register_click(data)
 
         log.info('record updated')
-
-
-

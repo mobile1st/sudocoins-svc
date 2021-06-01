@@ -4,6 +4,8 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_lambda_python as lambda_python,
     aws_lambda_event_sources as event_sources,
+    aws_events as events,
+    aws_events_targets as events_targets,
     aws_iam as iam
 )
 
@@ -27,6 +29,7 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.add_art_function)
         resources.art_uploads_table.grant_read_write_data(self.add_art_function)
         resources.profile_table.grant_read_write_data(self.add_art_function)
+        resources.ledger_table.grant_read_write_data(self.add_art_function)
         self.add_art_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
@@ -83,8 +86,7 @@ class SudocoinsArtLambdas:
             handler='art.get_arts.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
-        resources.art_table.grant_read_write_data(self.get_arts_function)
-        resources.art_uploads_table.grant_read_write_data(self.get_arts_function)
+        resources.art_table.grant_read_data(self.get_arts_function)
         # GET RECENT
         self.get_recent_function = _lambda.Function(
             scope,
@@ -113,7 +115,7 @@ class SudocoinsArtLambdas:
         )
         resources.config_table.grant_read_data(self.get_trending_function)
         # SET TRENDING
-        self.set_trending_function = _lambda.Function(
+        set_trending_function = _lambda.Function(
             scope,
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
@@ -121,16 +123,25 @@ class SudocoinsArtLambdas:
             handler='art.set_trending.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
-        resources.art_table.grant_read_data(self.get_trending_function)
-        resources.config_table.grant_read_data(self.get_trending_function)
-        self.get_trending_function.role.add_to_policy(
+        resources.art_table.grant_read_data(set_trending_function)
+        resources.config_table.grant_read_data(set_trending_function)
+        set_trending_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art/index/*'],
                 actions=['dynamodb:Query']
             )
         )
-        # TODO CLOUDWATCH EVENT
+        lambda_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
+        event_lambda_target = events_targets.LambdaFunction(handler=set_trending_function)
+        lambda_cw_event = events.Rule(
+            scope,
+            "SetTrendingRule",
+            description="Periodically refreshes trending arts sorted by click counts",
+            enabled=True,
+            schedule=lambda_schedule,
+            targets=[event_lambda_target]
+        )
         # MY GALLERY
         self.my_gallery_function = _lambda.Function(
             scope,
@@ -184,6 +195,6 @@ class SudocoinsArtLambdas:
             event_sources.SqsEventSource(
                 resources.art_counter_queue,
                 batch_size=10,
-                enabled=False # TODO enable
+                enabled=True
             )
         )
