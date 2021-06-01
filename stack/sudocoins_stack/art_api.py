@@ -105,3 +105,12 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=add_view_integration
         )
+        # GET LEADERBOARD
+        get_leaderboard_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_leaderboard_function
+        )
+        art_api_v2.add_routes(
+            path='/art/leaderboard',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_leaderboard_integration
+        )

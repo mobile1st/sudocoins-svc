@@ -139,15 +139,53 @@ class SudocoinsArtLambdas:
                 actions=['dynamodb:Query']
             )
         )
-        lambda_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
-        event_lambda_target = events_targets.LambdaFunction(handler=set_trending_function)
-        lambda_cw_event = events.Rule(
+        set_trending_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
+        set_trending_target = events_targets.LambdaFunction(handler=set_trending_function)
+        events.Rule(
             scope,
             "SetTrendingRule",
             description="Periodically refreshes trending arts sorted by click counts",
             enabled=True,
-            schedule=lambda_schedule,
-            targets=[event_lambda_target]
+            schedule=set_trending_schedule,
+            targets=[set_trending_target]
+        )
+        # GET LEADERBOARD
+        self.get_leaderboard_function = _lambda.Function(
+            scope,
+            'ArtGetLeaderboardV2',
+            function_name='ArtGetLeaderboardV2',
+            runtime=lambda_runtime,
+            handler='art.get_leaderboard.lambda_handler',
+            code=_lambda.Code.asset(lambda_code_path)
+        )
+        resources.config_table.grant_read_data(self.get_leaderboard_function)
+        # SET LEADERBOARD
+        set_leaderboard_function = _lambda.Function(
+            scope,
+            'ArtSetLeaderboardV2',
+            function_name='ArtSetLeaderboardV2',
+            runtime=lambda_runtime,
+            handler='art.set_leaderboard.lambda_handler',
+            code=_lambda.Code.asset(lambda_code_path)
+        )
+        resources.profile_table.grant_read_data(set_leaderboard_function)
+        resources.config_table.grant_read_write_data(set_leaderboard_function)
+        set_leaderboard_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+        set_leaderboard_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
+        set_leaderboard_target = events_targets.LambdaFunction(handler=set_leaderboard_function)
+        events.Rule(
+            scope,
+            "SetLeaderboardRule",
+            description="Periodically refreshes the promoter leaderboard",
+            enabled=True,
+            schedule=set_leaderboard_schedule,
+            targets=[set_leaderboard_target]
         )
         # MY GALLERY
         self.my_gallery_function = _lambda.Function(
