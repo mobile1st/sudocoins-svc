@@ -40,6 +40,13 @@ class SudocoinsArtLambdas:
         self.add_art_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+        self.add_art_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
                 resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads/index/*'],
                 actions=['dynamodb:Query']
             )
@@ -124,7 +131,7 @@ class SudocoinsArtLambdas:
             code=_lambda.Code.asset(lambda_code_path)
         )
         resources.art_table.grant_read_data(set_trending_function)
-        resources.config_table.grant_read_data(set_trending_function)
+        resources.config_table.grant_read_write_data(set_trending_function)
         set_trending_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
