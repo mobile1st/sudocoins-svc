@@ -101,12 +101,7 @@ class SudocoinsArtApi:
             handler=lambdas.add_view_function
         )
         art_api_v2.add_routes(
-            path='/art/{artId}/increment',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=add_view_integration
-        )
-        art_api_v2.add_routes(
-            path='/art/share/{shareId}/increment',
-            methods=[apigwv2.HttpMethod.GET],
+            path='/art/increment-view',
+            methods=[apigwv2.HttpMethod.POST],
             integration=add_view_integration
         )
