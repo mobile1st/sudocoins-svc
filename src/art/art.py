@@ -138,13 +138,13 @@ class Art:
         )
 
         sqs = boto3.resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName='art_counter.fifo')
+        queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue')
 
         if 'Item' in art_uploads_record:
             msgValue = {
                 'shareId': shareId
             }
-            queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='share_views')
+            queue.send_message(MessageBody=json.dumps(msgValue))
 
             return art_uploads_record['Item']
 
@@ -157,7 +157,7 @@ class Art:
             msgValue = {
                 'art_id': shareId
             }
-            queue.send_message(MessageBody=json.dumps(msgValue), MessageGroupId='share_views')
+            queue.send_message(MessageBody=json.dumps(msgValue))
 
             return art_record['Item']
 

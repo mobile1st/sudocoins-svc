@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         msg['art_id'] = art_id
 
     log.debug(f'sending message: {msg}')
-    queue = sqs.get_queue_by_name(QueueName='art_counter.fifo')
-    queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='tile_views')
+    queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue')
+    queue.send_message(MessageBody=json.dumps(msg))
 
     return ''

@@ -67,10 +67,10 @@ class SudocoinsImportedResources:
             'EndTransactionQueue',
             'arn:aws:sqs:us-west-2:977566059069:EndTransaction.fifo'
         )
-        self.art_counter_queue = sqs.Queue.from_queue_arn(
+        self.art_counter_queue = sqs.Queue(
             scope,
-            'ArtCounterQueue',
-            'arn:aws:sqs:us-west-2:977566059069:art_counter.fifo'
+            'ArtViewCounterQueue',
+            queue_name='ArtViewCounterQueue'
         )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
