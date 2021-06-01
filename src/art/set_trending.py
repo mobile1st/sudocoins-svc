@@ -9,12 +9,10 @@ art = Art(dynamodb)
 
 def lambda_handler(event, context):
     trending_art = art.get_trending()
-
-    art_elements = trending_art['Items']
-
+    art_list = trending_art['Items']
     arts = []
 
-    for i in art_elements:
+    for i in art_list:
         arts.append(i['art_id'])
 
     set_config(arts)
