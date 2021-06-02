@@ -42,14 +42,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=share_art_integration
         )
-        # ART REDIRECT - GO TO SOURCE
-        art_redirect_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.art_redirect_function
+        # ART SOURCE REDIRECT
+        art_source_redirect_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.art_source_redirect_function
         )
         art_api_v2.add_routes(
             path='/art/source',
             methods=[apigwv2.HttpMethod.GET],
-            integration=art_redirect_integration
+            integration=art_source_redirect_integration
         )
         # GET ARTS
         get_arts_integration = api_integrations.LambdaProxyIntegration(
@@ -87,23 +87,23 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=my_gallery_integration
         )
-        # ART PROMPT
-        art_prompt_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.art_prompt_function
+        # GET SHARED ART
+        get_shared_art_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_shared_art_function
         )
         art_api_v2.add_routes(
             path='/art/share/{shareId}',
             methods=[apigwv2.HttpMethod.GET],
-            integration=art_prompt_integration
+            integration=get_shared_art_integration
         )
-        # ADD VIEW
-        add_view_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.add_view_function
+        # INCREMENT VIEW COUNT
+        increment_view_count_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.increment_view_count_function
         )
         art_api_v2.add_routes(
             path='/art/increment-view',
             methods=[apigwv2.HttpMethod.POST],
-            integration=add_view_integration
+            integration=increment_view_count_integration
         )
         # GET LEADERBOARD
         get_leaderboard_integration = api_integrations.LambdaProxyIntegration(

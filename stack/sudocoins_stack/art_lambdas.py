@@ -6,11 +6,17 @@ from aws_cdk import (
     aws_lambda_event_sources as event_sources,
     aws_events as events,
     aws_events_targets as events_targets,
-    aws_iam as iam
+    aws_iam as iam,
+    aws_logs as logs
 )
 
 lambda_code_path = '../src'
 lambda_runtime = _lambda.Runtime.PYTHON_3_8
+lambda_default_kwargs = {
+    'runtime': _lambda.Runtime.PYTHON_3_8,
+    'code': _lambda.Code.asset('../src'),
+    'log_retention': logs.RetentionDays.THREE_MONTHS
+}
 
 
 class SudocoinsArtLambdas:
@@ -22,9 +28,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtAddV2',
             function_name='ArtAddV2',
-            runtime=lambda_runtime,
-            handler='art.addArt.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            handler='art.add_art.lambda_handler',
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.add_art_function)
         resources.art_uploads_table.grant_read_write_data(self.add_art_function)
@@ -51,39 +56,39 @@ class SudocoinsArtLambdas:
                 actions=['dynamodb:Query']
             )
         )
-        # ADD VIEW
-        self.add_view_function = _lambda.Function(
+        # INCREMENT VIEW COUNT
+        self.increment_view_count_function = _lambda.Function(
             scope,
-            'ArtAddViewV2',
-            function_name='ArtAddViewV2',
+            'ArtIncrementViewCountV2',
+            function_name='ArtIncrementViewCountV2',
             runtime=lambda_runtime,
-            handler='art.add_view.lambda_handler',
+            handler='art.increment_view_count.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
-        resources.art_counter_queue.grant_send_messages(self.add_view_function)
-        # ART PROMPT
-        self.art_prompt_function = _lambda.Function(
+        resources.art_counter_queue.grant_send_messages(self.increment_view_count_function)
+        # GET SHARED ART
+        self.get_shared_art_function = _lambda.Function(
             scope,
-            'ArtPromptV2',
-            function_name='ArtPromptV2',
+            'ArtGetSharedArtV2',
+            function_name='ArtGetSharedArtV2',
             runtime=lambda_runtime,
-            handler='art.artPrompt.lambda_handler',
+            handler='art.get_shared_art.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
-        resources.art_table.grant_read_data(self.art_prompt_function)
-        resources.art_uploads_table.grant_read_data(self.art_prompt_function)
-        resources.art_counter_queue.grant_send_messages(self.art_prompt_function)
-        # ART REDIRECT
-        self.art_redirect_function = _lambda.Function(
+        resources.art_table.grant_read_data(self.get_shared_art_function)
+        resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
+        resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
+        # ART SOURCE REDIRECT
+        self.art_source_redirect_function = _lambda.Function(
             scope,
-            'ArtRedirectV2',
-            function_name='ArtRedirectV2',
+            'ArtSourceRedirectV2',
+            function_name='ArtSourceRedirectV2',
             runtime=lambda_runtime,
-            handler='art.artRedirect.lambda_handler',
+            handler='art.art_source_redirect.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
-        resources.art_table.grant_read_write_data(self.art_redirect_function)
-        resources.art_uploads_table.grant_read_write_data(self.art_redirect_function)
+        resources.art_table.grant_read_write_data(self.art_source_redirect_function)
+        resources.art_uploads_table.grant_read_write_data(self.art_source_redirect_function)
         # GET ARTS
         self.get_arts_function = _lambda.Function(
             scope,
@@ -241,5 +246,12 @@ class SudocoinsArtLambdas:
                 resources.art_counter_queue,
                 batch_size=10,
                 enabled=True
+            )
+        )
+        register_click_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*'],
+                actions=['dynamodb:Query']
             )
         )
