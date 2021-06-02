@@ -70,7 +70,9 @@ class SudocoinsImportedResources:
         self.art_counter_queue = sqs.Queue(
             scope,
             'ArtViewCounterQueue',
-            queue_name='ArtViewCounterQueue'
+            queue_name='ArtViewCounterQueue.fifo',
+            fifo=True,
+            content_based_deduplication=True
         )
 
     def init_admin_authorizer(self, scope: cdk.Construct):

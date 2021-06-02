@@ -8,7 +8,9 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
+    log.debug(f'art_prompt {event}')
     share_id = event['rawPath'].replace('/art/share/', '')
-    art_uploads_record = art.get_by_share_id(share_id)
+    source_ip = event['requestContext']['http']['sourceIp']
+    art_uploads_record = art.get_by_share_id(source_ip, share_id)
 
     return art_uploads_record

@@ -129,7 +129,7 @@ class Art:
 
         return art_uploads['Items']
 
-    def get_by_share_id(self, shareId):
+    def get_by_share_id(self, source_ip, shareId):
         # returns the art_uploads record based on shareId
         art_uploads_record = self.dynamodb.Table('art_uploads').get_item(
             Key={'shareId': shareId},
@@ -138,14 +138,13 @@ class Art:
         )
 
         sqs = boto3.resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue')
-
+        queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue.fifo')
+        # queue deduplication by sourceIp+artId/shareId for 5 minutes
+        msg = {'sourceIp': source_ip}
         if 'Item' in art_uploads_record:
-            msgValue = {
-                'shareId': shareId
-            }
-            queue.send_message(MessageBody=json.dumps(msgValue))
-
+            msg['shareId'] = shareId
+            log.debug(f'sending message: {msg}')
+            queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
             return art_uploads_record['Item']
 
         art_record = self.dynamodb.Table('art').get_item(
@@ -154,11 +153,9 @@ class Art:
             ExpressionAttributeNames={'#n': 'name'})
 
         if 'Item' in art_record:
-            msgValue = {
-                'art_id': shareId
-            }
-            queue.send_message(MessageBody=json.dumps(msgValue))
-
+            msg['art_id'] = shareId
+            log.debug(f'sending message: {msg}')
+            queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
             return art_record['Item']
 
         return {
@@ -366,7 +363,4 @@ class Art:
         )
 
         self.art_history.updateProfile(userId)
-
-
-
 
