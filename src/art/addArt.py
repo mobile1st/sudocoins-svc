@@ -1,8 +1,10 @@
 import boto3
 import json
+import re
 import http.client
 import sudocoins_logger
 from art.art import Art
+
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -11,7 +13,8 @@ art = Art(dynamodb)
 
 def lambda_handler(event, context):
     try:
-        body = json.loads(event['body'])
+        #body = json.loads(event['body'])
+        body = event['body']
         inputUrl = body['url']
         userId = body['userId']
 
@@ -36,7 +39,8 @@ def parseUrl(url):
         sub1 = url.find('token/')
         start = sub1 + 6
         rest = url[start:]
-        variables = rest.split(':')
+        variables = re.split(r':|\?', rest)
+        print(variables)
         contractId = variables[0]
         tokenId = variables[1]
     elif url.find('opensea.io') != -1:
