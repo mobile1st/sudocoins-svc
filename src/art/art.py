@@ -208,7 +208,7 @@ class Art:
         trending_art = self.dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true'),
             ScanIndexForward=False,
-            Limit=200,
+            Limit=250,
             IndexName='Trending-index',
             ProjectionExpression="art_id, click_count")
 
