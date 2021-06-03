@@ -24,6 +24,15 @@ class SudocoinsArtApi:
             'ArtApiV2',
             cors_preflight=self.default_cors_preflight
         )
+        # GET PROFILE
+        get_profile_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_profile_function
+        )
+        art_api_v2.add_routes(
+            path='/art/user/profile',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_profile_integration
+        )
         # ADD ART
         add_art_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.add_art_function

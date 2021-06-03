@@ -3,8 +3,8 @@ from datetime import datetime
 import uuid
 from botocore.config import Config
 import json
-import sudocoins_logger
-import requests
+from util import sudocoins_logger
+import http.client
 
 # from configuration import Configuration
 
@@ -88,7 +88,6 @@ def lambda_handler(event, context):
         ethRate = '1'
         tiles = []
         log.exception('failed to load tiles')
-
 
     log.debug("about to return the entire response")
 
@@ -262,25 +261,20 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             "userId": userId
         }
     )
-
+    ipqs_response = None
+    fraud_score = None
     if ip != "":
-        url = 'https://ipqualityscore.com/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{' \
-              '0}?strictness=1&allow_public_access_points=true'.format(
-            ip)
-        x = requests.get(url)
         try:
-            iqps = json.loads(x.text)
-            print(iqps)
-            fraud_score = iqps["fraud_score"]
-            print(fraud_score)
+            conn = http.client.HTTPSConnection('ipqualityscore.com')
+            path = '/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{0}' \
+                   '?strictness=1&allow_public_access_points=true'.format(ip)
+            conn.request("GET", path)
+            response = conn.getresponse()
+            ipqs_response = json.loads(response.read())
+            log.info(f'ipqs_response: {ipqs_response}')
+            fraud_score = ipqs_response['fraud_score']
         except Exception as e:
-            print(e)
-            iqps = "None"
-            fraud_score = "None"
-
-    else:
-        fraud_score = "None"
-        iqps = "None"
+            log.exception('Quality Score call failed')
 
     profile = {
         "active": True,
@@ -297,7 +291,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "verificationState": "None",
         "signupMethod": signupMethod,
         "fraud_score": str(fraud_score),
-        "iqps": str(iqps)
+        "iqps": str(ipqs_response)
     }
 
     log.info(f'profile: {profile}')

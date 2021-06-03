@@ -23,6 +23,26 @@ class SudocoinsArtLambdas:
     def __init__(self,
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources):
+        # GET PROFILE
+        self.get_profile_function = _lambda.Function(
+            scope,
+            'ArtGetProfileV2',
+            function_name='ArtGetProfileV2',
+            handler='art.get_profile.lambda_handler',
+            memory_size=512,
+            description='Gets all data for displaying the profil page',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.get_profile_function)
+        resources.sub_table.grant_read_write_data(self.get_profile_function)
+        resources.config_table.grant_read_data(self.get_profile_function)
+        self.get_profile_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
         # ADD ART
         self.add_art_function = _lambda.Function(
             scope,
