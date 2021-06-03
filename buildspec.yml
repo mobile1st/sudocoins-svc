@@ -6,7 +6,8 @@ phases:
  build: 
   commands:
    - cd stack
-   - python -m pip install aws_cdk aws-cdk.core
+   - python -m venv .env
+   - source .env/bin/activate
    - python -m pip install -r requirements.txt
    - cdk synth -o ../dist
 artifacts:
