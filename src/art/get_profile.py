@@ -92,14 +92,11 @@ def lambda_handler(event, context):
     log.debug("about to return the entire response")
 
     return {
-        'statusCode': 200,
-        'body': {
-            "profile": profile,
-            "tiles": tiles,
-            "rate": str(rate),
-            "ethRate": str(ethRate),
-            "sudoRate": str(1000)
-        }
+        "profile": profile,
+        "tiles": tiles,
+        "rate": str(rate),
+        "ethRate": str(ethRate),
+        "sudoRate": str(1000)
     }
 
 
