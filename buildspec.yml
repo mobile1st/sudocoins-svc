@@ -8,4 +8,4 @@ phases:
    - cd stack
    - npm install aws-cdk
    - python -m pip install -r requirements.txt
-   - npx cdk deploy -r 'arn:aws:iam::977566059069:policy/CloudformationDeploy'
+   - npx cdk deploy -r "arn:aws:iam::977566059069:role/CloudformationPipelineRole"
