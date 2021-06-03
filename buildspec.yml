@@ -5,11 +5,11 @@ phases:
    python: 3.8
  build: 
   commands:
-   - sam build
-   - export BUCKET=sudocoins-svc-pipeline-output-bucket
-   - sam package --s3-bucket $BUCKET --output-template-file outputtemplate.yml
+   - cd stack
+   - python -m pip install aws-cdk.core
+   - python -m pip install -r requirements.txt
+   - cdk synth -o ../dist
 artifacts:
- type: zip
+ base-directory: dist
  files:
-  - template.yml
-  - outputtemplate.yml
+  - '**/*'
