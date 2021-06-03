@@ -15,8 +15,7 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-    # . jsonInput = json.loads(event['body'])
-    jsonInput = event
+    jsonInput = json.loads(event['body'])
     log.debug(f'event: {event}')
 
     # begin testing configuration access
