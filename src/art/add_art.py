@@ -67,6 +67,7 @@ def call_open_sea(contract_id, token_id):
 
 
 def add(contract_id, token_id, open_sea_response, input_url, user_id):
+    # BEGIN register_art(contract_id, token_id, open_sea_response, input_url) -> art
     time_now = str(datetime.utcnow().isoformat())
     contract_token_id = str(contract_id) + "#" + str(token_id)
 
@@ -117,8 +118,10 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
     elif art_object['Count'] > 0:
         art_id = art_object['Items'][0]['art_id']
 
-    # check to see if art_uploads record already exists
+    # END register_art(contract_id, token_id, open_sea_response, input_url) -> art
 
+    # BEGIN register_art_upload(art, user_id) -> art_upload
+    # check to see if art_uploads record already exists
     dedupe_key = str(user_id) + '#' + str(contract_id) + "#" + str(token_id)
 
     art_uploads_object = dynamodb.Table('art_uploads').query(
@@ -126,44 +129,43 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         IndexName='User_upload_dedupe_idx')
 
     if art_uploads_object['Count'] > 0:
-        msg = {
+        return {
             "message": "Art already added to Gallery",
             "shareId": art_uploads_object['Items'][0]['shareId']
         }
 
-        return msg
+    art_uploads_record = {
+        "shareId": str(uuid.uuid1()),
+        'contractId#tokenId': str(contract_id) + "#" + str(token_id),
+        "name": open_sea['name'],
+        "buy_url": input_url,
+        "user_id": user_id,
+        'preview_url': preview_url,
+        'art_url': art_url,
+        "open_sea_data": open_sea,
+        "click_count": 0,
+        "timestamp": time_now,
+        "dedupe_key": dedupe_key,
+        "art_id": art_id
+    }
+    dynamodb.Table('art_uploads').put_item(
+        Item=art_uploads_record
+    )
+    # END register_art_upload(art, user_id) -> art_upload
 
-    else:
-        art_uploads_record = {
-            "shareId": str(uuid.uuid1()),
-            'contractId#tokenId': str(contract_id) + "#" + str(token_id),
-            "name": open_sea['name'],
-            "buy_url": input_url,
-            "user_id": user_id,
-            'preview_url': preview_url,
-            'art_url': art_url,
-            "open_sea_data": open_sea,
-            "click_count": 0,
-            "timestamp": time_now,
-            "dedupe_key": dedupe_key,
-            "art_id": art_id
-        }
-        dynamodb.Table('art_uploads').put_item(
-            Item=art_uploads_record
-        )
+    # CALL profile.add_sudo(user_id, 5) -> sudo (integer, the new balance in sudo)
+    new_sudo = dynamodb.Table('Profile').update_item(
+        Key={'userId': user_id},
+        UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
+        ExpressionAttributeValues={
+            ':inc': 5,
+            ':start': 0
+        },
+        ReturnValues="UPDATED_NEW"
+    )
+    sudo = new_sudo['Attributes']['sudocoins']
+    art_uploads_record['sudocoins'] = sudo
 
-        new_sudo = dynamodb.Table('Profile').update_item(
-            Key={'userId': user_id},
-            UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
-            ExpressionAttributeValues={
-                ':inc': 5,
-                ':start': 0
-            },
-            ReturnValues="UPDATED_NEW"
-        )
-        sudo = new_sudo['Attributes']['sudocoins']
-        art_uploads_record['sudocoins'] = sudo
+    art.addLedgerRecord(5, user_id, 'Add Art')
 
-        art.addLedgerRecord(5, user_id, 'Add Art')
-
-        return art_uploads_record
+    return art_uploads_record
