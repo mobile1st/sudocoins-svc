@@ -14,6 +14,7 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
+    log.debug(f'event: {event}')
     try:
         body = json.loads(event['body'])
         input_url = body['url']
