@@ -267,9 +267,9 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "facebookUrl": facebook,
         "consent": "",
         "history": [],
-        "balance": "0.00",
+        "balance": 0,
         "sudocoins": 0,
-        "verificationState": "None",
+        "verificationState": None,
         "signupMethod": signupMethod
     }
 
