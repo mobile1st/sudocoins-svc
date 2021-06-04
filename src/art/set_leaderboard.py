@@ -1,5 +1,5 @@
 import boto3
-import sudocoins_logger
+from util import sudocoins_logger
 from boto3.dynamodb.conditions import Key
 
 log = sudocoins_logger.get()

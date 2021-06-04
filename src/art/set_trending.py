@@ -1,18 +1,16 @@
 import boto3
-from art.art import Art
-import sudocoins_logger
+from util import sudocoins_logger
+from boto3.dynamodb.conditions import Key
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
-    trending_art = art.get_trending()
-    art_list = trending_art['Items']
+    trending_art = get_trending()
     arts = []
 
-    for i in art_list:
+    for i in trending_art:
         arts.append(i['art_id'])
 
     set_config(arts)
@@ -24,7 +22,6 @@ def lambda_handler(event, context):
 
 def set_config(arts):
     config_table = dynamodb.Table('Config')
-
     updated_art = config_table.update_item(
         Key={
             'configKey': 'TrendingArt'
@@ -35,5 +32,15 @@ def set_config(arts):
         },
         ReturnValues="ALL_NEW"
     )
+    log.info(f'updated_art {updated_art}')
 
-    print(updated_art)
+
+def get_trending():
+    # returns art sorted by click_count
+    return dynamodb.Table('art').query(
+        KeyConditionExpression=Key("sort_idx").eq('true'),
+        ScanIndexForward=False,
+        Limit=250,
+        IndexName='Trending-index',
+        ProjectionExpression="art_id, click_count"
+    )['Items']

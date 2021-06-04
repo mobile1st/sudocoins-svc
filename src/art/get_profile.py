@@ -4,7 +4,6 @@ import uuid
 from botocore.config import Config
 import json
 from util import sudocoins_logger
-import http.client
 
 # from configuration import Configuration
 
@@ -257,20 +256,6 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             "userId": userId
         }
     )
-    ipqs_response = None
-    fraud_score = None
-    if ip != "":
-        try:
-            conn = http.client.HTTPSConnection('ipqualityscore.com')
-            path = '/api/json/ip/AnfjI4VR0v2VxiEV5S8c9VdRatbJR4vT/{0}' \
-                   '?strictness=1&allow_public_access_points=true'.format(ip)
-            conn.request("GET", path)
-            response = conn.getresponse()
-            ipqs_response = json.loads(response.read())
-            log.info(f'ipqs_response: {ipqs_response}')
-            fraud_score = ipqs_response['fraud_score']
-        except Exception as e:
-            log.exception('Quality Score call failed')
 
     profile = {
         "active": True,
@@ -285,9 +270,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "balance": "0.00",
         "sudocoins": "0",
         "verificationState": "None",
-        "signupMethod": signupMethod,
-        "fraud_score": str(fraud_score),
-        "iqps": str(ipqs_response)
+        "signupMethod": signupMethod
     }
 
     log.info(f'profile: {profile}')

@@ -125,7 +125,7 @@ class SudocoinsArtLambdas:
             'ArtGetRecentV2',
             function_name='ArtGetRecentV2',
             runtime=lambda_runtime,
-            handler='art.getRecent.lambda_handler',
+            handler='art.get_recent.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
         resources.art_table.grant_read_data(self.get_recent_function)
@@ -212,17 +212,17 @@ class SudocoinsArtLambdas:
             schedule=set_leaderboard_schedule,
             targets=[set_leaderboard_target]
         )
-        # MY GALLERY
-        self.my_gallery_function = _lambda.Function(
+        # GET USER ARTS
+        self.get_user_arts_function = _lambda.Function(
             scope,
-            'ArtMyGalleryV2',
-            function_name='ArtMyGalleryV2',
+            'ArtGetUserArtsV2',
+            function_name='ArtGetUserArtsV2',
             runtime=lambda_runtime,
-            handler='art.myGallery.lambda_handler',
+            handler='art.get_user_arts.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
-        resources.art_uploads_table.grant_read_data(self.my_gallery_function)
-        self.my_gallery_function.role.add_to_policy(
+        resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
+        self.get_user_arts_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads/index/*'],
@@ -235,7 +235,7 @@ class SudocoinsArtLambdas:
             'ArtShareV2',
             function_name='ArtShareV2',
             runtime=lambda_runtime,
-            handler='art.shareArt.lambda_handler',
+            handler='art.share_art.lambda_handler',
             code=_lambda.Code.asset(lambda_code_path)
         )
         resources.art_table.grant_read_data(self.share_art_function)
