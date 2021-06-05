@@ -14,8 +14,8 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-    jsonInput = json.loads(event.get('body', '{}'))
     log.debug(f'event: {event}')
+    jsonInput = json.loads(event.get('body', '{}'))
 
     if 'sub' in jsonInput:
         sub = jsonInput['sub']
@@ -43,8 +43,7 @@ def lambda_handler(event, context):
         if sub != "":
             profile = loadProfile(sub, email, facebook, signupMethod, context, ip)
             userId = profile['userId']
-            log.debug(f'profile: {profile}')
-            log.debug(f'userId: {userId}')
+            log.debug(f'profile: {profile} userId: {userId}')
         else:
             profile = {}
             userId = ""

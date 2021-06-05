@@ -12,15 +12,19 @@ log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 art = Art(dynamodb)
 
-
+# (user_id, url) -> {
+#   status: 'exist' | 'fail' | 'success'
+#   shareId: string uuid, mandatory for 'exist' and 'success'
+#   balance: integer, optional new balance
+#   message: string, optional message
+# }
 def lambda_handler(event, context):
-    log.debug(f'event: {event}')
     try:
         log.debug(f'event: {event}')
-        body = json.loads(event['body'])
+        body = json.loads(event.get('body', '{}'))
         input_url = body['url']
         user_id = body['userId']
-        log.debug(f'user_id: {user_id}')
+        log.debug(f'user_id: {user_id} url: {input_url}')
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)
@@ -29,8 +33,8 @@ def lambda_handler(event, context):
     except Exception as e:
         log.exception(e)
         return {
-            "error": True,
-            "msg": "Sorry, your input doesn't return any Art. Please Add another Art."
+            'status': 'fail',
+            'message': "Sorry, your input doesn't return any Art. Please Add another Art."
         }
 
 
@@ -132,8 +136,8 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
 
     if art_uploads_object['Count'] > 0:
         return {
-            "message": "Art already added to Gallery",
-            "shareId": art_uploads_object['Items'][0]['shareId']
+            'status': 'exist',
+            'shareId': art_uploads_object['Items'][0]['shareId']
         }
 
     art_uploads_record = {
@@ -165,9 +169,11 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         },
         ReturnValues="UPDATED_NEW"
     )
-    sudo = new_sudo['Attributes']['sudocoins']
-    art_uploads_record['sudocoins'] = sudo
 
     art.addLedgerRecord(5, user_id, 'Add Art')
 
-    return art_uploads_record
+    return {
+        'status': 'success',
+        'shareId': art_uploads_record['shareId'],
+        'balance': new_sudo['Attributes']['sudocoins']
+    }
