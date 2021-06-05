@@ -17,77 +17,55 @@ def lambda_handler(event, context):
     jsonInput = json.loads(event.get('body', '{}'))
     log.debug(f'event: {event}')
 
-    # begin testing configuration access
-    # config = Configuration(dynamodb)
-    # try:
-    #     print('config for test buyer=%s', config.buyer('test'))
-    #     print('config publicBuyers=%s', config.public_buyers())
-    # except Exception as e:
-    #     print('Config read exception: ', e)
-    # end testing configuration access
-
     if 'sub' in jsonInput:
         sub = jsonInput['sub']
     else:
         sub = ""
-
     if 'email' in jsonInput:
         email = jsonInput['email']
     else:
         email = ""
-
     if 'facebookUrl' in jsonInput:
         facebook = jsonInput['facebookUrl']
     else:
         facebook = ""
-
     if 'signupMethod' in jsonInput:
         signupMethod = jsonInput['signupMethod']
     else:
         signupMethod = ""
-
     if 'ip' in jsonInput:
         ip = jsonInput['ip']
     else:
         ip = ""
-
     global profile
 
     try:
         if sub != "":
-            log.debug("about to load profile")
             profile = loadProfile(sub, email, facebook, signupMethod, context, ip)
-            log.debug("profile loaded")
             userId = profile['userId']
+            log.debug(f'profile: {profile}')
+            log.debug(f'userId: {userId}')
         else:
             profile = {}
             userId = ""
 
-    except Exception:
-        log.exception("issue loading profile")
-        # profile.update(history = [])
-        # profile.update(balance = "")
+    except Exception as e:
+        log.exception(e)
         profile = {}
         userId = ""
 
     try:
-        log.debug("about to get config")
         config = getConfig()
-        log.debug("config loaded")
-
         rate, ethRate = getRate(config)
-
-        log.debug("about to get tiles from config")
         tiles = getTiles(userId, config)
-        log.debug("tiles loaded")
 
-    except Exception:
+    except Exception as e:
+        log.exception(e)
         rate = '1'
         ethRate = '1'
         tiles = []
-        log.exception('failed to load tiles')
 
-    log.debug("about to return the entire response")
+    log.debug(f'profile: {profile}')
 
     return {
         "profile": profile,

@@ -16,9 +16,11 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     log.debug(f'event: {event}')
     try:
+        log.debug(f'event: {event}')
         body = json.loads(event['body'])
         input_url = body['url']
         user_id = body['userId']
+        log.debug(f'user_id: {user_id}')
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)
