@@ -33,6 +33,7 @@ class SudocoinsArtLambdas:
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
+        resources.transaction_topic.grant_publish(self.get_profile_function)
         resources.profile_table.grant_read_write_data(self.get_profile_function)
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
