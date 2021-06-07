@@ -55,22 +55,17 @@ def lambda_handler(event, context):
 
     try:
         config = getConfig()
-        rate, ethRate = getRate(config)
-        tiles = getTiles(userId, config)
+        rate = getRate(config)
 
     except Exception as e:
         log.exception(e)
         rate = '1'
-        ethRate = '1'
-        tiles = []
 
     log.debug(f'profile: {profile}')
 
     return {
         "profile": profile,
-        "tiles": tiles,
         "rate": str(rate),
-        "ethRate": str(ethRate),
         "sudoRate": str(1000)
     }
 
@@ -89,18 +84,11 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         profileObject = profileTable.get_item(
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
-                                 "gravatarEmail, facebookUrl, consent, history, balance,"
+                                 "gravatarEmail, facebookUrl, consent, history, "
                                  "verificationState, signupMethod, fraud_score, sudocoins"
         )
         log.info(f'profileObject: {profileObject}')
-        if 'history' not in profileObject['Item']:
-            profileObject['Item']['history'] = []
 
-        if 'balance' not in profileObject['Item']:
-            profileObject['Item']['balance'] = '0.00'
-
-        if 'sudocoins' not in profileObject['Item']:
-            profileObject['Item']['sudocoins'] = '0'
 
         if 'verificationState' not in profileObject['Item']:
             profileObject['Item']['verificationState'] = 'None'
@@ -143,10 +131,6 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                     ReturnValues="ALL_NEW"
                 )
 
-                if 'history' not in profileObject['Attributes']:
-                    profileObject['Attributes']['history'] = []
-                if 'balance' not in profileObject['Attributes']:
-                    profileObject['Attributes']['balance'] = '0.00'
                 if 'sudocoins' not in profileObject['Attributes']:
                     profileObject['Attributes']['sudocoins'] = '0'
 
@@ -163,7 +147,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                 ':email': email
             },
             ProjectionExpression="active , email, signupDate, userId, currency, "
-                                 "gravatarEmail, facebookUrl, consent, history, balance,"
+                                 "gravatarEmail, facebookUrl, consent, history,"
                                  "verificationState, signupMethod, fraud_score, sudocoins"
         )
         log.info(f'profileQuery: {profileQuery}')
@@ -177,12 +161,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                 }
             )
 
-            if 'history' not in profileQuery['Items'][0]:
-                profileQuery['Items'][0]['history'] = []
-            if 'balance' not in profileQuery['Items'][0]:
-                profileQuery['Items'][0]['balance'] = "0.00"
-            if 'sudocoins' not in profileQuery['Items'][0]:
-                profileQuery['Items'][0]['sudocoins'] = "0"
+
             if 'verificationState' not in profileQuery['Items'][0]:
                 profileQuery['Items'][0]['verificationState'] = "None"
                 profileTable.update_item(
@@ -209,11 +188,6 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                         },
                         ReturnValues="ALL_NEW"
                     )
-
-                    if 'history' not in profileResponse['Attributes']:
-                        profileResponse['Attributes']['history'] = []
-                    if 'balance' not in profileResponse['Attributes']:
-                        profileResponse['Attributes']['balance'] = "0.00"
 
                     return profileResponse['Attributes']
 
@@ -293,57 +267,6 @@ def getConfig():
 
 def getRate(config):
     rate = str(config['rate'])
-    ethRate = str(config['ethRate'])
 
-    return rate, ethRate
+    return rate
 
-
-def getTiles(userId, config):
-    try:
-        buyerObject = []
-        for i in config['configValue']['publicBuyers']:
-            buyerObject.append(config['configValue']["buyers"][i])
-
-        tiles = []
-        for i in buyerObject:
-            if i['type'] == "survey":
-                buyer = {
-                    "name": i["name"],
-                    "type": i['type'],
-                    "title": i["title"]
-                }
-
-                if userId == "":
-                    url = i["urlGuest"]
-                    buyer["url"] = url + "buyerName=" + buyer['name']
-
-                else:
-                    url = i['urlAuth']
-                    buyer["url"] = url + "userId=" + userId + "&buyerName=" + buyer['name']
-
-            elif i['type'] == 'giftCard':
-                buyer = {
-                    "name": i["name"],
-                    "type": i['type'],
-                    "title": i["tileTitle"],
-                    "title2": i['productTitle'],
-                    "description": i["description"],
-                    "amounts": i['amounts'],
-                    "cashBack": i['cashBack'],
-                    "currencies": config['currencies']
-                }
-
-                if userId == "":
-                    url = i["urlGuest"]
-                    buyer["url"] = url
-
-                else:
-                    url = i['urlAuth']
-                    buyer["url"] = url
-
-            tiles.append(buyer)
-
-        return tiles
-
-    except Exception:
-        log.exception('Could not get tiles')
