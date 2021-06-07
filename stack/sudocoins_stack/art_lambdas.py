@@ -10,11 +10,10 @@ from aws_cdk import (
     aws_logs as logs
 )
 
-lambda_code_path = '../src'
-lambda_runtime = _lambda.Runtime.PYTHON_3_8
 lambda_default_kwargs = {
     'runtime': _lambda.Runtime.PYTHON_3_8,
     'code': _lambda.Code.asset('../src'),
+    'memory_size': 512,
     'log_retention': logs.RetentionDays.THREE_MONTHS
 }
 
@@ -29,7 +28,6 @@ class SudocoinsArtLambdas:
             'ArtGetProfileV2',
             function_name='ArtGetProfileV2',
             handler='art.get_profile.lambda_handler',
-            memory_size=512,
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
@@ -50,6 +48,7 @@ class SudocoinsArtLambdas:
             'ArtAddV2',
             function_name='ArtAddV2',
             handler='art.add_art.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.add_art_function)
@@ -82,9 +81,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtIncrementViewCountV2',
             function_name='ArtIncrementViewCountV2',
-            runtime=lambda_runtime,
             handler='art.increment_view_count.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_counter_queue.grant_send_messages(self.increment_view_count_function)
         # GET SHARED ART
@@ -92,9 +90,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetSharedArtV2',
             function_name='ArtGetSharedArtV2',
-            runtime=lambda_runtime,
             handler='art.get_shared_art.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_shared_art_function)
         resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
@@ -104,9 +101,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtSourceRedirectV2',
             function_name='ArtSourceRedirectV2',
-            runtime=lambda_runtime,
             handler='art.art_source_redirect.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.art_source_redirect_function)
         resources.art_uploads_table.grant_read_write_data(self.art_source_redirect_function)
@@ -115,9 +111,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtBatchGetV2',
             function_name='ArtBatchGetV2',
-            runtime=lambda_runtime,
             handler='art.get_arts.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_arts_function)
         # GET RECENT
@@ -125,9 +120,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetRecentV2',
             function_name='ArtGetRecentV2',
-            runtime=lambda_runtime,
             handler='art.get_recent.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_recent_function)
         self.get_recent_function.role.add_to_policy(
@@ -142,9 +136,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetTrendingV2',
             function_name='ArtGetTrendingV2',
-            runtime=lambda_runtime,
             handler='art.get_trending.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_trending_function)
         # SET TRENDING
@@ -152,9 +145,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
-            runtime=lambda_runtime,
             handler='art.set_trending.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(set_trending_function)
         resources.config_table.grant_read_write_data(set_trending_function)
@@ -180,9 +172,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetLeaderboardV2',
             function_name='ArtGetLeaderboardV2',
-            runtime=lambda_runtime,
             handler='art.get_leaderboard.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_leaderboard_function)
         # SET LEADERBOARD
@@ -190,9 +181,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtSetLeaderboardV2',
             function_name='ArtSetLeaderboardV2',
-            runtime=lambda_runtime,
             handler='art.set_leaderboard.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.profile_table.grant_read_data(set_leaderboard_function)
         resources.config_table.grant_read_write_data(set_leaderboard_function)
@@ -218,9 +208,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetUserArtsV2',
             function_name='ArtGetUserArtsV2',
-            runtime=lambda_runtime,
             handler='art.get_user_arts.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
         self.get_user_arts_function.role.add_to_policy(
@@ -235,9 +224,8 @@ class SudocoinsArtLambdas:
             scope,
             'ArtShareV2',
             function_name='ArtShareV2',
-            runtime=lambda_runtime,
             handler='art.share_art.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.share_art_function)
         resources.art_uploads_table.grant_read_write_data(self.share_art_function)
@@ -254,9 +242,9 @@ class SudocoinsArtLambdas:
             scope,
             'ArtRegisterClickV2',
             function_name='ArtRegisterClickV2',
-            runtime=lambda_runtime,
             handler='art.register_click.lambda_handler',
-            code=_lambda.Code.asset(lambda_code_path)
+            timeout=cdk.Duration.seconds(15),
+            **lambda_default_kwargs
         )
         resources.profile_table.grant_read_write_data(register_click_function)
         resources.ledger_table.grant_read_write_data(register_click_function)
