@@ -8,12 +8,10 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    # need to make sure list doesn't contain duplicates or the batch function will break
     query_params = event['queryStringParameters']
     count = int(query_params['count'])
-    from_utc = datetime.fromtimestamp(int(query_params['timestamp']) / 1000).isoformat()
     return {
-        'art': get_recent(count, from_utc)
+        'art': get_recent(count, query_params['timestamp'])
     }
 
 
