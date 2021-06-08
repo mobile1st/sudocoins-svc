@@ -130,12 +130,7 @@ class History:
             ledger = ledgerHistory["Items"]
 
             for i in ledger:
-                if 'amount' in i:
-                    if i['amount'] == "":
-                        i['amount'] = Decimal(0)
-                    else:
-                        i['amount'] = str(((Decimal(i['amount'])) * rate).quantize(
-                            Decimal('10') ** ((-1) * int(precision))))
+
                 if 'lastUpdate' in i:
                     utcTime = datetime.strptime(i['lastUpdate'], "%Y-%m-%dT%H:%M:%S.%f")
                     epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
