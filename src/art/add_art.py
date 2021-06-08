@@ -24,7 +24,7 @@ def lambda_handler(event, context):
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
         user_id = body['userId']
-        log.debug(f'user_id: {user_id} url: {input_url}')
+        log.info(f'user_id: {user_id} url: {input_url}')
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)

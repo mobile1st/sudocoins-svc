@@ -37,7 +37,8 @@ def lambda_handler(event, context):
         "status": "Pending",
         "transactionId": transactionId,
         "usdBtcRate": event['rate'],
-        "verificationState": verificationState
+        "verificationState": verificationState,
+        "payout_type": event['type']
     }
 
     payoutTable.put_item(
