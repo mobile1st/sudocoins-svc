@@ -85,7 +85,8 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             Key={'userId': userId},
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history, "
-                                 "verificationState, signupMethod, fraud_score, sudocoins"
+                                 "verificationState, signupMethod, fraud_score, sudocoins,"
+                                 "user_name, twitter_handle"
         )
         log.info(f'profileObject: {profileObject}')
 
@@ -148,7 +149,8 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             },
             ProjectionExpression="active , email, signupDate, userId, currency, "
                                  "gravatarEmail, facebookUrl, consent, history,"
-                                 "verificationState, signupMethod, fraud_score, sudocoins"
+                                 "verificationState, signupMethod, fraud_score, sudocoins,"
+                                 "user_name, twitter_handle"
         )
         log.info(f'profileQuery: {profileQuery}')
         if profileQuery['Count'] > 0:
@@ -221,7 +223,9 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "balance": 0,
         "sudocoins": 0,
         "verificationState": None,
-        "signupMethod": signupMethod
+        "signupMethod": signupMethod,
+        "user_name": None,
+        "twitter_handle": None
     }
 
     log.info(f'profile: {profile}')
