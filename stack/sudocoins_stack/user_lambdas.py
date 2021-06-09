@@ -46,7 +46,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserCashOutV2',
             function_name='UserCashOutV2',
-            handler='cash_out.lambda_handler',
+            handler='art.cash_out.lambda_handler',
             **lambda_default_kwargs
         )
         resources.profile_table.grant_read_write_data(self.cash_out_function)

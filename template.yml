@@ -3,14 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
 
-  CashOutFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: cash_out.lambda_handler
-      Runtime: python3.8
-      FunctionName: SudoCoinsCashOut
-      CodeUri: ./src
-
   UpdateProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
