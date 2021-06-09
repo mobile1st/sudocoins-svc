@@ -90,12 +90,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         "creator": open_sea_response['creator']
     }
 
-    if open_sea['animation_url'] is None:
-        preview_url = open_sea["image_preview_url"]
-        art_url = open_sea["image_url"]
-    else:
-        preview_url = open_sea["image_preview_url"]
-        art_url = open_sea['animation_original_url']
+    preview_url, art_url = get_urls(open_sea)
 
     art_object = dynamodb.Table('art').query(
         KeyConditionExpression=Key('contractId#tokenId').eq(contract_token_id),
@@ -177,3 +172,13 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         'shareId': art_uploads_record['shareId'],
         'balance': new_sudo['Attributes']['sudocoins']
     }
+
+
+def get_urls(open_sea):
+    anim_url: str = open_sea['animation_url']
+
+    # https://api.artblocks.io/generator/ is an html image generator and cannot be embedded directly
+    if anim_url and (not anim_url.startswith('https://api.artblocks.io/generator/')):
+        return open_sea["image_preview_url"],  open_sea["animation_original_url"]
+
+    return open_sea["image_preview_url"], open_sea['image_original_url']
