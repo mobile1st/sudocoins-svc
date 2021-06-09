@@ -1,7 +1,7 @@
 import boto3
 import json
 from survey.buyer_redirect import BuyerRedirect
-import history
+from art import history
 from datetime import datetime
 from util import sudocoins_logger
 import requests

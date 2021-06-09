@@ -1,6 +1,6 @@
 import boto3
 import json
-import history
+from art import history
 from datetime import datetime
 from util import sudocoins_logger
 

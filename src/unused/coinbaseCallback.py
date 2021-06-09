@@ -3,7 +3,7 @@ import json
 import os
 import hmac
 import hashlib
-import history
+from art import history
 
 
 def lambda_handler(event, context):

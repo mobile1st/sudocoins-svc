@@ -11,14 +11,6 @@ Resources:
       FunctionName: UpdateProfile
       CodeUri: ./src
 
-  SetCurrencyFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: setCurrency.lambda_handler
-      Runtime: python3.8
-      FunctionName: setCurrency
-      CodeUri: ./src
-
   contactFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -35,14 +27,6 @@ Resources:
       FunctionName: getRates
       CodeUri: ./src/ecommerce
 
-  setConsentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: setConsent.lambda_handler
-      Runtime: python3.8
-      FunctionName: setConsent
-      CodeUri: ./src
-
   moreHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -51,50 +35,10 @@ Resources:
       FunctionName: moreHistory
       CodeUri: ./src
 
-  checkoutFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: checkout.lambda_handler
-      Runtime: python3.8
-      FunctionName: checkout
-      CodeUri: ./src/ecommerce
-
-  getGiftCardFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: getGiftCard.lambda_handler
-      Runtime: python3.8
-      FunctionName: getGiftCard
-      CodeUri: ./src/ecommerce
-
-  coinbaseCallback:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: coinbaseCallback.lambda_handler
-      Runtime: python3.8
-      FunctionName: coinbaseCallback
-      CodeUri: ./src
-
-  nextStepFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: nextStep.lambda_handler
-      Runtime: python3.8
-      FunctionName: nextStep
-      CodeUri: ./src
-
   autoVerify:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auto_verify.lambda_handler
       Runtime: python3.8
       FunctionName: autoVerify
-      CodeUri: ./src
-
-  gdprCallback:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: gdprCallback.lambda_handler
-      Runtime: python3.8
-      FunctionName: gdprCallback
       CodeUri: ./src

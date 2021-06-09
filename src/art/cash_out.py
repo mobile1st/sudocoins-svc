@@ -2,7 +2,7 @@ from datetime import datetime
 import boto3
 import uuid
 import json
-from history import History
+from art.history import History
 from util import sudocoins_logger
 
 log = sudocoins_logger.get()

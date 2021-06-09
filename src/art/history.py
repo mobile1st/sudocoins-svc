@@ -1,11 +1,10 @@
 from decimal import Decimal
 import boto3
-import json
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
 import uuid
-import sudocoins_logger
+from util import sudocoins_logger
 
 log = sudocoins_logger.get()
 

@@ -1,5 +1,5 @@
 import boto3
-from lucid import Lucid
+from unused.lucid import Lucid
 
 
 def lambda_handler(event, context):

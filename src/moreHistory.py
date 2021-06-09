@@ -1,5 +1,5 @@
 import boto3
-from history import History
+from art.history import History
 
 
 def lambda_handler(event, context):
