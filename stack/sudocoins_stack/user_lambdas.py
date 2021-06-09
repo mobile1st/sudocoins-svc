@@ -1,0 +1,75 @@
+from resources import SudocoinsImportedResources
+from aws_cdk import (
+    core as cdk,
+    aws_lambda as _lambda,
+    aws_lambda_python as lambda_python,
+    aws_lambda_event_sources as event_sources,
+    aws_events as events,
+    aws_events_targets as events_targets,
+    aws_iam as iam,
+    aws_logs as logs
+)
+
+lambda_default_kwargs = {
+    'runtime': _lambda.Runtime.PYTHON_3_8,
+    'code': _lambda.Code.asset('../src'),
+    'memory_size': 512,
+    'log_retention': logs.RetentionDays.THREE_MONTHS
+}
+
+class SudocoinsUserLambdas:
+    def __init__(self,
+                 scope: cdk.Construct,
+                 resources: SudocoinsImportedResources):
+        # GET PROFILE
+        self.get_profile_function = _lambda.Function(
+            scope,
+            'UserGetProfileV2',
+            function_name='UserGetProfileV2',
+            handler='art.get_profile.lambda_handler',
+            description='Gets all data for displaying the profil page',
+            **lambda_default_kwargs
+        )
+        resources.transaction_topic.grant_publish(self.get_profile_function)
+        resources.profile_table.grant_read_write_data(self.get_profile_function)
+        resources.sub_table.grant_read_write_data(self.get_profile_function)
+        resources.config_table.grant_read_data(self.get_profile_function)
+        self.get_profile_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+        # CASH OUT
+        self.cash_out_function = _lambda.Function(
+            scope,
+            'UserCashOutV2',
+            function_name='UserCashOutV2',
+            handler='cash_out.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.cash_out_function)
+        resources.payouts_table.grant_read_write_data(self.cash_out_function)
+        resources.ledger_table.grant_read_write_data(self.cash_out_function)
+        resources.transaction_table.grant_read_write_data(self.cash_out_function)
+        resources.orders_table.grant_read_write_data(self.cash_out_function)
+        resources.sub_table.grant_read_write_data(self.cash_out_function)
+        self.cash_out_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['*'],
+                actions=['sns:Publish']
+            )
+        )
+        self.cash_out_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=[
+                    'arn:aws:dynamodb:us-west-2:977566059069:table/orders/index/*',
+                    'arn:aws:dynamodb:us-west-2:977566059069:table/Transaction/index/*',
+                    'arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*'
+                ],
+                actions=['dynamodb:Query']
+            )
+        )
