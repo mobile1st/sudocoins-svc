@@ -181,4 +181,7 @@ def get_urls(open_sea):
     if anim_url and (not anim_url.startswith('https://api.artblocks.io/generator/')):
         return open_sea["image_preview_url"],  open_sea["animation_original_url"]
 
+    if open_sea['image_original_url'] is None:
+        return open_sea["image_preview_url"], open_sea['image_url']
+
     return open_sea["image_preview_url"], open_sea['image_original_url']
