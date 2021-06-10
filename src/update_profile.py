@@ -3,51 +3,53 @@ import boto3
 
 def lambda_handler(event, context):
     """Updates the profile for a registered users.
-    Arguments: currency, language, gravatarEmail
+    Arguments: user_name, twitter_handle, gravatarEmail
     Returns: fields updated
     """
     dynamodb = boto3.resource('dynamodb')
     profileTable = dynamodb.Table("Profile")
-    jsonInput = event
-    sub = jsonInput["sub"]
-    userId = loadProfile(sub)
 
-    if userId is not None:
-        data = profileTable.update_item(
-            Key={
-                "userId": userId
-            },
-            UpdateExpression="set currency=:c, gravatarEmail=:ge",
-            ExpressionAttributeValues={
-                ":c": jsonInput["currency"],
-                ":ge": jsonInput["gravatarEmail"]
-
-            },
-            ReturnValues="ALL_NEW"
-        )
-        data['Attributes']['sub'] = sub
-
-        return {
-            'statusCode': 200,
-            'body': data['Attributes']
-        }
-
+    if 'userId' in event:
+        userId = event['userId']
     else:
+        sub = event["sub"]
+        userId = loadProfile(sub)
 
-        return {
-            'statusCode': 200,
-            'body': "userId not found"
+    profileQuery = profileTable.query(
+        IndexName='user_name-index',
+        KeyConditionExpression='user_name = :user',
+        ExpressionAttributeValues={
+            ':user': event['user_name']
         }
+    )
+    if profileQuery['Count'] > 0:
+        return {
+            "message": "User Name already exists. Please try something different."
+        }
+
+    data = profileTable.update_item(
+        Key={
+            "userId": userId
+        },
+        UpdateExpression="set currency=:c, gravatarEmail=:ge, user_name=:un, twitter_handle=:th",
+        ExpressionAttributeValues={
+            ":c": event["currency"],
+            ":ge": event["gravatarEmail"],
+            ":un": event['user_name'],
+            ":th": event['twitter_handle'],
+
+        },
+        ReturnValues="ALL_NEW"
+    )
+
+    return {
+        'body': data['Attributes']
+    }
 
 
 def loadProfile(sub):
-    """Fetches user preferences for the Profile page.
-    Argument: userId. This may change to email or cognito sub id .
-    Returns: a dict mapping user attributes to their values.
-    """
     dynamodb = boto3.resource('dynamodb')
     subTable = dynamodb.Table('sub')
-    profileTable = dynamodb.Table('Profile')
 
     subResponse = subTable.get_item(Key={'sub': sub})
 
