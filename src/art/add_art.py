@@ -87,10 +87,16 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         "image_original_url": open_sea_response['image_original_url'],
         "animation_url": open_sea_response['animation_url'],
         "animation_original_url": open_sea_response['animation_original_url'],
-        "creator": open_sea_response['creator']
+        "creator": open_sea_response['creator'],
+        "permalink": open_sea_response['permalink']
     }
 
     preview_url, art_url = get_urls(open_sea)
+
+    if open_sea['permalink'] is None:
+        buy_url = input_url
+    else:
+        buy_url = open_sea['permalink']
 
     art_object = dynamodb.Table('art').query(
         KeyConditionExpression=Key('contractId#tokenId').eq(contract_token_id),
@@ -102,7 +108,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
-            'buy_url': input_url,
+            'buy_url': buy_url,
             'contractId#tokenId': contract_token_id,
             'preview_url': preview_url,
             'art_url': art_url,
@@ -139,7 +145,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         "shareId": str(uuid.uuid1()),
         'contractId#tokenId': str(contract_id) + "#" + str(token_id),
         "name": open_sea['name'],
-        "buy_url": input_url,
+        "buy_url": buy_url,
         "user_id": user_id,
         'preview_url': preview_url,
         'art_url': art_url,

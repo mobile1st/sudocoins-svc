@@ -69,7 +69,7 @@ def lambda_handler(event, context):
 
     response = {
         "statusCode": 302,
-        "headers": {'Location': buy_url},
+        "headers": {'Location': (buy_url+'?ref=0x883a77493c18217d38149139951815a4d8d721ca')},
         "body": json.dumps({})
     }
 
