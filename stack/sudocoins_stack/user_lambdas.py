@@ -82,7 +82,6 @@ class SudocoinsUserLambdas:
         resources.payouts_table.grant_read_write_data(self.cash_out_function)
         resources.ledger_table.grant_read_write_data(self.cash_out_function)
         resources.transaction_table.grant_read_write_data(self.cash_out_function)
-        resources.orders_table.grant_read_write_data(self.cash_out_function)
         resources.sub_table.grant_read_write_data(self.cash_out_function)
         self.cash_out_function.role.add_to_policy(
             iam.PolicyStatement(
@@ -95,7 +94,6 @@ class SudocoinsUserLambdas:
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 resources=[
-                    'arn:aws:dynamodb:us-west-2:977566059069:table/orders/index/*',
                     'arn:aws:dynamodb:us-west-2:977566059069:table/Transaction/index/*',
                     'arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*'
                 ],
