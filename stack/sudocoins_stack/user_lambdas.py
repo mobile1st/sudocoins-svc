@@ -46,7 +46,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserUpdateProfileV2',
             function_name='UserUpdateProfileV2',
-            handler='update_profile.lambda_handler',
+            handler='art.update_profile.lambda_handler',
             description='Updates profile related attributes',
             **lambda_default_kwargs
         )
@@ -64,7 +64,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserVerifyV2',
             function_name='UserVerifyV2',
-            handler='auto_verify.lambda_handler',
+            handler='art.user_verify.lambda_handler',
             description='Verifies user with google recaptcha',
             **lambda_default_kwargs
         )
