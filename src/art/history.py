@@ -1,5 +1,4 @@
 from decimal import Decimal
-import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
@@ -79,17 +78,13 @@ class History:
         transactions = self.getTransactions(userId)
         log.info(f"transactions {transactions}")
 
-        log.debug("about to get orders")
-        orders = self.getOrders(userId)
-        log.info(f"orders {orders}")
-
         log.debug("about to merge")
-        history = self.mergeHistory(ledger, transactions, orders)
+        history = self.mergeHistory(ledger, transactions)
         log.info(f"history {history}")
         return history
 
-    def mergeHistory(self, ledger, transactions, orders):
-        history = ledger + transactions + orders
+    def mergeHistory(self, ledger, transactions):
+        history = ledger + transactions
 
         history = sorted(history, key=lambda k: k['epochTime'], reverse=True)
         log.info("history sorted")
@@ -233,60 +228,3 @@ class History:
         userProfile = self.updateProfile(userId)
 
         return transactionData, userProfile
-
-    def createOrder(self, orderRecord):
-        ordersTable = self.dynamodb.Table('orders')
-        ordersTable.put_item(
-            Item=orderRecord
-        )
-
-    def updateOrder(self, orderId, orderStatus):
-        ordersTable = self.dynamodb.Table('orders')
-        response = ordersTable.update_item(
-            Key={
-                "orderId": orderId
-            },
-            UpdateExpression="set statusCode=:sc",
-            ExpressionAttributeValues={
-                ":sc": orderStatus
-            },
-            ReturnValues="ALL_NEW"
-        )
-        log.info(f"updated item: {response}")
-
-        userId = response['Attributes']['userId']
-
-        if orderStatus == "charge:confirmed":
-            self.updateProfile(userId)
-            client = boto3.client("sns")
-            client.publish(
-                PhoneNumber="+16282265769",
-                Message="Gift Card ordered. Start processing"
-            )
-
-        else:
-            self.updateProfile(userId)
-
-    def getOrders(self, userId):
-        ordersTable = self.dynamodb.Table('orders')
-
-        orderHistory = ordersTable.query(
-            KeyConditionExpression=Key("userId").eq(userId),
-            ScanIndexForward=False,
-            IndexName='userId-index',
-            ProjectionExpression="orderId, created, amountUsd, statusCode")
-        log.info(f"orderHistory {orderHistory}")
-        orders = orderHistory["Items"]
-
-        for i in orders:
-            if 'created' in i:
-                utcTime = datetime.strptime(i['created'], "%Y-%m-%dT%H:%M:%S.%f")
-                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                i['epochTime'] = int(epochTime)
-            i["status"] = i['statusCode'][7:]
-            i['amount'] = str(Decimal(i['amountUsd']).quantize(
-                Decimal(10) ** ((-1) * 2)))
-            i['transactionId'] = i['orderId']
-            i['type'] = 'Gift Card Order'
-
-        return orders
