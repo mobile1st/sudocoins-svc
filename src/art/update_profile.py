@@ -19,7 +19,6 @@ def lambda_handler(event, context):
 
     profile = update_profile(
         user_id,
-        input_json.get('currency'),
         input_json.get('gravatarEmail'),
         user_name,
         input_json.get('twitter_handle')
@@ -42,15 +41,14 @@ def check_user_name_exists(user_name):
     )['Count'] > 0
 
 
-def update_profile(user_id, currency, gravatar_email, user_name, twitter_handle):
-    update_expression = 'SET currency=:c, gravatarEmail=:ge, twitter_handle=:th'
+def update_profile(user_id, gravatar_email, user_name, twitter_handle):
+    update_expression = 'SET gravatarEmail=:ge, twitter_handle=:th'
     attribute_values = {
-        ':c': currency,  # do we need this?
         ':ge': gravatar_email,
         ':th': twitter_handle
     }
     if user_name:  # user_name is also an index, can't update with null
-        update_expression = 'SET currency=:c, gravatarEmail=:ge, user_name=:un, twitter_handle=:th'
+        update_expression = 'SET gravatarEmail=:ge, user_name=:un, twitter_handle=:th'
         attribute_values[':un'] = user_name
     return dynamodb.Table('Profile').update_item(
         Key={
