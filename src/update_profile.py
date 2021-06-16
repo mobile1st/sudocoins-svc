@@ -1,4 +1,7 @@
 import boto3
+import json
+
+dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
@@ -6,58 +9,58 @@ def lambda_handler(event, context):
     Arguments: user_name, twitter_handle, gravatarEmail
     Returns: fields updated
     """
-    dynamodb = boto3.resource('dynamodb')
-    profileTable = dynamodb.Table("Profile")
-
-    if 'userId' in event:
-        userId = event['userId']
-    else:
-        sub = event["sub"]
-        userId = loadProfile(sub)
-
-    profileQuery = profileTable.query(
-        IndexName='user_name-index',
-        KeyConditionExpression='user_name = :user',
-        ExpressionAttributeValues={
-            ':user': event['user_name']
-        }
-    )
-    if profileQuery['Count'] > 0:
+    input_json = json.loads(event.get('body', '{}'))
+    user_id = input_json['userId'] if 'userId' in input_json else get_user_id(input_json['sub'])
+    user_name = input_json.get('user_name')
+    if check_user_name_exists(user_name):
         return {
-            "message": "User Name already exists. Please try something different."
+            'message': 'User Name already exists. Please try something different.'
         }
 
-    data = profileTable.update_item(
-        Key={
-            "userId": userId
-        },
-        UpdateExpression="set currency=:c, gravatarEmail=:ge, user_name=:un, twitter_handle=:th",
-        ExpressionAttributeValues={
-            ":c": event["currency"],
-            ":ge": event["gravatarEmail"],
-            ":un": event['user_name'],
-            ":th": event['twitter_handle'],
-
-        },
-        ReturnValues="ALL_NEW"
+    profile = update_profile(
+        user_id,
+        input_json.get('currency'),
+        input_json.get('gravatarEmail'),
+        user_name,
+        input_json.get('twitter_handle')
     )
-
     return {
-        'body': data['Attributes']
+        'profile': profile
     }
 
 
-def loadProfile(sub):
-    dynamodb = boto3.resource('dynamodb')
-    subTable = dynamodb.Table('sub')
+def check_user_name_exists(user_name):
+    if not user_name:
+        return False
 
-    subResponse = subTable.get_item(Key={'sub': sub})
+    return dynamodb.Table('Profile').query(
+        IndexName='user_name-index',
+        KeyConditionExpression='user_name = :user',
+        ExpressionAttributeValues={
+            ':user': user_name
+        }
+    )['Count'] > 0
 
-    if 'Item' in subResponse:
-        userId = subResponse['Item']['userId']
 
-        return userId
+def update_profile(user_id, currency, gravatar_email, user_name, twitter_handle):
+    update_expression = 'SET currency=:c, gravatarEmail=:ge, twitter_handle=:th'
+    attribute_values = {
+        ':c': currency,  # do we need this?
+        ':ge': gravatar_email,
+        ':th': twitter_handle
+    }
+    if user_name:  # user_name is also an index, can't update with null
+        update_expression = 'SET currency=:c, gravatarEmail=:ge, user_name=:un, twitter_handle=:th'
+        attribute_values[':un'] = user_name
+    return dynamodb.Table('Profile').update_item(
+        Key={
+            'userId': user_id
+        },
+        UpdateExpression=update_expression,
+        ExpressionAttributeValues=attribute_values,
+        ReturnValues='ALL_NEW'
+    )['Attributes']
 
-    else:
 
-        return None
+def get_user_id(sub):
+    return dynamodb.Table('sub').get_item(Key={'sub': sub})['Item']['userId']

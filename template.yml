@@ -3,14 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Python file including external library
 Resources:
 
-  UpdateProfileFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: update_profile.lambda_handler
-      Runtime: python3.8
-      FunctionName: UpdateProfile
-      CodeUri: ./src
-
   contactFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -33,12 +25,4 @@ Resources:
       Handler: moreHistory.lambda_handler
       Runtime: python3.8
       FunctionName: moreHistory
-      CodeUri: ./src
-
-  autoVerify:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auto_verify.lambda_handler
-      Runtime: python3.8
-      FunctionName: autoVerify
       CodeUri: ./src

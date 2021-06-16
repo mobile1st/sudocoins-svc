@@ -41,6 +41,35 @@ class SudocoinsUserLambdas:
                 actions=['dynamodb:Query']
             )
         )
+        # UPDATE PROFILE
+        self.update_profile_function = _lambda.Function(
+            scope,
+            'UserUpdateProfileV2',
+            function_name='UserUpdateProfileV2',
+            handler='update_profile.lambda_handler',
+            description='Updates profile related attributes',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.update_profile_function)
+        resources.sub_table.grant_read_data(self.update_profile_function)
+        self.update_profile_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+        # USER VERIFY
+        self.user_verify_function = _lambda.Function(
+            scope,
+            'UserVerifyV2',
+            function_name='UserVerifyV2',
+            handler='auto_verify.lambda_handler',
+            description='Verifies user with google recaptcha',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.user_verify_function)
+        resources.verifications_table.grant_read_write_data(self.user_verify_function)
         # CASH OUT
         self.cash_out_function = _lambda.Function(
             scope,

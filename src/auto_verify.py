@@ -1,54 +1,59 @@
 import boto3
-from datetime import datetime
-import requests
 import json
+import http.client
+from util import sudocoins_logger
+from datetime import datetime
 
+log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
+secret = '6LfDfokaAAAAAMYePyids1EPPZ4guZkD6yJHC3Lm'
 
 
 def lambda_handler(event, context):
-    verification_table = dynamodb.Table('Verifications')
-    profile_table = dynamodb.Table('Profile')
+    log.debug(f'event: {event}')
+    input_json = json.loads(event['body'])
+    recaptcha_response = call_google_recaptcha(input_json['token'])
+    success_response = recaptcha_response['success']
+    user_id = input_json['userId']
+    update_profile_with_recaptcha_response(user_id, success_response)
 
-    print(event)
+    return update_profile_with_recaptcha_response(user_id, success_response)
 
-    url = 'https://www.google.com/recaptcha/api/siteverify'
-    myobj = {
-        "secret": "6LfDfokaAAAAAMYePyids1EPPZ4guZkD6yJHC3Lm",
-        "response": event['token']
-    }
-    x = requests.post(url, data=myobj)
-    response = json.loads(x.text)
 
-    print(response['success'])
+def call_google_recaptcha(input_token):
+    conn = http.client.HTTPSConnection('www.google.com')
+    conn.request('POST', f'/recaptcha/api/siteverify?secret={secret}&response={input_token}')
+    response = conn.getresponse()
+    json_response = json.loads(response.read())
+    log.debug(f'recaptcha response: {json_response}')
 
-    userId = event['userId']
+    return json_response
 
-    verification_table.update_item(
+
+def update_verifications_with_recaptcha_response(user_id, response):
+    dynamodb.Table('Verifications').update_item(
         Key={
-            "userId": event['userId']
+            'userId': user_id
         },
-        UpdateExpression="set verificationState=:vs, lastUpdate=:lu,"
-                         "verifiedBy=:vb",
+        UpdateExpression='set verificationState=:vs, lastUpdate=:lu,'
+                         'verifiedBy=:vb',
         ExpressionAttributeValues={
-            ":vs": response['success'],
-            ":lu": datetime.utcnow().isoformat(),
-            ":vb": "CashOut"
-
+            ':vs': response,
+            ':lu': datetime.utcnow().isoformat(),
+            ':vb': 'CashOut'
         },
-        ReturnValues="ALL_NEW"
+        ReturnValues='ALL_NEW'
     )
 
-    userProfile = profile_table.update_item(
+
+def update_profile_with_recaptcha_response(user_id, response):
+    return dynamodb.Table('Profile').update_item(
         Key={
-            "userId": event['userId']
+            'userId': user_id
         },
         UpdateExpression="set verificationState=:vs",
         ExpressionAttributeValues={
-            ":vs": response['success']
+            ':vs': response
         },
-        ReturnValues="ALL_NEW"
-    )
-
-    return userProfile['Attributes']
-
+        ReturnValues='ALL_NEW'
+    )['Attributes']

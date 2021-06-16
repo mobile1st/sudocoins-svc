@@ -33,6 +33,24 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_profile_integration
         )
+        # UPDATE PROFILE
+        update_profile_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.update_profile_function
+        )
+        user_api_v2.add_routes(
+            path='/user/profile/update',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=update_profile_integration
+        )
+        # USER VERIFY
+        user_verify_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.user_verify_function
+        )
+        user_api_v2.add_routes(
+            path='/user/verify',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=user_verify_integration
+        )
         # CASH OUT
         cash_out_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.cash_out_function
