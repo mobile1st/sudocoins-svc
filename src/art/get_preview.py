@@ -11,9 +11,8 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     log.info(f'get_preview {event}')
 
-    query_params = event['queryStringParameters']
-    art_id = query_params.get('id')
-    user_agent = event['user_agent']
+    art_id = event['rawPath'].replace('/art/social/', '')
+    user_agent = event['userAgent']
 
     if user_agent.find('facebookexternalhit') > -1:
         art_object = get_by_share_id(art_id)

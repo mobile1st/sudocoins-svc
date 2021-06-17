@@ -128,7 +128,7 @@ class SudocoinsArtApi:
             handler=lambdas.get_preview_function
         )
         art_api_v2.add_routes(
-            path='/art/preview',
+            path='/art/social/{shareId}',
             methods=[apigwv2.HttpMethod.GET],
             integration=get_preview_integration
         )
