@@ -13,6 +13,7 @@ def lambda_handler(event, context):
 
     art_id = event['rawPath'].replace('/art/social/', '')
     user_agent = event['headers']['user-agent']
+    log.info(f'user_agent {user_agent}')
 
     if user_agent.find('facebookexternalhit') > -1:
         art_object = get_by_share_id(art_id)
@@ -20,8 +21,11 @@ def lambda_handler(event, context):
         return tags
 
     elif user_agent.find('Twitterbot') > -1:
+        score = user_agent.find('Twitterbot')
+        log.info(f'score {score}')
         art_object = get_by_share_id(art_id)
         tags = get_html(art_object['name'], art_object['art_url'])
+        log.info(f'html {tags}')
         return tags
 
     else:
