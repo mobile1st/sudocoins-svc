@@ -27,6 +27,7 @@ def lambda_handler(event, context):
         tags = get_html(art_object['name'], art_object['art_url'])
         log.info(f'html {tags}')
         return {
+            'statusCode': 200,
             'headers': {'Content-Type': 'text/html'},
             'body': tags
         }
