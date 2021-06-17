@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         Item=art_votes_record
     )
 
-    art_votes = get_votes()
+    art_votes = get_votes(unique_id)
     recent_arts = get_recent(20, timestamp)
 
     count = 20
@@ -42,7 +42,6 @@ def lambda_handler(event, context):
                         "art_id": i['art_id'],
                         "art_url": i['art_url'],
                         "preview_url": i['preview_url'],
-                        "name": i["name"],
                         "recent_sk": i['recent_sk']
                     }
             count -= 1
@@ -50,7 +49,9 @@ def lambda_handler(event, context):
                 recent_arts = get_recent(20, i['recent_sk'])
                 count = len(recent_arts)
 
-    return
+    return {
+        "status": "No more Art"
+    }
 
 
 def get_recent(count, timestamp):
