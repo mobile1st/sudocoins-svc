@@ -59,11 +59,11 @@ def get_by_share_id(share_id):
 
 
 def get_html(title, image):
-    twitter_card = "<meta name=\"twitter:card\" content=\"summary_large_image\">"
-    site = "<meta name=\"twitter:site\" content=\"@sudocoins\">"
-    title = "<meta name=\"twitter:title\" content=\"" + title + "\">"
-    description = "<meta name=\"twitter:description\" content=\"Discover new Art and help creators grow\">"
-    image = "<meta name=\"twitter:image\" content=\"" + image + "\">"
+    twitter_card = "<meta name=\"twitter:card\" content=\"summary_large_image\"/>"
+    site = "<meta name=\"twitter:site\" content=\"@sudocoins\"/>"
+    title = "<meta name=\"twitter:title\" content=\"" + title + "\"/>"
+    description = "<meta name=\"twitter:description\" content=\"Discover new Art and help creators grow\"/>"
+    image = "<meta name=\"twitter:image\" content=\"" + image + "\"/>"
 
     return '<html><head>' + twitter_card + site + \
            title + description + image + '</head><body></body></html>'
