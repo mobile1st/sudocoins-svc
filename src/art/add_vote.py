@@ -1,10 +1,5 @@
 import boto3
-import json
-import re
-import http.client
-import uuid
 from boto3.dynamodb.conditions import Key
-from datetime import datetime
 from util import sudocoins_logger
 from art.art import Art
 
@@ -33,15 +28,25 @@ def lambda_handler(event, context):
         Item=art_votes_record
     )
 
-    recent = get_recent(20, timestamp)
+    art_votes = get_votes()
+    recent_arts = get_recent(20, timestamp)
 
-    vote = get_votes()
+    count = 20
+    while count > 0:
+        for i in recent_arts:
+            for k in art_votes:
+                if i['art_id'] == k['art_id']:
+                    continue
+                else:
+                    return i
+            count -= 1
+            if count == 0:
+                recent_arts = get_recent(20, i['recent_sk'])
+                count = len(recent_arts)
 
-    for i in recent:
-
-        continue
-
-    return None
+    return {
+        "status": "No more Art"
+    }
 
 
 def get_recent(count, timestamp):
