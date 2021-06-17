@@ -38,15 +38,19 @@ def lambda_handler(event, context):
                 if i['art_id'] == k['art_id']:
                     continue
                 else:
-                    return i
+                    return {
+                        "art_id": i['art_id'],
+                        "art_url": i['art_url'],
+                        "preview_url": i['preview_url'],
+                        "name": i["name"],
+                        "recent_sk": i['recent_sk']
+                    }
             count -= 1
             if count == 0:
                 recent_arts = get_recent(20, i['recent_sk'])
                 count = len(recent_arts)
 
-    return {
-        "status": "No more Art"
-    }
+    return
 
 
 def get_recent(count, timestamp):
