@@ -2,7 +2,6 @@ from resources import SudocoinsImportedResources
 from aws_cdk import (
     core as cdk,
     aws_lambda as _lambda,
-    aws_iam as iam,
     aws_sns_subscriptions as subs
 )
 
@@ -44,13 +43,7 @@ class SudocoinsAdminLambdas:
             code=_lambda.Code.asset(lambda_code_path)
         )
         resources.payouts_table.grant_read_data(self.payouts_function)
-        self.payouts_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Payouts/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(self.payouts_function, [resources.payouts_table])
         self.user_details_function = _lambda.Function(
             scope,
             'AdminUserDetailsV2',
@@ -61,15 +54,9 @@ class SudocoinsAdminLambdas:
         )
         resources.ledger_table.grant_read_data(self.user_details_function)
         resources.transaction_table.grant_read_data(self.user_details_function)
-        self.user_details_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=[
-                    'arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*',
-                    'arn:aws:dynamodb:us-west-2:977566059069:table/Transaction/index/*'
-                ],
-                actions=['dynamodb:Query']
-            )
+        resources.grant_read_index_data(
+            self.user_details_function,
+            [resources.transaction_table, resources.ledger_table]
         )
         self.update_cash_out_function = _lambda.Function(
             scope,

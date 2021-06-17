@@ -1,6 +1,10 @@
+import typing
+
 from aws_cdk import (
     core as cdk,
+    aws_lambda as _lambda,
     aws_dynamodb as dynamodb,
+    aws_iam as iam,
     aws_apigatewayv2_authorizers as api_authorizers,
     aws_cognito as cognito,
     aws_sns as sns,
@@ -9,6 +13,16 @@ from aws_cdk import (
 
 
 class SudocoinsImportedResources:
+    def grant_read_index_data(self, function: _lambda.Function, tables: typing.Sequence[dynamodb.Table]):
+        indexes = [f'{table.table_arn}/index/*' for table in tables]
+        function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=indexes,
+                actions=['dynamodb:Query']
+            )
+        )
+
     def __init__(self, scope: cdk.Construct):
         self.traffic_reports_table = dynamodb.Table.from_table_arn(
             scope,

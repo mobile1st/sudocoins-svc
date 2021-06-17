@@ -6,7 +6,6 @@ from aws_cdk import (
     aws_lambda_event_sources as event_sources,
     aws_events as events,
     aws_events_targets as events_targets,
-    aws_iam as iam,
     aws_logs as logs
 )
 
@@ -35,26 +34,9 @@ class SudocoinsArtLambdas:
         resources.art_uploads_table.grant_read_write_data(self.add_art_function)
         resources.profile_table.grant_read_write_data(self.add_art_function)
         resources.ledger_table.grant_read_write_data(self.add_art_function)
-        self.add_art_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
-        self.add_art_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
-        self.add_art_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads/index/*'],
-                actions=['dynamodb:Query']
-            )
+        resources.grant_read_index_data(
+            self.add_art_function,
+            [resources.art_table, resources.art_uploads_table, resources.ledger_table]
         )
         # INCREMENT VIEW COUNT
         self.increment_view_count_function = _lambda.Function(
@@ -104,13 +86,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_recent_function)
-        self.get_recent_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(self.get_recent_function, [resources.art_table])
         # GET TRENDING
         self.get_trending_function = _lambda.Function(
             scope,
@@ -130,13 +106,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_data(set_trending_function)
         resources.config_table.grant_read_write_data(set_trending_function)
-        set_trending_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(set_trending_function, [resources.art_table])
         set_trending_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_trending_target = events_targets.LambdaFunction(handler=set_trending_function)
         events.Rule(
@@ -166,13 +136,7 @@ class SudocoinsArtLambdas:
         )
         resources.profile_table.grant_read_data(set_leaderboard_function)
         resources.config_table.grant_read_write_data(set_leaderboard_function)
-        set_leaderboard_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(set_leaderboard_function, [resources.profile_table])
         set_leaderboard_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_leaderboard_target = events_targets.LambdaFunction(handler=set_leaderboard_function)
         events.Rule(
@@ -192,13 +156,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
-        self.get_user_arts_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(self.get_user_arts_function, [resources.art_uploads_table])
         # SHARE ART
         self.share_art_function = _lambda.Function(
             scope,
@@ -210,13 +168,7 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_data(self.share_art_function)
         resources.art_uploads_table.grant_read_write_data(self.share_art_function)
         resources.profile_table.grant_read_write_data(self.share_art_function)
-        self.share_art_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(self.share_art_function, [resources.art_uploads_table])
         # REGISTER CLICK
         register_click_function = _lambda.Function(
             scope,
@@ -237,13 +189,7 @@ class SudocoinsArtLambdas:
                 enabled=True
             )
         )
-        register_click_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Ledger/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+        resources.grant_read_index_data(register_click_function, [resources.ledger_table])
         # ADD VOTE
         self.add_vote_function = _lambda.Function(
             scope,
@@ -255,19 +201,4 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_write_data(self.add_vote_function)
         resources.art_votes_table.grant_read_write_data(self.add_vote_function)
-
-        self.add_vote_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
-        self.add_vote_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_votes/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
-
+        resources.grant_read_index_data(self.add_vote_function, [resources.art_table, resources.art_votes_table])
