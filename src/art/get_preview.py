@@ -26,7 +26,10 @@ def lambda_handler(event, context):
         art_object = get_by_share_id(art_id)
         tags = get_html(art_object['name'], art_object['art_url'])
         log.info(f'html {tags}')
-        return tags
+        return {
+            'headers': {'Content-Type': 'text/html'},
+            'body': tags
+        }
 
     else:
         return {
