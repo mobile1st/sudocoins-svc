@@ -114,3 +114,12 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_leaderboard_integration
         )
+        # ADD VOTE
+        add_vote_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.add_vote_function
+        )
+        art_api_v2.add_routes(
+            path='/art/vote',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=add_vote_integration
+        )

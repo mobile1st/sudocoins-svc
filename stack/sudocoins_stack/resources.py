@@ -60,6 +60,11 @@ class SudocoinsImportedResources:
             'VerificationsTable',
             'arn:aws:dynamodb:us-west-2:977566059069:table/Verifications'
         )
+        self.art_votes_table = dynamodb.Table.from_table_arn(
+            scope,
+            'ArtVotesTable',
+            'arn:aws:dynamodb:us-west-2:977566059069:table/art_votes'
+        )
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
         self.sudocoins_authorizer = self.init_authorizer(scope)
         self.transaction_topic = sns.Topic.from_topic_arn(

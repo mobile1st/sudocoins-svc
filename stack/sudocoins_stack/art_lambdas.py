@@ -244,3 +244,30 @@ class SudocoinsArtLambdas:
                 actions=['dynamodb:Query']
             )
         )
+        # ADD VOTE
+        self.add_vote_function = _lambda.Function(
+            scope,
+            'AddVote',
+            function_name='AddVote',
+            handler='art.add_vote.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.add_vote_function)
+        resources.art_vote_table.grant_read_write_data(self.add_vote_function)
+
+        self.add_vote_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+        self.add_vote_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/art_votes/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
+
