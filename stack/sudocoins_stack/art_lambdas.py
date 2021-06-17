@@ -202,3 +202,15 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.add_vote_function)
         resources.art_votes_table.grant_read_write_data(self.add_vote_function)
         resources.grant_read_index_data(self.add_vote_function, [resources.art_table, resources.art_votes_table])
+        # GET PREVIEW
+        self.get_preview_function = _lambda.Function(
+            scope,
+            'GetPreviewV2',
+            function_name='GetPreviewV2',
+            handler='art.get_preview.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.get_preview_function)
+        resources.art_uploads_table.grant_read_write_data(self.get_preview_function)
+        resources.grant_read_index_data(self.get_preview_function, [resources.art_table, resources.art_uploads_table])
