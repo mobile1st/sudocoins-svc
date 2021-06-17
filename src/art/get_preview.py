@@ -16,11 +16,13 @@ def lambda_handler(event, context):
 
     if user_agent.find('facebookexternalhit') > -1:
         art_object = get_by_share_id(art_id)
-        return art_object
+        tags = get_html(art_object['name'], art_object['art_url'])
+        return tags
 
     elif user_agent.find('Twitterbot') > -1:
         art_object = get_by_share_id(art_id)
-        return art_object
+        tags = get_html(art_object['name'], art_object['art_url'])
+        return tags
 
     else:
         return {
@@ -34,7 +36,7 @@ def get_by_share_id(share_id):
     # returns the art_uploads record based on shareId
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+        ProjectionExpression="art_url, #n",
         ExpressionAttributeNames={'#n': 'name'}
     )
     if 'Item' in art_uploads_record:
@@ -42,7 +44,7 @@ def get_by_share_id(share_id):
 
     art_record = dynamodb.Table('art').get_item(
         Key={'art_id': share_id},
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url",
+        ProjectionExpression="art_url, #n",
         ExpressionAttributeNames={'#n': 'name'})
     if 'Item' in art_record:
         return art_record['Item']
@@ -50,3 +52,14 @@ def get_by_share_id(share_id):
     return {
         "message": "Art not found. Add generic preview data"
     }
+
+
+def get_html(title, image):
+    twitter_card = "<meta name = \"twitter:card\" content = \"summary_large_image\" >"
+    site = "< meta name = \"twitter:site\" content = \"@sudocoins\" >"
+    title = "< meta name = \"twitter:title\" content = " + title + " >"
+    description = "< metabname = \"twitter:description\" content = \"Discover new Art and help creators grow\" >"
+    image = "< meta name = \"twitter:image\" content = " + image + ">"
+
+    return '<html><head>' + twitter_card + site + \
+           title + description + image + '</head><body></body></html>'
