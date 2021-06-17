@@ -30,7 +30,13 @@ def lambda_handler(event, context):
 
     art_votes = get_votes(unique_id)
     recent_arts = get_recent(20, timestamp)
-
+    if len(art_votes) == 0:
+        return {
+            "art_id": recent_arts[0]['art_id'],
+            "art_url": recent_arts[0]['art_url'],
+            "preview_url": recent_arts[0]['preview_url'],
+            "recent_sk": recent_arts[0]['recent_sk']
+        }
     count = 20
     while count > 0:
         for i in recent_arts:
