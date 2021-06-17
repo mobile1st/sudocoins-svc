@@ -123,3 +123,12 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=add_vote_integration
         )
+        # GET PREVIEW
+        get_preview_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_preview_function
+        )
+        art_api_v2.add_routes(
+            path='/art/preview',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_preview_integration
+        )
