@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     log.info(f'get_preview {event}')
 
     art_id = event['rawPath'].replace('/art/social/', '')
-    user_agent = event['userAgent']
+    user_agent = event['headers']['user-agent']
 
     if user_agent.find('facebookexternalhit') > -1:
         art_object = get_by_share_id(art_id)

@@ -49,9 +49,7 @@ def lambda_handler(event, context):
                 recent_arts = get_recent(20, i['recent_sk'])
                 count = len(recent_arts)
 
-    return {
-        "status": "No more Art"
-    }
+    return
 
 
 def get_recent(count, timestamp):
