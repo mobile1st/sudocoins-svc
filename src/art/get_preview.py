@@ -46,7 +46,7 @@ def get_by_share_id(share_id):
     # returns the art_uploads record based on shareId
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
-        ProjectionExpression="art_url, #n",
+        ProjectionExpression="preview_url, #n",
         ExpressionAttributeNames={'#n': 'name'}
     )
     if 'Item' in art_uploads_record:
@@ -57,7 +57,7 @@ def get_by_share_id(share_id):
 
     art_record = dynamodb.Table('art').get_item(
         Key={'art_id': share_id},
-        ProjectionExpression="art_url, #n",
+        ProjectionExpression="preview_url, #n",
         ExpressionAttributeNames={'#n': 'name'})
     if 'Item' in art_record:
         return {
