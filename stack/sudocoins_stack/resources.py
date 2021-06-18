@@ -8,7 +8,11 @@ from aws_cdk import (
     aws_apigatewayv2_authorizers as api_authorizers,
     aws_cognito as cognito,
     aws_sns as sns,
-    aws_sqs as sqs
+    aws_sqs as sqs,
+    aws_apigatewayv2 as apigwv2,
+    aws_route53 as route53,
+    aws_route53_targets as route53_targets,
+    aws_certificatemanager as acm
 )
 
 
@@ -24,6 +28,7 @@ class SudocoinsImportedResources:
         )
 
     def __init__(self, scope: cdk.Construct):
+        self.sudocoins_domain_name = self.custom_domain(scope)
         self.traffic_reports_table = dynamodb.Table.from_table_arn(
             scope,
             'TrafficReportsTable',
@@ -122,3 +127,34 @@ class SudocoinsImportedResources:
             user_pool=sudocoins_pool,
             user_pool_client=sudocoins_ui_client
         )
+
+    def custom_domain(self, scope: cdk.Construct):
+        hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
+            scope,
+            'SudocoinsZone',
+            hosted_zone_id='Z078942423UGVMS8LO8GZ',
+            zone_name='sudocoins.com'
+        )
+        certificate = acm.Certificate.from_certificate_arn(
+            scope,
+            'SudocoinsApiCertificate',
+            'arn:aws:acm:us-west-2:977566059069:certificate/ebe1b64b-4806-4b92-a4be-83372ccbe724'
+        )
+        domain_name = apigwv2.DomainName(
+            scope,
+            'SudocoinsDomainName',
+            domain_name='api.sudocoins.com',
+            certificate=certificate
+        )
+        target = route53_targets.ApiGatewayv2DomainProperties(
+            domain_name.regional_domain_name,
+            domain_name.regional_hosted_zone_id
+        )
+        route53.ARecord(
+            scope,
+            'SudocoinsApiARecord',
+            zone=hosted_zone,
+            record_name='api.sudocoins.com',
+            target=route53.RecordTarget.from_alias(target)
+        )
+        return domain_name

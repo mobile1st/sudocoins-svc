@@ -22,6 +22,7 @@ class SudocoinsUserApi:
         user_api_v2 = apigwv2.HttpApi(
             scope,
             'UserApiV2',
+            default_domain_mapping=apigwv2.DomainMappingOptions(domain_name=resources.sudocoins_domain_name),
             cors_preflight=self.default_cors_preflight
         )
         # GET PROFILE
