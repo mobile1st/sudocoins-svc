@@ -46,31 +46,25 @@ def get_by_share_id(share_id):
     # returns the art_uploads record based on shareId
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
-        ProjectionExpression="preview_url, #n",
+        ProjectionExpression="art_url, #n",
         ExpressionAttributeNames={'#n': 'name'}
     )
     if 'Item' in art_uploads_record:
-        return {
-            'name': art_uploads_record['Item']['name'],
-            'url': art_uploads_record['Item']['preview_url']
-        }
+        return art_uploads_record['Item']  # {name, art_url}
 
     art_record = dynamodb.Table('art').get_item(
         Key={'art_id': share_id},
-        ProjectionExpression="preview_url, #n",
+        ProjectionExpression="art_url, #n",
         ExpressionAttributeNames={'#n': 'name'})
     if 'Item' in art_record:
-        return {
-            'name': art_record['Item']['name'],
-            'url': art_record['Item']['preview_url']
-        }
+        return art_record['Item']  # {name, art_url}
 
     return None
 
 
 def get_twitter_html(art):
     title = html.escape(art.get('name', ''))
-    url = art.get('url', '')
+    url = art.get('art_url', '')
     return f'<!DOCTYPE html>\
     <html lang="en">\
         <head>\
