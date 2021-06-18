@@ -143,7 +143,7 @@ class SudocoinsImportedResources:
         domain_name = apigwv2.DomainName(
             scope,
             'SudocoinsDomainName',
-            domain_name='api.sudocoins.com',
+            domain_name='app.sudocoins.com',
             certificate=certificate
         )
         target = route53_targets.ApiGatewayv2DomainProperties(
@@ -154,7 +154,7 @@ class SudocoinsImportedResources:
             scope,
             'SudocoinsApiARecord',
             zone=hosted_zone,
-            record_name='api.sudocoins.com',
+            record_name='app.sudocoins.com',
             target=route53.RecordTarget.from_alias(target)
         )
         return domain_name
