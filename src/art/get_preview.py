@@ -15,23 +15,14 @@ def lambda_handler(event, context):
     art_object = get_by_share_id(art_id)
 
     log.info(f'user_agent {user_agent} art_id: {art_id} -> art: {art_object}')
-    # if user_agent.find('facebookexternalhit') > -1:
-    #     if not art_object:
-    #         return {'statusCode': 404}
-    #
-    #     tags = get_twitter_html(art_object)
-    #     return tags
-
-    if user_agent.find('Twitterbot') > -1:
-        score = user_agent.find('Twitterbot')
-        log.info(f'score {score}')
+    if user_agent.find('Twitterbot') > -1 or user_agent.find('facebookexternalhit') > -1:
         if not art_object:
             return {'statusCode': 404}
 
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'text/html'},
-            'body': get_twitter_html(art_object)
+            'body': get_preview_html(art_object)
         }
 
     else:
@@ -62,20 +53,20 @@ def get_by_share_id(share_id):
     return None
 
 
-def get_twitter_html(art):
+def get_preview_html(art):
     title = html.escape(art.get('name', ''))
     url = art.get('art_url', '')
     return f'<!DOCTYPE html>\
-    <html lang="en">\
+    <html lang="en" prefix="og: https://ogp.me/ns#">\
         <head>\
             <meta charset="utf-8" />\
             <title>Sudocoins</title>\
             <link rel="icon" href="/favicon.ico" />\
             <meta name="twitter:card" content="summary_large_image" />\
             <meta name="twitter:site" content="@sudocoins" />\
-            <meta name="twitter:title" content="{title}" />\
-            <meta name="twitter:description" content="Discover new Art and help creators grow"/>\
-            <meta name="twitter:image" content="{url}" />\
+            <meta property="og:title" content="{title}" />\
+            <meta property="og:description" content="Discover new Art and help creators grow" />\
+            <meta property="og:image" content="{url}" />\
         </head>\
         <body></body>\
     </html>'
