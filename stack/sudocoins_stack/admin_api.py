@@ -24,7 +24,7 @@ class SudocoinsAdminApi:
             'AdminApiV2',
             default_domain_mapping=apigwv2.DomainMappingOptions(
                 domain_name=resources.sudocoins_domain_name,
-                mapping_key='AdminApiV2'
+                mapping_key='admin'
             ),
             cors_preflight=self.default_cors_preflight
         )

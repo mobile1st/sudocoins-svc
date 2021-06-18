@@ -24,7 +24,7 @@ class SudocoinsArtApi:
             'ArtApiV2',
             default_domain_mapping=apigwv2.DomainMappingOptions(
                 domain_name=resources.sudocoins_domain_name,
-                mapping_key='ArtApiV2'
+                mapping_key='arts'
             ),
             cors_preflight=self.default_cors_preflight
         )

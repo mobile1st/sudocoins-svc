@@ -24,7 +24,7 @@ class SudocoinsUserApi:
             'UserApiV2',
             default_domain_mapping=apigwv2.DomainMappingOptions(
                 domain_name=resources.sudocoins_domain_name,
-                mapping_key='UserApiV2'
+                mapping_key='users'
             ),
             cors_preflight=self.default_cors_preflight
         )
