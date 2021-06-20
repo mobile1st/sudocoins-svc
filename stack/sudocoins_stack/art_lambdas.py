@@ -56,6 +56,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_shared_art_function)
+        resources.art_votes_table.grant_read_data(self.get_shared_art_function)
         resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
         resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
         # ART SOURCE REDIRECT
