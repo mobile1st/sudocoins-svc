@@ -59,7 +59,7 @@ class SudocoinsArtLambdas:
         resources.art_votes_table.grant_read_data(self.get_shared_art_function)
         resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
         resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
-        resources.grant_read_index_data(self.get_recent_function, [resources.art_table])
+        resources.grant_read_index_data(self.get_shared_art_function, [resources.art_table])
         # ART SOURCE REDIRECT
         self.art_source_redirect_function = _lambda.Function(
             scope,
