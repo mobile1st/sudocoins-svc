@@ -10,17 +10,22 @@ sqs = boto3.resource('sqs')
 
 
 def lambda_handler(event, context):
-    log.debug(f'art_prompt {event}')
+    log.info(f'art_prompt {event}')
 
     share_id = event['rawPath'].replace('/art/share/', '')
     source_ip = event['requestContext']['http']['sourceIp']
-
-    query_params = event['queryStringParameters']
-    unique_id = query_params.get('userId')
-    if unique_id:
-        user_id = unique_id
-    else:
+    try:
+        query_params = event['queryStringParameters']
+        unique_id = query_params.get('userId')
+        if unique_id:
+            print("true")
+            user_id = unique_id
+        else:
+            user_id = source_ip
+    except Exception as e:
         user_id = source_ip
+
+
     return get_by_share_id(source_ip, share_id, user_id)
 
 
@@ -32,6 +37,8 @@ def get_by_share_id(source_ip, share_id, user_id):
         ExpressionAttributeNames={'#n': 'name'}
     )
 
+    print(art_uploads_record)
+
     queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue.fifo')
     # queue deduplication by sourceIp+artId/shareId for 5 minutes
     msg = {'sourceIp': source_ip}
@@ -40,15 +47,17 @@ def get_by_share_id(source_ip, share_id, user_id):
         log.debug(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
         next_art = get_next_preview(user_id)
-        art_uploads_record['Item']['prompt'] = art_uploads_record['Item']
-        art_uploads_record['Item']['next'] = next_art
-        return art_uploads_record['Item']
-        '''
+
         return {
+            "art_id": art_uploads_record['Item']['art_id'],
+            "click_count": art_uploads_record['Item']['click_count'],
+            "name": art_uploads_record['Item']['click_count'],
+            "art_url": art_uploads_record['Item']['art_url'],
+            "preview_url": art_uploads_record['Item']['preview_url'],
             "prompt": art_uploads_record['Item'],
             "next": next_art
-        }
-        '''
+            }
+
     art_record = dynamodb.Table('art').get_item(
         Key={'art_id': share_id},
         ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url",
@@ -59,15 +68,16 @@ def get_by_share_id(source_ip, share_id, user_id):
         log.debug(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
         next_art = get_next_preview(user_id)
-        art_uploads_record['Item']['prompt'] = art_uploads_record['Item']
-        art_uploads_record['Item']['next'] = next_art
-        return art_uploads_record['Item']
-        '''
+
         return {
+            "art_id": art_record['Item']['art_id'],
+            "click_count": art_record['Item']['click_count'],
+            "name": art_record['Item']['click_count'],
+            "art_url": art_record['Item']['art_url'],
+            "preview_url": art_record['Item']['preview_url'],
             "prompt": art_record['Item'],
             "next": next_art
-        }
-        '''
+            }
 
     return
 
