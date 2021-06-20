@@ -138,12 +138,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
     if art_uploads_object['Count'] > 0:
         return {
             'status': 'exist',
-            'shareId': art_uploads_object['Items'][0]['shareId'],
-            "art_url": art_uploads_object['Items'][0]['art_url'],
-            "preview_url": art_uploads_object['Items'][0]['preview_url'],
-            "buy_url": art_uploads_object['Items'][0]['buy_url'],
-            "name": art_uploads_object['Items'][0]['name'],
-            "click_count": art_uploads_object['Items'][0]['click_count']
+            'shareId': art_uploads_object['Items'][0]['shareId']
         }
 
     art_uploads_record = {
@@ -181,13 +176,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
     return {
         'status': 'success',
         'shareId': art_uploads_record['shareId'],
-        'balance': new_sudo['Attributes']['sudocoins'],
-        "art_url": art_uploads_record['art_url'],
-        "preview_url": art_uploads_record['preview_url'],
-        "buy_url": art_uploads_record['buy_url'],
-        "name": art_uploads_record['name'],
-        "click_count": art_uploads_record['click_count']
-
+        'balance': new_sudo['Attributes']['sudocoins']
     }
 
 
