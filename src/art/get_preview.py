@@ -24,7 +24,7 @@ def lambda_handler(event, context):
         log.warn(f'Could not find art for art_id {art_id}')
         return {'statusCode': 404}
 
-    url = select_art_url(art)
+    url = get_preview_url(art)
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
@@ -36,8 +36,7 @@ def is_browser(user_agent):
     return 'Twitterbot' not in user_agent and 'facebookexternalhit' not in user_agent
 
 
-def select_art_url(art):
-    print(art)
+def get_preview_url(art):
     preview = art['preview_url']
     if 'googleusercontent.com/' in preview:
         # google can do the resizing
