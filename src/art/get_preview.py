@@ -10,7 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     user_agent = event['headers']['user-agent']
-    art_id = event['rawPath'].replace('/art/social/', '')
+    art_id = event['rawPath'].replace('/social/', '')
     log.info(f'user_agent {user_agent} art_id: {art_id}')
 
     if is_browser(user_agent):
