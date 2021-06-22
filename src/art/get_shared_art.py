@@ -2,7 +2,7 @@ import boto3
 import json
 from util import sudocoins_logger
 from boto3.dynamodb.conditions import Key
-import uuid
+from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -84,7 +84,7 @@ def get_by_share_id(source_ip, share_id, user_id):
 
 def get_next_preview(user_id):
     art_votes = get_votes(user_id)
-    recent_arts = get_recent(20, str(uuid.uuid1()))
+    recent_arts = get_recent(20, str(datetime.utcnow().isoformat()))
     if len(art_votes) == 0:
         return {
             "art_id": recent_arts[0]['art_id'],
