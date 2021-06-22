@@ -8,7 +8,7 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     # returns the art shared by the user
-    user_id = event['rawPath'].replace('/arts/user/', '')
+    user_id = event['pathParameters']['userId']
     return {
         'art': get_uploads(user_id)
     }

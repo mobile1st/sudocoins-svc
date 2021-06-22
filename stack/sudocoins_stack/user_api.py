@@ -28,12 +28,26 @@ class SudocoinsUserApi:
             ),
             cors_preflight=self.default_cors_preflight
         )
+        user_api_v3 = apigwv2.HttpApi(
+            scope,
+            'UserApiV3',
+            default_domain_mapping=apigwv2.DomainMappingOptions(
+                domain_name=resources.sudocoins_domain_name,
+                mapping_key='user'
+            ),
+            cors_preflight=self.default_cors_preflight
+        )
         # GET PROFILE
         get_profile_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_profile_function
         )
         user_api_v2.add_routes(
             path='/user/profile',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_profile_integration
+        )
+        user_api_v3.add_routes(
+            path='/profile',
             methods=[apigwv2.HttpMethod.POST],
             integration=get_profile_integration
         )
@@ -46,12 +60,22 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=update_profile_integration
         )
+        user_api_v3.add_routes(
+            path='/profile/update',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=update_profile_integration
+        )
         # USER VERIFY
         user_verify_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.user_verify_function
         )
         user_api_v2.add_routes(
             path='/user/verify',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=user_verify_integration
+        )
+        user_api_v3.add_routes(
+            path='/verify',
             methods=[apigwv2.HttpMethod.POST],
             integration=user_verify_integration
         )
@@ -64,4 +88,9 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=cash_out_integration,
             authorizer=resources.sudocoins_authorizer
+        )
+        user_api_v3.add_routes(
+            path='/cash-out',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=cash_out_integration
         )

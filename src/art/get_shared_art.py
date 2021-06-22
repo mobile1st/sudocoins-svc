@@ -12,7 +12,7 @@ sqs = boto3.resource('sqs')
 def lambda_handler(event, context):
     log.info(f'art_prompt {event}')
 
-    share_id = event['rawPath'].replace('/art/share/', '')
+    share_id = event['pathParameters']['shareId']
     source_ip = event['requestContext']['http']['sourceIp']
     try:
         query_params = event['queryStringParameters']
