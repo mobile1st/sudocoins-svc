@@ -1,6 +1,8 @@
 import boto3
 import json
+from util import sudocoins_logger
 
+log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
 
@@ -9,6 +11,7 @@ def lambda_handler(event, context):
     Arguments: user_name, twitter_handle, gravatarEmail
     Returns: fields updated
     """
+    log.debug(f'event: {event}')
     input_json = json.loads(event.get('body', '{}'))
     user_id = input_json['userId'] if 'userId' in input_json else get_user_id(input_json['sub'])
     user_name = input_json.get('user_name')
