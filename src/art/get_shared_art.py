@@ -37,8 +37,6 @@ def get_by_share_id(source_ip, share_id, user_id):
         ExpressionAttributeNames={'#n': 'name'}
     )
 
-    print(art_uploads_record)
-
     queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue.fifo')
     # queue deduplication by sourceIp+artId/shareId for 5 minutes
     msg = {'sourceIp': source_ip}
@@ -46,16 +44,13 @@ def get_by_share_id(source_ip, share_id, user_id):
         msg['shareId'] = share_id
         log.debug(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
-        next_art = get_next_preview(user_id)
 
         return {
             "art_id": art_uploads_record['Item']['art_id'],
             "click_count": art_uploads_record['Item']['click_count'],
             "name": art_uploads_record['Item']['click_count'],
             "art_url": art_uploads_record['Item']['art_url'],
-            "preview_url": art_uploads_record['Item']['preview_url'],
-            "prompt": art_uploads_record['Item'],
-            "next": next_art
+            "preview_url": art_uploads_record['Item']['preview_url']
             }
 
     art_record = dynamodb.Table('art').get_item(
@@ -67,64 +62,13 @@ def get_by_share_id(source_ip, share_id, user_id):
         msg['art_id'] = share_id
         log.debug(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
-        next_art = get_next_preview(user_id)
 
         return {
             "art_id": art_record['Item']['art_id'],
             "click_count": art_record['Item']['click_count'],
             "name": art_record['Item']['click_count'],
             "art_url": art_record['Item']['art_url'],
-            "preview_url": art_record['Item']['preview_url'],
-            "prompt": art_record['Item'],
-            "next": next_art
+            "preview_url": art_record['Item']['preview_url']
             }
 
     return
-
-
-def get_next_preview(user_id):
-    art_votes = get_votes(user_id)
-    recent_arts = get_recent(20, str(datetime.utcnow().isoformat()))
-    if len(art_votes) == 0:
-        return {
-            "art_id": recent_arts[0]['art_id'],
-            "art_url": recent_arts[0]['art_url'],
-            "preview_url": recent_arts[0]['preview_url'],
-            "recent_sk": recent_arts[0]['recent_sk']
-        }
-    count = 20
-    while count > 0:
-        for i in recent_arts:
-            for k in art_votes:
-                if i['art_id'] == k['art_id']:
-                    continue
-                else:
-                    return {
-                        "art_id": i['art_id'],
-                        "art_url": i['art_url'],
-                        "preview_url": i['preview_url'],
-                        "recent_sk": i['recent_sk']
-                    }
-            count -= 1
-            if count == 0:
-                recent_arts = get_recent(20, i['recent_sk'])
-                count = len(recent_arts)
-
-    return
-
-
-def get_recent(count, timestamp):
-    return dynamodb.Table('art').query(
-        KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(timestamp),
-        ScanIndexForward=False,
-        Limit=count,
-        IndexName='Recent_index',
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk",
-        ExpressionAttributeNames={'#n': 'name'}
-    )['Items']
-
-
-def get_votes(unique_id):
-    return dynamodb.Table('art_votes').query(
-        KeyConditionExpression=Key("unique_id").eq(unique_id)
-    )['Items']
