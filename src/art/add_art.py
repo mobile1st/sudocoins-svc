@@ -51,10 +51,7 @@ def parse_url(url):
         token_id = variables[1]
     elif url.find('opensea.io') != -1:
         sub1 = url.find('assets/')
-        if 'matic' in url:
-            start = sub1 + 13
-        else:
-            start = sub1 + 7
+        start = sub1 + 7
         rest = url[start:]
         variables = rest.split('/')
         log.debug(f'variables {variables}')
