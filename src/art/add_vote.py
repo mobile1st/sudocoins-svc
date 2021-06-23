@@ -29,7 +29,7 @@ def lambda_handler(event, context):
         "ip": ip,
         "vote": vote
     }
-    result = dynamodb.Table('art_votes').put_item(
+    dynamodb.Table('art_votes').put_item(
         Item=art_votes_record
     )
 
