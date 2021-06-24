@@ -3,6 +3,7 @@ from boto3.dynamodb.conditions import Key
 from util import sudocoins_logger
 from art.art import Art
 import uuid
+from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -27,7 +28,8 @@ def lambda_handler(event, context):
         "user_id": user_id,
         "art_id": art_id,
         "ip": ip,
-        "vote": vote
+        "vote": vote,
+        "timestamp": str(datetime.utcnow().isoformat())
     }
     dynamodb.Table('art_votes').put_item(
         Item=art_votes_record
