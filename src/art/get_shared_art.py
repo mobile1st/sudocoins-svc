@@ -7,7 +7,7 @@ from datetime import datetime
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sqs = boto3.resource('sqs')
-
+# remove prompt and art
 
 def lambda_handler(event, context):
     log.info(f'art_prompt {event}')
