@@ -128,3 +128,4 @@ def get_votes(unique_id):
     return dynamodb.Table('art_votes').query(
         KeyConditionExpression=Key("unique_id").eq(unique_id)
     )['Items']
+
