@@ -10,9 +10,9 @@ def lambda_handler(event, context):
     leaderboard = dynamodb.Table('Profile').query(
         KeyConditionExpression=Key("currency").eq('usd'),
         ScanIndexForward=False,
-        Limit=25,
+        Limit=5,
         IndexName='leaderboard',
-        ProjectionExpression="userId, click_count")
+        ProjectionExpression="userId, click_count, gravatarEmail, facebookUrl")
 
     leaders = leaderboard['Items']
 
