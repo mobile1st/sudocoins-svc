@@ -38,6 +38,7 @@ def lambda_handler(event, context):
             },
             ReturnValues="UPDATED_NEW"
         )
+        log.info("art table click_count increased")
         art_votes_record = {
             "unique_id": str(uuid.uuid1()),
             "art_id": row_id,
@@ -47,6 +48,7 @@ def lambda_handler(event, context):
         dynamodb.Table('art_votes').put_item(
             Item=art_votes_record
         )
+        log.info("record added to art_votes table")
 
         buy_url = art_row['Item']['buy_url']
 
@@ -63,6 +65,7 @@ def lambda_handler(event, context):
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            log.info("art_uploads table click_count increased")
 
             art_id = row['Item']['art_id']
 
@@ -75,6 +78,7 @@ def lambda_handler(event, context):
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            log.info("art table click_count increased")
             art_votes_record = {
                 "unique_id": str(uuid.uuid1()),
                 "art_id": art_id,
@@ -84,6 +88,7 @@ def lambda_handler(event, context):
             dynamodb.Table('art_votes').put_item(
                 Item=art_votes_record
             )
+            log.info("record added to art_votes table")
 
             buy_url = row['Item']['buy_url']
 

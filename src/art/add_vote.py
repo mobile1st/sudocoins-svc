@@ -35,6 +35,7 @@ def lambda_handler(event, context):
     dynamodb.Table('art_votes').put_item(
         Item=art_votes_record
     )
+    log.info("record added to art_votes table")
 
     art_votes = get_votes(user_id)
     recent_arts = get_recent(20, timestamp)

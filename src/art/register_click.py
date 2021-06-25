@@ -36,7 +36,7 @@ def register_click(data):
             },
             ReturnValues="UPDATED_NEW"
         )
-        log.info("click count updated for arts_uploads record")
+        log.info("art_uploads table click_count increased")
         # get some data about this art in art_uploads
         art_uploads_record = dynamodb.Table('art_uploads').get_item(
             Key={'shareId': data['shareId']},
@@ -57,7 +57,7 @@ def register_click(data):
                 },
                 ReturnValues="UPDATED_NEW"
             )
-            print("art record click count increased")
+            log.info("art table click_count increased")
             art_votes_record = {
                 "unique_id": str(uuid.uuid1()),
                 "art_id": art_id,
@@ -67,6 +67,7 @@ def register_click(data):
             dynamodb.Table('art_votes').put_item(
                 Item=art_votes_record
             )
+            log.info("record added to art_votes table")
 
     # if it's not a custom art url, then it's a generic art url
     elif 'art_id' in data:
@@ -80,7 +81,7 @@ def register_click(data):
             },
             ReturnValues="UPDATED_NEW"
         )
-        print("art record click count increased")
+        log.info("art table click_count increased")
         art_votes_record = {
             "unique_id": str(uuid.uuid1()),
             "art_id": data['art_id'],
@@ -90,6 +91,7 @@ def register_click(data):
         dynamodb.Table('art_votes').put_item(
             Item=art_votes_record
         )
+        log.info("record added to art_votes table")
         # no need to add points to user profile
 
 
