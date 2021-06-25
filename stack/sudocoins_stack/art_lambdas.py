@@ -69,6 +69,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.art_source_redirect_function)
+        resources.art_votes_table.grant_read_write_data(self.art_source_redirect_function)
         resources.art_uploads_table.grant_read_write_data(self.art_source_redirect_function)
         # GET ARTS
         self.get_arts_function = _lambda.Function(
@@ -184,6 +185,7 @@ class SudocoinsArtLambdas:
         resources.ledger_table.grant_read_write_data(register_click_function)
         resources.art_table.grant_read_write_data(register_click_function)
         resources.art_uploads_table.grant_read_write_data(register_click_function)
+        resources.art_votes_table.grant_read_write_data(register_click_function)
         register_click_function.add_event_source(
             event_sources.SqsEventSource(
                 resources.art_counter_queue,

@@ -2,6 +2,8 @@ import boto3
 from botocore.config import Config
 import json
 from util import sudocoins_logger
+import uuid
+from datetime import datetime
 
 log = sudocoins_logger.get()
 config = Config(connect_timeout=0.1, read_timeout=0.1, retries={'max_attempts': 5, 'mode': 'standard'})
@@ -36,6 +38,15 @@ def lambda_handler(event, context):
             },
             ReturnValues="UPDATED_NEW"
         )
+        art_votes_record = {
+            "unique_id": str(uuid.uuid1()),
+            "art_id": row_id,
+            "timestamp": str(datetime.utcnow().isoformat()),
+            "type": "buy"
+        }
+        dynamodb.Table('art_votes').put_item(
+            Item=art_votes_record
+        )
 
         buy_url = art_row['Item']['buy_url']
 
@@ -63,6 +74,15 @@ def lambda_handler(event, context):
                     ':start': 0
                 },
                 ReturnValues="UPDATED_NEW"
+            )
+            art_votes_record = {
+                "unique_id": str(uuid.uuid1()),
+                "art_id": art_id,
+                "timestamp": str(datetime.utcnow().isoformat()),
+                "type": "buy"
+            }
+            dynamodb.Table('art_votes').put_item(
+                Item=art_votes_record
             )
 
             buy_url = row['Item']['buy_url']

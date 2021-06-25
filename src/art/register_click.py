@@ -2,6 +2,8 @@ import boto3
 import json
 from util import sudocoins_logger
 from art.art import Art
+import uuid
+from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -34,7 +36,7 @@ def register_click(data):
             },
             ReturnValues="UPDATED_NEW"
         )
-        print("art_uploads click_count increased")
+        log.info("click count updated for arts_uploads record")
         # get some data about this art in art_uploads
         art_uploads_record = dynamodb.Table('art_uploads').get_item(
             Key={'shareId': data['shareId']},
@@ -56,6 +58,15 @@ def register_click(data):
                 ReturnValues="UPDATED_NEW"
             )
             print("art record click count increased")
+            art_votes_record = {
+                "unique_id": str(uuid.uuid1()),
+                "art_id": art_id,
+                "timestamp": str(datetime.utcnow().isoformat()),
+                "type": "view"
+            }
+            dynamodb.Table('art_votes').put_item(
+                Item=art_votes_record
+            )
 
     # if it's not a custom art url, then it's a generic art url
     elif 'art_id' in data:
@@ -70,6 +81,15 @@ def register_click(data):
             ReturnValues="UPDATED_NEW"
         )
         print("art record click count increased")
+        art_votes_record = {
+            "unique_id": str(uuid.uuid1()),
+            "art_id": data['art_id'],
+            "timestamp": str(datetime.utcnow().isoformat()),
+            "type": "view"
+        }
+        dynamodb.Table('art_votes').put_item(
+            Item=art_votes_record
+        )
         # no need to add points to user profile
 
 
