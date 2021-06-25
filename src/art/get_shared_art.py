@@ -50,7 +50,7 @@ def get_by_share_id(source_ip, share_id, user_id):
         return {
             "art_id": art_uploads_record['Item']['art_id'],
             "click_count": art_uploads_record['Item']['click_count'],
-            "name": art_uploads_record['Item']['click_count'],
+            "name": art_uploads_record['Item']['name'],
             "art_url": art_uploads_record['Item']['art_url'],
             "preview_url": art_uploads_record['Item']['preview_url']
             }
@@ -68,7 +68,7 @@ def get_by_share_id(source_ip, share_id, user_id):
         return {
             "art_id": art_record['Item']['art_id'],
             "click_count": art_record['Item']['click_count'],
-            "name": art_record['Item']['click_count'],
+            "name": art_record['Item']['name'],
             "art_url": art_record['Item']['art_url'],
             "preview_url": art_record['Item']['preview_url']
             }
