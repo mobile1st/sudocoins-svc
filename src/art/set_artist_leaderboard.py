@@ -10,7 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    last_day = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    last_day = (datetime.utcnow() - timedelta(days=14)).isoformat()
     print(last_day)
     # generate art_id str => int mappings
     vote_counts = get_votes(last_day)
