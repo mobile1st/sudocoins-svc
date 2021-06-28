@@ -19,15 +19,6 @@ class SudocoinsUserApi:
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources,
                  lambdas: SudocoinsUserLambdas):
-        user_api_v2 = apigwv2.HttpApi(
-            scope,
-            'UserApiV2',
-            default_domain_mapping=apigwv2.DomainMappingOptions(
-                domain_name=resources.sudocoins_domain_name,
-                mapping_key='users'
-            ),
-            cors_preflight=self.default_cors_preflight
-        )
         user_api_v3 = apigwv2.HttpApi(
             scope,
             'UserApiV3',
@@ -41,11 +32,6 @@ class SudocoinsUserApi:
         get_profile_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_profile_function
         )
-        user_api_v2.add_routes(
-            path='/user/profile',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=get_profile_integration
-        )
         user_api_v3.add_routes(
             path='/profile',
             methods=[apigwv2.HttpMethod.POST],
@@ -54,11 +40,6 @@ class SudocoinsUserApi:
         # UPDATE PROFILE
         update_profile_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.update_profile_function
-        )
-        user_api_v2.add_routes(
-            path='/user/profile/update',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=update_profile_integration
         )
         user_api_v3.add_routes(
             path='/profile/update',
@@ -69,11 +50,6 @@ class SudocoinsUserApi:
         user_verify_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.user_verify_function
         )
-        user_api_v2.add_routes(
-            path='/user/verify',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=user_verify_integration
-        )
         user_api_v3.add_routes(
             path='/verify',
             methods=[apigwv2.HttpMethod.POST],
@@ -83,26 +59,15 @@ class SudocoinsUserApi:
         cash_out_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.cash_out_function
         )
-        user_api_v2.add_routes(
-            path='/user/cash-out',
+        user_api_v3.add_routes(
+            path='/cash-out',
             methods=[apigwv2.HttpMethod.POST],
             integration=cash_out_integration,
             authorizer=resources.sudocoins_authorizer
         )
-        user_api_v3.add_routes(
-            path='/cash-out',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=cash_out_integration
-        )
         # MORE HISTORY
         more_history_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.more_history_function
-        )
-        user_api_v2.add_routes(
-            path='/user/more-history',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=more_history_integration,
-            authorizer=resources.sudocoins_authorizer
         )
         user_api_v3.add_routes(
             path='/more-history',
