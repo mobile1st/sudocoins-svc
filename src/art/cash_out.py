@@ -14,14 +14,14 @@ history = History(dynamodb)
 def lambda_handler(event, context):
     try:
         log.debug(f'event: {event}')
-        cash_out_data = event['body']
+        cash_out_data = json.loads(event['body'])
         requested_sub = cash_out_data['sub']
         jwt_sub_claim = event['requestContext']['authorizer']['jwt']['claims']['sub']
         if requested_sub != jwt_sub_claim:
             return error_response('Authorization check failed for the request')
 
         user_id, verification_state, sudocoins = load_profile(requested_sub)
-        if int(cash_out_data['amount']) > sudocoins:
+        if cash_out_data['amount'] > sudocoins:
             return True, error_response("The requested amount is higher than the user's balance")
 
         profile = cash_out(cash_out_data, user_id, verification_state)
