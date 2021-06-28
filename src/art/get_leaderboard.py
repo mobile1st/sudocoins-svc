@@ -10,7 +10,7 @@ def lambda_handler(event, context):
 
     return {
         'influencers': leaderboard['leaders'],
-        'creators': leaderboard['creators']
+        'artists': leaderboard['creators']
     }
 
 

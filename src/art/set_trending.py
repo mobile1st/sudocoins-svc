@@ -57,7 +57,7 @@ def get_trending():
 
     sorted_scores = OrderedDict(sorted(scores.items(), key=lambda x: getitem(x[0], 'score'), reverse=True))
 
-    return scores
+    return sorted_scores
 
 
 
