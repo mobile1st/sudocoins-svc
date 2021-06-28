@@ -86,3 +86,17 @@ class SudocoinsUserLambdas:
             )
         )
         resources.grant_read_index_data(self.cash_out_function, [resources.transaction_table, resources.ledger_table])
+        # MORE HISTORY
+        self.more_history_function = _lambda.Function(
+            scope,
+            'MoreHistoryV2',
+            function_name='MoreHistoryV2',
+            handler='art.moreHistory.lambda_handler',
+            description='loads more history for the user',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.more_history_function)
+        resources.payouts_table.grant_read_write_data(self.more_history_function)
+        resources.ledger_table.grant_read_write_data(self.more_history_function)
+        resources.transaction_table.grant_read_write_data(self.more_history_function)
+

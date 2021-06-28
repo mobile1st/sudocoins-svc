@@ -94,3 +94,18 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=cash_out_integration
         )
+        # MORE HISTORY
+        more_history_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.more_history_function
+        )
+        user_api_v2.add_routes(
+            path='/user/more-history',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=more_history_integration,
+            authorizer=resources.sudocoins_authorizer
+        )
+        user_api_v3.add_routes(
+            path='/more-history',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=more_history_integration
+        )
