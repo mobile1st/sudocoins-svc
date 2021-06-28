@@ -117,7 +117,8 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
             "recent_sk": time_now + "#" + art_id,
             "click_count": 0,
             "first_user": user_id,
-            "sort_idx": 'true'
+            "sort_idx": 'true',
+            "creator": open_sea['creator']
         }
         dynamodb.Table('art').put_item(
             Item=art_record
@@ -153,7 +154,8 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         "click_count": 0,
         "timestamp": time_now,
         "dedupe_key": dedupe_key,
-        "art_id": art_id
+        "art_id": art_id,
+        'creator': open_sea['creator']
     }
     dynamodb.Table('art_uploads').put_item(
         Item=art_uploads_record

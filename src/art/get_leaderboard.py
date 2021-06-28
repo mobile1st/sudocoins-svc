@@ -9,7 +9,8 @@ def lambda_handler(event, context):
     leaderboard = getConfig()
 
     return {
-        'leaderboard': leaderboard
+        'influencers': leaderboard['leaders'],
+        'creators': leaderboard['creators']
     }
 
 
@@ -18,7 +19,7 @@ def getConfig():
     configKey = "Leaderboard"
 
     response = configTable.get_item(Key={'configKey': configKey})
-    config = response['Item']
+    leaderboard = response['Item']
 
-    return config['leaders']
+    return leaderboard
 
