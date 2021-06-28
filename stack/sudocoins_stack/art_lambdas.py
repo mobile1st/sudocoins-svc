@@ -228,7 +228,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_data(set_artists_function)
         resources.config_table.grant_read_write_data(set_artists_function)
-        resources.grant_read_index_data(set_artists_function, [resources.art_table])
+        resources.grant_read_index_data(set_artists_function, [resources.art_votes_table])
         set_artists_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_artists_target = events_targets.LambdaFunction(handler=set_artists_function)
         events.Rule(
