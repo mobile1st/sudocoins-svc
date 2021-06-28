@@ -19,15 +19,6 @@ class SudocoinsArtApi:
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources,
                  lambdas: SudocoinsArtLambdas):
-        art_api_v2 = apigwv2.HttpApi(
-            scope,
-            'ArtApiV2',
-            default_domain_mapping=apigwv2.DomainMappingOptions(
-                domain_name=resources.sudocoins_domain_name,
-                mapping_key='arts'
-            ),
-            cors_preflight=self.default_cors_preflight
-        )
         art_api_v3 = apigwv2.HttpApi(
             scope,
             'ArtApiV3',
@@ -41,11 +32,6 @@ class SudocoinsArtApi:
         add_art_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.add_art_function
         )
-        art_api_v2.add_routes(
-            path='/art',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=add_art_integration
-        )
         art_api_v3.add_routes(
             path='/',
             methods=[apigwv2.HttpMethod.POST],
@@ -54,11 +40,6 @@ class SudocoinsArtApi:
         # SHARE ART
         share_art_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.share_art_function
-        )
-        art_api_v2.add_routes(
-            path='/art/share',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=share_art_integration
         )
         art_api_v3.add_routes(
             path='/share',
@@ -69,11 +50,6 @@ class SudocoinsArtApi:
         art_source_redirect_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.art_source_redirect_function
         )
-        art_api_v2.add_routes(
-            path='/art/source',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=art_source_redirect_integration
-        )
         art_api_v3.add_routes(
             path='/source',
             methods=[apigwv2.HttpMethod.GET],
@@ -82,11 +58,6 @@ class SudocoinsArtApi:
         # GET ARTS
         get_arts_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_arts_function
-        )
-        art_api_v2.add_routes(
-            path='/arts',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=get_arts_integration
         )
         art_api_v3.add_routes(
             path='/arts',
@@ -97,11 +68,6 @@ class SudocoinsArtApi:
         get_recent_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_recent_function
         )
-        art_api_v2.add_routes(
-            path='/arts/recent',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_recent_integration
-        )
         art_api_v3.add_routes(
             path='/recent',
             methods=[apigwv2.HttpMethod.GET],
@@ -110,11 +76,6 @@ class SudocoinsArtApi:
         # GET TRENDING ARTS
         get_trending_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_trending_function
-        )
-        art_api_v2.add_routes(
-            path='/arts/trending',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_trending_integration
         )
         art_api_v3.add_routes(
             path='/trending',
@@ -125,11 +86,6 @@ class SudocoinsArtApi:
         get_user_arts_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_user_arts_function
         )
-        art_api_v2.add_routes(
-            path='/arts/user/{userId}',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_user_arts_integration
-        )
         art_api_v3.add_routes(
             path='/user/{userId}',
             methods=[apigwv2.HttpMethod.GET],
@@ -138,11 +94,6 @@ class SudocoinsArtApi:
         # GET SHARED ART
         get_shared_art_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_shared_art_function
-        )
-        art_api_v2.add_routes(
-            path='/art/share/{shareId}',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_shared_art_integration
         )
         art_api_v3.add_routes(
             path='/share/{shareId}',
@@ -153,11 +104,6 @@ class SudocoinsArtApi:
         increment_view_count_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.increment_view_count_function
         )
-        art_api_v2.add_routes(
-            path='/art/increment-view',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=increment_view_count_integration
-        )
         art_api_v3.add_routes(
             path='/increment-view',
             methods=[apigwv2.HttpMethod.POST],
@@ -166,11 +112,6 @@ class SudocoinsArtApi:
         # GET LEADERBOARD
         get_leaderboard_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_leaderboard_function
-        )
-        art_api_v2.add_routes(
-            path='/art/leaderboard',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_leaderboard_integration
         )
         art_api_v3.add_routes(
             path='/leaderboard',
@@ -181,11 +122,6 @@ class SudocoinsArtApi:
         add_vote_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.add_vote_function
         )
-        art_api_v2.add_routes(
-            path='/art/vote',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=add_vote_integration
-        )
         art_api_v3.add_routes(
             path='/vote',
             methods=[apigwv2.HttpMethod.GET],
@@ -194,11 +130,6 @@ class SudocoinsArtApi:
         # GET PREVIEW
         get_preview_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_preview_function
-        )
-        art_api_v2.add_routes(
-            path='/art/social/{shareId}',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_preview_integration
         )
         art_api_v3.add_routes(
             path='/social/{shareId}',
