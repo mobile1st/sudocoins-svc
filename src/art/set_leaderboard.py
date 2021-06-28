@@ -12,7 +12,7 @@ def lambda_handler(event, context):
         ScanIndexForward=False,
         Limit=5,
         IndexName='leaderboard',
-        ProjectionExpression="userId, click_count, gravatarEmail, facebookUrl")
+        ProjectionExpression="userId, click_count, gravatarEmail, facebookUrl, email")
 
     leaders = leaderboard['Items']
 
