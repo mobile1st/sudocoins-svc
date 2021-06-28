@@ -11,11 +11,14 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     trending_art = get_trending()
-    arts = list(trending_art)
+    arts = []
+    for i in trending_art:
+        arts.append(i[0])
+
     set_config(arts)
 
     return {
-        'trending': arts
+        'trending': arts[:100]
     }
 
 
@@ -35,17 +38,6 @@ def set_config(arts):
 
 
 def get_trending():
-    # returns art sorted by click_count
-    '''
-    return dynamodb.Table('art').query(
-        KeyConditionExpression=Key("sort_idx").eq('true'),
-        ScanIndexForward=False,
-        Limit=250,
-        IndexName='Trending-index',
-        ProjectionExpression="art_id, click_count"
-    )['Items']
-    '''
-
     last_day = (datetime.utcnow() - timedelta(days=7)).isoformat()
 
     vote_counts = get_votes(last_day)
@@ -55,10 +47,11 @@ def get_trending():
     scores = merge_arts(vote_counts, view_counts, buy_counts)
     log.info("scores merged")
 
-    sorted_scores = OrderedDict(sorted(scores.items(), key=lambda x: getitem(x[0], 'score'), reverse=True))
+    print(scores)
+
+    sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
 
     return sorted_scores
-
 
 
 def get_votes(last_day):
