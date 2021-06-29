@@ -47,12 +47,10 @@ def lambda_handler(event, context):
             log.debug(f'profile: {profile} userId: {userId}')
         else:
             profile = {}
-            userId = ""
 
     except Exception as e:
         log.exception(e)
         profile = {}
-        userId = ""
 
     try:
         config = getConfig()
@@ -91,6 +89,9 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         )
         log.info(f'profileObject: {profileObject}')
 
+        if ['Item'] not in profileObject:
+            profile = addProfile(email, profileTable, userId, facebook, signupMethod, context)
+            return profile
 
         if 'verificationState' not in profileObject['Item']:
             profileObject['Item']['verificationState'] = 'None'
@@ -197,7 +198,6 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             return profileQuery['Items'][0]
 
     log.info("no sub or email found in database. New user.")
-    created = datetime.utcnow().isoformat()
     userId = str(uuid.uuid1())
 
     if email == "":
@@ -210,8 +210,48 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             "userId": userId
         }
     )
-    user_name = create_user_name(email, profileTable)
+    profile = addProfile(email, profileTable, userId, facebook, signupMethod, context)
 
+    return profile
+
+
+def getConfig():
+    configTable = dynamodb.Table('Config')
+    configKey = "HomePage"
+
+    response = configTable.get_item(Key={'configKey': configKey})
+    config = response['Item']
+
+    return config
+
+
+def getRate(config):
+    rate = str(config['rate'])
+
+    return rate
+
+
+def create_user_name(email, profileTable):
+    un_index = email.find('@')
+    un = email[:un_index]
+    profileQuery = profileTable.query(
+        IndexName='user_name-index',
+        KeyConditionExpression='user_name = :user_name',
+        ExpressionAttributeValues={
+            ':user_name': un
+        }
+    )
+    if profileQuery['Count'] > 0:
+        appendix = str(random.randint(0, 1000))
+        new_un = un + appendix
+
+        return new_un
+    return un
+
+
+def addProfile(email, profileTable, created, userId, facebook, signupMethod, context):
+    created = datetime.utcnow().isoformat()
+    user_name = create_user_name(email, profileTable)
     profile = {
         "active": True,
         "email": email,
@@ -259,38 +299,4 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
     profile["new_user"] = True
 
     return profile
-
-
-def getConfig():
-    configTable = dynamodb.Table('Config')
-    configKey = "HomePage"
-
-    response = configTable.get_item(Key={'configKey': configKey})
-    config = response['Item']
-
-    return config
-
-
-def getRate(config):
-    rate = str(config['rate'])
-
-    return rate
-
-
-def create_user_name(email, profileTable):
-    un_index = email.find('@')
-    un = email[:un_index]
-    profileQuery = profileTable.query(
-        IndexName='user_name-index',
-        KeyConditionExpression='user_name = :user_name',
-        ExpressionAttributeValues={
-            ':user_name': un
-        }
-    )
-    if profileQuery['Count'] > 0:
-        appendix = str(random.randint(0, 1000))
-        new_un = un + appendix
-
-        return new_un
-    return un
 
