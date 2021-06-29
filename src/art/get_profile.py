@@ -94,11 +94,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
 
         if 'Item' not in profileObject:
             profile = addProfile(email, profileTable, userId, facebook, signupMethod, context)
-            return {
-                "profile": profile,
-                "rate": str(rate),
-                "sudoRate": str(1000)
-            }
+            return profile
 
         if 'verificationState' not in profileObject['Item']:
             profileObject['Item']['verificationState'] = 'None'
@@ -243,7 +239,7 @@ def create_user_name(email, profileTable):
     return un
 
 
-def addProfile(email, profileTable, created, userId, facebook, signupMethod, context):
+def addProfile(email, profileTable, userId, facebook, signupMethod, context):
     created = datetime.utcnow().isoformat()
     user_name = create_user_name(email, profileTable)
     profile = {
