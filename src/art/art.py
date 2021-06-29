@@ -66,7 +66,7 @@ class Art:
             ScanIndexForward=False,
             IndexName='sortedHistory',
             ExpressionAttributeNames={'#s': 'status', '#t': 'type'},
-            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount, payoutType, usdBtcRate, userInput")
+            ProjectionExpression="transactionId, lastUpdate, #t, #s, amount, payout_type, usdBtcRate, userInput")
         ledger = ledgerHistory["Items"]
 
         for i in ledger:
