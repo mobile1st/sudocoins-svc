@@ -4,6 +4,7 @@ import uuid
 from botocore.config import Config
 import json
 from util import sudocoins_logger
+import random
 
 # from configuration import Configuration
 
@@ -209,6 +210,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             "userId": userId
         }
     )
+    user_name = create_user_name(email, profileTable)
 
     profile = {
         "active": True,
@@ -224,7 +226,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         "sudocoins": 0,
         "verificationState": None,
         "signupMethod": signupMethod,
-        "user_name": None,
+        "user_name": user_name,
         "twitter_handle": None
     }
 
@@ -273,4 +275,22 @@ def getRate(config):
     rate = str(config['rate'])
 
     return rate
+
+
+def create_user_name(email, profileTable):
+    un_index = email.find('@')
+    un = email[:un_index]
+    profileQuery = profileTable.query(
+        IndexName='user_name-index',
+        KeyConditionExpression='user_name = :user_name',
+        ExpressionAttributeValues={
+            ':user_name': un
+        }
+    )
+    if profileQuery['Count'] > 0:
+        appendix = str(random.randint(0, 1000))
+        new_un = un + appendix
+
+        return new_un
+    return un
 
