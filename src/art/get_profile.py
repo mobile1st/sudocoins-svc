@@ -16,7 +16,9 @@ sns_client = boto3.client("sns")
 
 def lambda_handler(event, context):
     log.debug(f'event: {event}')
+
     jsonInput = json.loads(event.get('body', '{}'))
+
 
     if 'sub' in jsonInput:
         sub = jsonInput['sub']
@@ -46,6 +48,7 @@ def lambda_handler(event, context):
             userId = profile['userId']
             log.debug(f'profile: {profile} userId: {userId}')
         else:
+            print("wtf")
             profile = {}
 
     except Exception as e:
@@ -82,16 +85,20 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         log.info(f'userId: {userId}')
         profileObject = profileTable.get_item(
             Key={'userId': userId},
-            ProjectionExpression="active , email, signupDate, userId, currency, "
-                                 "gravatarEmail, facebookUrl, consent, history, "
-                                 "verificationState, signupMethod, fraud_score, sudocoins,"
+            ProjectionExpression="active , email, signupDate, userId,"
+                                 "gravatarEmail, facebookUrl, history, "
+                                 "verificationState, fraud_score, sudocoins,"
                                  "user_name, twitter_handle"
         )
         log.info(f'profileObject: {profileObject}')
 
-        if ['Item'] not in profileObject:
+        if 'Item' not in profileObject:
             profile = addProfile(email, profileTable, userId, facebook, signupMethod, context)
-            return profile
+            return {
+                "profile": profile,
+                "rate": str(rate),
+                "sudoRate": str(1000)
+            }
 
         if 'verificationState' not in profileObject['Item']:
             profileObject['Item']['verificationState'] = 'None'
@@ -102,19 +109,6 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
                 UpdateExpression="set verificationState=:vs",
                 ExpressionAttributeValues={
                     ":vs": 'None'
-                },
-                ReturnValues="ALL_NEW"
-            )
-
-        if 'signupMethod' not in profileObject['Item']:
-            profileObject['Item']['signupMethod'] = signupMethod
-            profileTable.update_item(
-                Key={
-                    "userId": userId
-                },
-                UpdateExpression="set signupMethod=:sm",
-                ExpressionAttributeValues={
-                    ":sm": signupMethod
                 },
                 ReturnValues="ALL_NEW"
             )
@@ -149,9 +143,9 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             ExpressionAttributeValues={
                 ':email': email
             },
-            ProjectionExpression="active , email, signupDate, userId, currency, "
-                                 "gravatarEmail, facebookUrl, consent, history,"
-                                 "verificationState, signupMethod, fraud_score, sudocoins,"
+            ProjectionExpression="active , email, signupDate, userId, "
+                                 "gravatarEmail, facebookUrl, history,"
+                                 "verificationState, fraud_score, sudocoins,"
                                  "user_name, twitter_handle"
         )
         log.info(f'profileQuery: {profileQuery}')
