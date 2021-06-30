@@ -22,6 +22,7 @@ def lambda_handler(event, context):
 
     creators = get_creators(scores)
     log.info("creator data received")
+    log.info(creators)
 
     top_creators = creator_ranking(scores, creators)
     log.info("top creators list mapping finished")
@@ -35,21 +36,22 @@ def lambda_handler(event, context):
 def creator_ranking(scores, creators):
     creator_data = {}
 
-    for i in creators:
-        try:
-            creator = i['open_sea_data']['M']['creator']['M']['address']['S']
-            score = scores[i['art_id']['S']]
+    for k in creators:
+        for i in k:
+            try:
+                creator = i['open_sea_data']['M']['creator']['M']['address']['S']
+                score = scores[i['art_id']['S']]
 
-            if creator in creator_data:
-                creator_data[creator]['score'] += score
-            else:
-                creator_data[creator] = {
-                    "score": score,
-                    "data": i['open_sea_data']['M']['creator']['M']
-                }
-        except Exception as e:
-            log.info(e)
-            pass
+                if creator in creator_data:
+                    creator_data[creator]['score'] += score
+                else:
+                    creator_data[creator] = {
+                        "score": score,
+                        "data": i['open_sea_data']['M']['creator']['M']
+                    }
+            except Exception as e:
+                log.info(e)
+                pass
 
     sorted_dict = OrderedDict(sorted(creator_data.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))
 
@@ -97,7 +99,7 @@ def get_votes(last_day):
         else:
             vote_counts[i['art_id']] = 1
 
-    log.info(vote_counts)
+    log.info(len(vote_counts))
 
     return vote_counts
 
@@ -117,7 +119,7 @@ def get_views(last_day):
         else:
             view_counts[i['art_id']] = 1
 
-    log.info(view_counts)
+    log.info(len(view_counts))
 
     return view_counts
 
@@ -137,7 +139,7 @@ def get_buys(last_day):
         else:
             buy_counts[i['art_id']] = 1
 
-    log.info(buy_counts)
+    log.info(len(buy_counts))
 
     return buy_counts
 
@@ -160,7 +162,7 @@ def merge_arts(vote_counts, view_counts, buy_counts):
         else:
             scores[i] = buy_counts[i]
 
-    log.info(scores)
+    log.info(len(scores))
 
     return scores
 
