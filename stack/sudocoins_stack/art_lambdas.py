@@ -198,8 +198,8 @@ class SudocoinsArtLambdas:
         # ADD VOTE
         self.add_vote_function = _lambda.Function(
             scope,
-            'AddVote',
-            function_name='AddVote',
+            'ArtAddVote',
+            function_name='ArtAddVote',
             handler='art.add_vote.lambda_handler',
             timeout=cdk.Duration.seconds(5),
             **lambda_default_kwargs
@@ -210,8 +210,8 @@ class SudocoinsArtLambdas:
         # GET PREVIEW
         self.get_preview_function = _lambda.Function(
             scope,
-            'GetPreviewV2',
-            function_name='GetPreviewV2',
+            'ArtGetPreviewV2',
+            function_name='ArtGetPreviewV2',
             handler='art.get_preview.lambda_handler',
             timeout=cdk.Duration.seconds(5),
             **lambda_default_kwargs
@@ -222,8 +222,8 @@ class SudocoinsArtLambdas:
         # SET ARTISTS
         set_artists_function = _lambda.Function(
             scope,
-            'SetArtistsV2',
-            function_name='SetArtistsV2',
+            'ArtSetArtistsV2',
+            function_name='ArtSetArtistsV2',
             handler='art.set_artist_leaderboard.lambda_handler',
             **lambda_default_kwargs
         )

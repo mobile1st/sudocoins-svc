@@ -91,8 +91,8 @@ class SudocoinsUserLambdas:
         # MORE HISTORY
         self.more_history_function = _lambda.Function(
             scope,
-            'MoreHistoryV2',
-            function_name='MoreHistoryV2',
+            'UserMoreHistoryV2',
+            function_name='UserMoreHistoryV2',
             handler='user.more_history.lambda_handler',
             description='loads more history for the user',
             **lambda_default_kwargs
