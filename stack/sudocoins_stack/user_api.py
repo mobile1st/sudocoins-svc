@@ -74,4 +74,12 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=more_history_integration
         )
-
+        # CONTACT US
+        contact_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.contact_function
+        )
+        user_api_v3.add_routes(
+            path='/contact',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=contact_integration
+        )

@@ -1,43 +1,36 @@
 import boto3
-import os
 import uuid
+import json
 from datetime import datetime
+from util import sudocoins_logger
+
+log = sudocoins_logger.get()
+dynamodb = boto3.resource('dynamodb')
+sns_client = boto3.client('sns')
 
 
 def lambda_handler(event, context):
-    print("event=%s userId=%", event, context.identity.cognito_identity_id)
-
-    dynamodb = boto3.resource('dynamodb')
-    contactTable = dynamodb.Table(os.environ["CONTACT_TABLE"])
-    profileTable = dynamodb.Table("Profile")
-
-    msgId = str(uuid.uuid1())
-    timeNow = datetime.utcnow().isoformat()
-
+    log.debug(f'event: {event}')
+    input_json = json.loads(event['body'])
     message = {
-        'msgId': msgId,
-        'userId': event["userId"],
-        'message': event["message"],
-        'created': timeNow,
-        'msgStatus': "pending"
+        'msgId': str(uuid.uuid1()),
+        'userId': input_json['userId'],
+        'message': input_json['message'],
+        'created': datetime.utcnow().isoformat(),
+        'msgStatus': 'pending'
     }
 
-    if 'transactionId' in event:
-        message['transactionId'] = event['transactionId']
-    if 'email' in event:
-        message['email'] = event['email']
+    # probably can be removed
+    if 'transactionId' in input_json:
+        message['transactionId'] = input_json['transactionId']
+    if 'email' in input_json:
+        message['email'] = input_json['email']
 
-    contactResponse = contactTable.put_item(
+    dynamodb.Table('Contact').put_item(
         Item=message
     )
 
-    client = boto3.client("sns")
-    client.publish(
+    sns_client.publish(
         PhoneNumber="+16282265769",
         Message="Contact us message submitted"
     )
-
-    return {
-        'statusCode': 200,
-        'body': "success"
-    }

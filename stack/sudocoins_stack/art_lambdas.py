@@ -2,7 +2,6 @@ from resources import SudocoinsImportedResources
 from aws_cdk import (
     core as cdk,
     aws_lambda as _lambda,
-    aws_lambda_python as lambda_python,
     aws_lambda_event_sources as event_sources,
     aws_events as events,
     aws_events_targets as events_targets,

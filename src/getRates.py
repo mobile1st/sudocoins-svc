@@ -1,42 +1,35 @@
 import boto3
-import requests
-from decimal import Decimal
+import http.client
 import json
+from util import sudocoins_logger
+from decimal import Decimal
+
+log = sudocoins_logger.get()
+dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    btc_usd, eth_usd = get_coinbase_rates()
 
-    btcUsd, ethUsd = getCoinbaseRates()
-
-    dynamodb = boto3.resource('dynamodb')
-    configTable = dynamodb.Table("Config")
-    configTable.update_item(
-            Key={
-                "configKey": "HomePage"
-            },
-            UpdateExpression="set rate=:r, ethRate=:er",
-            ExpressionAttributeValues={
-                ":r": Decimal(btcUsd),
-                ":er": Decimal(ethUsd)
-
-            }
-        )
-
-    return {
-        'statusCode': 200,
-        'body': "Rates saved"
-    }
+    dynamodb.Table('Config').update_item(
+        Key={
+            'configKey': 'HomePage'
+        },
+        UpdateExpression="set rate=:r, ethRate=:er",
+        ExpressionAttributeValues={
+            ":r": Decimal(btc_usd),
+            ":er": Decimal(eth_usd)
+        }
+    )
 
 
-def getCoinbaseRates():
-    url = 'https://api.coinbase.com/v2/exchange-rates'
-
-    response = requests.get(url)
-    rates = json.loads(response.content.decode("utf-8"))
-    btcRate = rates['data']['rates']['BTC']
-    ethRate = rates['data']['rates']['ETH']
-
-    return btcRate, ethRate
-
-
-
+def get_coinbase_rates():
+    path = '/v2/exchange-rates'
+    conn = http.client.HTTPSConnection('api.coinbase.com')
+    conn.request('GET', path)
+    response = conn.getresponse()
+    rates = json.loads(response.read())
+    log.info(f'rates: {rates}')
+    btc_rate = rates['data']['rates']['BTC']
+    eth_rate = rates['data']['rates']['ETH']
+    return btc_rate, eth_rate

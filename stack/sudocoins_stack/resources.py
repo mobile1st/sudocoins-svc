@@ -54,6 +54,11 @@ class SudocoinsImportedResources:
             'ConfigTable',
             'arn:aws:dynamodb:us-west-2:977566059069:table/Config'
         )
+        self.contact_table = dynamodb.Table.from_table_arn(
+            scope,
+            'ContactTable',
+            'arn:aws:dynamodb:us-west-2:977566059069:table/Contact'
+        )
         self.profile_table = dynamodb.Table.from_table_arn(
             scope,
             'ProfileTable',

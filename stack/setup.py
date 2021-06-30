@@ -22,7 +22,6 @@ setuptools.setup(
         "aws-cdk.core==1.109.0",
         "aws-cdk.aws-lambda==1.109.0",
         "aws-cdk.aws-lambda-event-sources==1.109.0",
-        "aws-cdk.aws-lambda-python==1.109.0",
         "aws-cdk.aws-dynamodb==1.109.0",
         "aws-cdk.aws-apigatewayv2==1.109.0",
         "aws-cdk.aws-apigatewayv2-integrations==1.109.0",

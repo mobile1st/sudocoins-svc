@@ -2,7 +2,6 @@ from resources import SudocoinsImportedResources
 from aws_cdk import (
     core as cdk,
     aws_lambda as _lambda,
-    aws_lambda_python as lambda_python,
     aws_lambda_event_sources as event_sources,
     aws_events as events,
     aws_events_targets as events_targets,
@@ -105,4 +104,19 @@ class SudocoinsUserLambdas:
         resources.transaction_table.grant_read_write_data(self.more_history_function)
         resources.grant_read_index_data(self.more_history_function, [resources.transaction_table])
         resources.grant_read_index_data(self.more_history_function, [resources.ledger_table])
-
+        # CONTACT US
+        self.contact_function = _lambda.Function(
+            scope,
+            'UserContactUsV2',
+            function_name='UserContactUsV2',
+            handler='contact.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.contact_table.grant_read_write_data(self.contact_function)
+        self.contact_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['*'],
+                actions=['sns:Publish']
+            )
+        )
