@@ -6,8 +6,6 @@ import json
 from util import sudocoins_logger
 import random
 
-# from configuration import Configuration
-
 log = sudocoins_logger.get()
 config = Config(connect_timeout=0.1, read_timeout=0.1, retries={'max_attempts': 5, 'mode': 'standard'})
 dynamodb = boto3.resource('dynamodb', config=config)

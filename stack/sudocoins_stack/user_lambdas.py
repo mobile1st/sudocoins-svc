@@ -105,3 +105,4 @@ class SudocoinsUserLambdas:
         resources.transaction_table.grant_read_write_data(self.more_history_function)
         resources.grant_read_index_data(self.more_history_function, [resources.transaction_table])
         resources.grant_read_index_data(self.more_history_function, [resources.ledger_table])
+

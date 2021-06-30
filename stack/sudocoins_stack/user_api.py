@@ -74,3 +74,4 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=more_history_integration
         )
+
