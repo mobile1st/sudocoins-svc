@@ -16,41 +16,17 @@ sns_client = boto3.client("sns")
 
 def lambda_handler(event, context):
     log.debug(f'event: {event}')
-
     jsonInput = json.loads(event.get('body', '{}'))
+    sub, email, facebook, signupMethod, ip, shareId = parseJson(jsonInput)
 
-
-    if 'sub' in jsonInput:
-        sub = jsonInput['sub']
-    else:
-        sub = ""
-    if 'email' in jsonInput:
-        email = jsonInput['email']
-    else:
-        email = ""
-    if 'facebookUrl' in jsonInput:
-        facebook = jsonInput['facebookUrl']
-    else:
-        facebook = ""
-    if 'signupMethod' in jsonInput:
-        signupMethod = jsonInput['signupMethod']
-    else:
-        signupMethod = ""
-    if 'ip' in jsonInput:
-        ip = jsonInput['ip']
-    else:
-        ip = ""
     global profile
 
     try:
         if sub != "":
-            profile = loadProfile(sub, email, facebook, signupMethod, context, ip)
-            userId = profile['userId']
-            log.debug(f'profile: {profile} userId: {userId}')
+            profile = loadProfile(sub, email, facebook, signupMethod, context, ip, shareId)
+            log.debug(f'profile: {profile}')
         else:
-            print("wtf")
             profile = {}
-
     except Exception as e:
         log.exception(e)
         profile = {}
@@ -72,7 +48,7 @@ def lambda_handler(event, context):
     }
 
 
-def loadProfile(sub, email, facebook, signupMethod, context, ip):
+def loadProfile(sub, email, facebook, signupMethod, context, ip, shareId):
     profileTable = dynamodb.Table('Profile')
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': sub})
@@ -93,7 +69,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
         log.info(f'profileObject: {profileObject}')
 
         if 'Item' not in profileObject:
-            profile = addProfile(email, profileTable, userId, facebook, signupMethod, context)
+            profile = createProfile(email, profileTable, userId, facebook, signupMethod, context, shareId)
             return profile
 
         if 'verificationState' not in profileObject['Item']:
@@ -200,7 +176,7 @@ def loadProfile(sub, email, facebook, signupMethod, context, ip):
             "userId": userId
         }
     )
-    profile = addProfile(email, profileTable, userId, facebook, signupMethod, context)
+    profile = createProfile(email, profileTable, userId, facebook, signupMethod, context, shareId)
 
     return profile
 
@@ -239,7 +215,7 @@ def create_user_name(email, profileTable):
     return un
 
 
-def addProfile(email, profileTable, userId, facebook, signupMethod, context):
+def createProfile(email, profileTable, userId, facebook, signupMethod, context, shareId):
     created = datetime.utcnow().isoformat()
     user_name = create_user_name(email, profileTable)
     profile = {
@@ -257,7 +233,8 @@ def addProfile(email, profileTable, userId, facebook, signupMethod, context):
         "verificationState": None,
         "signupMethod": signupMethod,
         "user_name": user_name,
-        "twitter_handle": None
+        "twitter_handle": None,
+        "affiliate": shareId
     }
 
     log.info(f'profile: {profile}')
@@ -284,9 +261,45 @@ def addProfile(email, profileTable, userId, facebook, signupMethod, context):
             'signUpMethod': signupMethod
         })
     )
-    log.debug("profile added to sns")
+    log.info("profile added to sns")
+
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue.fifo')
+    queue.send_message(MessageBody=json.dumps(profile), MessageGroupId='tile_views')
+    log.info("affiliate added")
 
     profile["new_user"] = True
 
     return profile
+
+
+def parseJson(jsonInput):
+
+    if 'sub' in jsonInput:
+        sub = jsonInput['sub']
+    else:
+        sub = ""
+    if 'email' in jsonInput:
+        email = jsonInput['email']
+    else:
+        email = ""
+    if 'facebookUrl' in jsonInput:
+        facebook = jsonInput['facebookUrl']
+    else:
+        facebook = ""
+    if 'signupMethod' in jsonInput:
+        signupMethod = jsonInput['signupMethod']
+    else:
+        signupMethod = ""
+    if 'ip' in jsonInput:
+        ip = jsonInput['ip']
+    else:
+        ip = ""
+    if 'shareId' in jsonInput:
+        shareId = jsonInput['shareId']
+    else:
+        shareId = 'organic'
+
+
+    return sub, email, facebook, signupMethod, ip, shareId
 

@@ -36,6 +36,7 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
         resources.grant_read_index_data(self.get_profile_function, [resources.profile_table])
+        resources.affiliates_queue.grant_send_messages(self.get_profile_function)
         # UPDATE PROFILE
         self.update_profile_function = _lambda.Function(
             scope,
