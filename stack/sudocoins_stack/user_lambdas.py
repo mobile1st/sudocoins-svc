@@ -26,7 +26,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserGetProfileV2',
             function_name='UserGetProfileV2',
-            handler='art.get_profile.lambda_handler',
+            handler='user.get_profile.lambda_handler',
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
@@ -41,7 +41,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserUpdateProfileV2',
             function_name='UserUpdateProfileV2',
-            handler='art.update_profile.lambda_handler',
+            handler='user.update_profile.lambda_handler',
             description='Updates profile related attributes',
             **lambda_default_kwargs
         )
@@ -59,7 +59,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserVerifyV2',
             function_name='UserVerifyV2',
-            handler='art.user_verify.lambda_handler',
+            handler='user.user_verify.lambda_handler',
             description='Verifies user with google recaptcha',
             **lambda_default_kwargs
         )
@@ -70,7 +70,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserCashOutV2',
             function_name='UserCashOutV2',
-            handler='art.cash_out.lambda_handler',
+            handler='user.cash_out.lambda_handler',
             **lambda_default_kwargs
         )
         resources.profile_table.grant_read_write_data(self.cash_out_function)
@@ -93,7 +93,7 @@ class SudocoinsUserLambdas:
             scope,
             'MoreHistoryV2',
             function_name='MoreHistoryV2',
-            handler='art.moreHistory.lambda_handler',
+            handler='user.more_history.lambda_handler',
             description='loads more history for the user',
             **lambda_default_kwargs
         )
