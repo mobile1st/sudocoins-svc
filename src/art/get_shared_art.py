@@ -36,15 +36,13 @@ def get_by_share_id(source_ip, share_id, user_id):
         ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
         ExpressionAttributeNames={'#n': 'name'}
     )
-
-    print(art_uploads_record)
-
+    log.info(art_uploads_record)
     queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue.fifo')
     # queue deduplication by sourceIp+artId/shareId for 5 minutes
     msg = {'sourceIp': source_ip}
     if 'Item' in art_uploads_record:
         msg['shareId'] = share_id
-        log.debug(f'sending message: {msg}')
+        log.info(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
 
         return {

@@ -11,22 +11,19 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
-    log.debug('art_counter called')
+    log.info('art_counter called')
     for record in event['Records']:
         payload = record['body']
         log.info(f'payload: {payload}')
-
         data = json.loads(payload)
-        register_click(data)
 
+        register_click(data)
         log.info('record updated')
 
 
 def register_click(data):
-    # if a user's share url
     if 'shareId' in data:
-        print("shareId:" + data['shareId'])
-        # update view count for art in art_uploads
+        log.info("shareId:" + data['shareId'])
         dynamodb.Table('art_uploads').update_item(
             Key={'shareId': data['shareId']},
             UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
@@ -37,14 +34,12 @@ def register_click(data):
             ReturnValues="UPDATED_NEW"
         )
         log.info("art_uploads table click_count increased")
-        # get some data about this art in art_uploads
         art_uploads_record = dynamodb.Table('art_uploads').get_item(
             Key={'shareId': data['shareId']},
             ProjectionExpression="art_id, user_id")['Item']
-        log.debug(f'art_uploads_record: {art_uploads_record}')
+        log.info(f'art_uploads_record: {art_uploads_record}')
         if 'user_id' in art_uploads_record:
             update_user_count(art_uploads_record['user_id'])
-
         # get art record in art table and update click count
         if 'art_id' in art_uploads_record:
             art_id = art_uploads_record['art_id']
@@ -68,7 +63,6 @@ def register_click(data):
                 Item=art_votes_record
             )
             log.info("record added to art_votes table")
-
     # if it's not a custom art url, then it's a generic art url
     elif 'art_id' in data:
         # add to click count
@@ -92,11 +86,9 @@ def register_click(data):
             Item=art_votes_record
         )
         log.info("record added to art_votes table")
-        # no need to add points to user profile
 
 
 def update_user_count(user_id):
-    # update user profile click_count
     dynamodb.Table('Profile').update_item(
         Key={'userId': user_id},
         UpdateExpression="SET click_count = if_not_exists(click_count, :start) + :inc",
@@ -106,8 +98,8 @@ def update_user_count(user_id):
         },
         ReturnValues="UPDATED_NEW"
     )
-    print("user profile click_count increased")
-    # get some user data about click count
+    log.info("user profile click_count increased")
+
     profile_record = dynamodb.Table('Profile').get_item(
         Key={'userId': user_id},
         ProjectionExpression="click_count, click_count_paid")
