@@ -75,7 +75,7 @@ class SudocoinsAdminLambdas:
             scope,
             'AdminSetRatesV2',
             function_name='AdminSetRatesV2',
-            handler='getRates.lambda_handler',
+            handler='admin.set_rates.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(set_rates_function)

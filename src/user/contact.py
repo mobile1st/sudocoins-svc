@@ -34,3 +34,6 @@ def lambda_handler(event, context):
         PhoneNumber="+16282265769",
         Message="Contact us message submitted"
     )
+    return {
+        'success': True
+    }

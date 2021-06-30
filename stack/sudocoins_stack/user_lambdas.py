@@ -109,7 +109,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserContactUsV2',
             function_name='UserContactUsV2',
-            handler='contact.lambda_handler',
+            handler='user.contact.lambda_handler',
             **lambda_default_kwargs
         )
         resources.contact_table.grant_read_write_data(self.contact_function)
