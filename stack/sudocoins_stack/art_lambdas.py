@@ -241,11 +241,18 @@ class SudocoinsArtLambdas:
             targets=[set_artists_target]
         )
         # PROCESS ARTS
-        self.art_processor_function = _lambda.Function(
+        art_processor_function = _lambda.Function(
             scope,
             'ArtProcessorV2',
             function_name='ArtProcessorV2',
             handler='art.art_processor.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.add_art_queue.grant_send_messages(self.art_processor_function)
+        art_processor_function.add_event_source(
+            event_sources.SqsEventSource(
+                resources.add_art_queue,
+                batch_size=10,
+                enabled=True
+            )
+        )
+
