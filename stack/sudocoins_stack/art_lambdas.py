@@ -34,6 +34,7 @@ class SudocoinsArtLambdas:
         resources.art_uploads_table.grant_read_write_data(self.add_art_function)
         resources.profile_table.grant_read_write_data(self.add_art_function)
         resources.ledger_table.grant_read_write_data(self.add_art_function)
+        resources.add_art_queue.grant_send_messages(self.add_art_function)
         resources.grant_read_index_data(
             self.add_art_function,
             [resources.art_table, resources.art_uploads_table, resources.ledger_table]

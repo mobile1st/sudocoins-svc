@@ -110,6 +110,13 @@ class SudocoinsImportedResources:
             fifo=True,
             content_based_deduplication=True
         )
+        self.add_art_queue = sqs.Queue(
+            scope,
+            'add_art.fifo',
+            queue_name='add_art.fifo',
+            fifo=True,
+            content_based_deduplication=True
+        )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
         sudocoins_admin_pool = cognito.UserPool.from_user_pool_id(scope, 'SudoCoins-Admin', 'us-west-2_TpPw8Ed2z')

@@ -123,6 +123,10 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         dynamodb.Table('art').put_item(
             Item=art_record
         )
+        sqs = boto3.resource('sqs')
+        queue = sqs.get_queue_by_name(QueueName='add_art.fifo')
+        queue.send_message(MessageBody=json.dumps(art_record), MessageGroupId='art_record')
+        log.info("art added to queue for s3")
     elif art_object['Count'] > 0:
         art_id = art_object['Items'][0]['art_id']
 
