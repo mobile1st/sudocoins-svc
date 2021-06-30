@@ -11,21 +11,21 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     last_day = (datetime.utcnow() - timedelta(days=14)).isoformat()
-    print(last_day)
-    # generate art_id str => int mappings
+
     vote_counts = get_votes(last_day)
     view_counts = get_views(last_day)
     buy_counts = get_buys(last_day)
     log.info("scores created")
+
     scores = merge_arts(vote_counts, view_counts, buy_counts)
     log.info("scores merged")
-    # get art_id and associated creator data
+
     creators = get_creators(scores)
     log.info("creator data received")
-    # map creator data to art scores
+
     top_creators = creator_ranking(scores, creators)
     log.info("top creators list mapping finished")
-    # set the config for Artists
+
     set_config(top_creators)
     log.info("config set")
 
@@ -47,7 +47,8 @@ def creator_ranking(scores, creators):
                     "score": score,
                     "data": i['open_sea_data']['M']['creator']['M']
                 }
-        except:
+        except Exception as e:
+            log.info(e)
             pass
 
     sorted_dict = OrderedDict(sorted(creator_data.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))
@@ -62,18 +63,22 @@ def get_creators(scores):
     art_keys = []
     for i in scores:
         element = {'art_id': {'S': i}}
-
         art_keys.append(element)
 
-    art_row = client.batch_get_item(
-        RequestItems={
-            'art': {
-                'Keys': art_keys,
-                'ProjectionExpression': 'art_id, open_sea_data'
+    chunks = [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]
+
+    creators = []
+    for i in chunks:
+        art_row = client.batch_get_item(
+            RequestItems={
+                'art': {
+                    'Keys': i,
+                    'ProjectionExpression': 'art_id, open_sea_data'
+                }
             }
-        }
-    )
-    creators = art_row['Responses']['art']
+        )
+        sub_creators = art_row['Responses']['art']
+        creators.append(sub_creators)
 
     return creators
 
@@ -91,6 +96,8 @@ def get_votes(last_day):
             vote_counts[i['art_id']] += 1
         else:
             vote_counts[i['art_id']] = 1
+
+    log.info(vote_counts)
 
     return vote_counts
 
@@ -110,6 +117,8 @@ def get_views(last_day):
         else:
             view_counts[i['art_id']] = 1
 
+    log.info(view_counts)
+
     return view_counts
 
 
@@ -127,6 +136,8 @@ def get_buys(last_day):
             buy_counts[i['art_id']] += 1
         else:
             buy_counts[i['art_id']] = 1
+
+    log.info(buy_counts)
 
     return buy_counts
 
@@ -149,6 +160,8 @@ def merge_arts(vote_counts, view_counts, buy_counts):
         else:
             scores[i] = buy_counts[i]
 
+    log.info(scores)
+
     return scores
 
 
@@ -165,6 +178,8 @@ def set_config(top_creators):
         },
         ReturnValues="ALL_NEW"
     )
+
+    return
 
 
 
