@@ -22,7 +22,6 @@ def lambda_handler(event, context):
 
     creators = get_creators(scores)
     log.info("creator data received")
-    log.info(creators)
 
     top_creators = creator_ranking(scores, creators)
     log.info("top creators list mapping finished")
@@ -41,7 +40,7 @@ def creator_ranking(scores, creators):
             try:
                 creator = i['open_sea_data']['M']['creator']['M']['address']['S']
                 score = scores[i['art_id']['S']]
-                avatar = scores[i['preview_url']['S']]
+                avatar = i['preview_url']['S']
 
                 if creator in creator_data:
                     creator_data[creator]['score'] += score
@@ -101,8 +100,6 @@ def get_votes(last_day):
         else:
             vote_counts[i['art_id']] = 1
 
-    log.info(len(vote_counts))
-
     return vote_counts
 
 
@@ -121,8 +118,6 @@ def get_views(last_day):
         else:
             view_counts[i['art_id']] = 1
 
-    log.info(len(view_counts))
-
     return view_counts
 
 
@@ -140,8 +135,6 @@ def get_buys(last_day):
             buy_counts[i['art_id']] += 1
         else:
             buy_counts[i['art_id']] = 1
-
-    log.info(len(buy_counts))
 
     return buy_counts
 
@@ -163,8 +156,6 @@ def merge_arts(vote_counts, view_counts, buy_counts):
             scores[i] += buy_counts[i]
         else:
             scores[i] = buy_counts[i]
-
-    log.info(len(scores))
 
     return scores
 
