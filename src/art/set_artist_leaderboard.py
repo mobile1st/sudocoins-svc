@@ -41,13 +41,15 @@ def creator_ranking(scores, creators):
             try:
                 creator = i['open_sea_data']['M']['creator']['M']['address']['S']
                 score = scores[i['art_id']['S']]
+                avatar = scores[i['preview_url']['S']]
 
                 if creator in creator_data:
                     creator_data[creator]['score'] += score
                 else:
                     creator_data[creator] = {
                         "score": score,
-                        "data": i['open_sea_data']['M']['creator']['M']
+                        "data": i['open_sea_data']['M']['creator']['M'],
+                        "avatar": avatar
                     }
             except Exception as e:
                 log.info(e)
@@ -75,7 +77,7 @@ def get_creators(scores):
             RequestItems={
                 'art': {
                     'Keys': i,
-                    'ProjectionExpression': 'art_id, open_sea_data'
+                    'ProjectionExpression': 'art_id, open_sea_data, preview_url'
                 }
             }
         )
