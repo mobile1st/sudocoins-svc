@@ -127,7 +127,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         )
         sns_client = boto3.client("sns")
         sns_client.publish(
-            TopicArn="arn:aws:sns:us-west-2:977566059069:art-processor",
+            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
             MessageStructure='string',
             MessageAttributes={
                 'source': {
