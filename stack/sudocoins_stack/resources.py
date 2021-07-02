@@ -122,10 +122,11 @@ class SudocoinsImportedResources:
             fifo=True,
             content_based_deduplication=True
         )
-        self.art_processor_topic = sns.Topic.from_topic_arn(
+        self.art_processor_topic = sns.Topic(
             scope,
-            'ArtProcessor',
-            topic_arn='arn:aws:sns:us-west-2:977566059069:art-processor'
+            'ArtProcessorTopic',
+            display_name='ArtProcessor',
+            topic_name='ArtProcessor'
         )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
