@@ -35,7 +35,6 @@ class SudocoinsArtLambdas:
         resources.art_processor_topic.grant_publish(self.add_art_function)
         resources.profile_table.grant_read_write_data(self.add_art_function)
         resources.ledger_table.grant_read_write_data(self.add_art_function)
-        resources.add_art_queue.grant_send_messages(self.add_art_function)
         resources.grant_read_index_data(
             self.add_art_function,
             [resources.art_table, resources.art_uploads_table, resources.ledger_table]
@@ -251,13 +250,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(art_processor_function)
-        art_processor_function.add_event_source(
-            event_sources.SqsEventSource(
-                resources.add_art_queue,
-                batch_size=10,
-                enabled=True
-            )
-        )
         resources.art_processor_topic.add_subscription(
             subs.LambdaSubscription(art_processor_function)
         )

@@ -115,13 +115,6 @@ class SudocoinsImportedResources:
             fifo=True,
             content_based_deduplication=True
         )
-        self.add_art_queue = sqs.Queue(
-            scope,
-            'add_art.fifo',
-            queue_name='add_art.fifo',
-            fifo=True,
-            content_based_deduplication=True
-        )
         self.art_processor_topic = sns.Topic(
             scope,
             'ArtProcessorTopic',

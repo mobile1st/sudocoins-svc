@@ -28,11 +28,10 @@ def stream_to_s3(data):
 
     s3_bucket = "artprocessor"
     s3_file_path = data['art_id'] + '.' + file_ending
+    s3 = boto3.client('s3')
     response.raw.decode_content = True
     conf = boto3.s3.transfer.TransferConfig(multipart_threshold=10000, max_concurrency=4)
-    client = boto3.client('s3')
-    client.upload_fileobj(response.raw, s3_bucket, s3_file_path, Config=conf)
-    # client.put_object(Body=response, Bucket='artprocessor', Key=s3_file_path)
+    s3.upload_fileobj(response.raw, s3_bucket, s3_file_path, Config=conf)
     log.info('upload finished')
 
     art_table = dynamodb.Table('art')
