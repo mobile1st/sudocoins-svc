@@ -6,6 +6,8 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
     leaderboard = getConfig()
 
     return {

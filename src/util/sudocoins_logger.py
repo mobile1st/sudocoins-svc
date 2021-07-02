@@ -1,28 +1,35 @@
 import logging
 import sys
-import os
+from util import request_util
 from time import gmtime
 
-local_log_format = '%(asctime)s %(levelname)-5s [%(name)s.%(filename)s:%(lineno)d] %(message)s'
-aws_log_format = '%(asctime)s %(aws_request_id)s %(levelname)-5s [%(name)s.%(filename)s:%(lineno)d] %(message)s'
+root_log_format = '[%(asctime)s] %(levelname)-5s [%(name)s.%(filename)s:%(lineno)d] %(message)s'
+sc_log_format = '[%(asctime)s] %(levelname)-5s [ip:%(ip)s][sub:%(sub)s][%(name)s.%(filename)s:%(lineno)d] %(message)s'
 
-# init local logging: does nothing if the root logger already has handlers configured
-logging.basicConfig(format=local_log_format, stream=sys.stdout)
+logging.basicConfig(stream=sys.stdout)
 logging.Formatter.converter = gmtime
-# init aws logging
+
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
-if os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
-    root_logger.handlers[0].setFormatter(logging.Formatter(aws_log_format))
+root_logger.handlers[0].setFormatter(logging.Formatter(root_log_format))
 
-sudocoins_logger = logging.getLogger('sudocoins')
+sudocoins_logger = logging.getLogger('sc')
+ch = logging.StreamHandler(stream=sys.stdout)
+ch.setFormatter(logging.Formatter(sc_log_format))
+sudocoins_logger.addHandler(ch)
 sudocoins_logger.setLevel(logging.DEBUG)
+sudocoins_logger.propagate = False
+unknown = 'N/A'
 
 
-def get(name=None, level=logging.DEBUG):
-    if name is None:
-        return sudocoins_logger
+def get(ctx=None):
+    extra = ctx or get_ctx_dict()
+    return logging.LoggerAdapter(sudocoins_logger, extra=extra)
 
-    logger = logging.getLogger(f'sudocoins.{name}')
-    logger.setLevel(level)
-    return logger
+
+def get_ctx(event):
+    return get_ctx_dict(request_util.get_ip_address_safe(event), request_util.get_sub_safe(event))
+
+
+def get_ctx_dict(ip=None, sub=None):
+    return {'ip': ip or unknown, 'sub': sub or unknown}

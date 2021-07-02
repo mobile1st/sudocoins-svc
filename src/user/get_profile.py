@@ -13,6 +13,8 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
     log.debug(f'event: {event}')
     jsonInput = json.loads(event.get('body', '{}'))
     sub, email, facebook, signupMethod, ip, shareId = parseJson(jsonInput)

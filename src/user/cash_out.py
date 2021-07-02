@@ -3,6 +3,7 @@ import boto3
 import uuid
 import json
 from art.history import History
+from util import request_util
 from util import sudocoins_logger
 
 log = sudocoins_logger.get()
@@ -13,10 +14,12 @@ history = History(dynamodb)
 
 def lambda_handler(event, context):
     try:
+        global log
+        log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
         log.debug(f'event: {event}')
         cash_out_data = json.loads(event['body'])
         requested_sub = cash_out_data['sub']
-        jwt_sub_claim = event['requestContext']['authorizer']['jwt']['claims']['sub']
+        jwt_sub_claim = request_util.get_sub_safe(event)
         if requested_sub != jwt_sub_claim:
             return error_response('Authorization check failed for the request')
 

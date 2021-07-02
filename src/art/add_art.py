@@ -20,6 +20,8 @@ art = Art(dynamodb)
 # }
 def lambda_handler(event, context):
     try:
+        global log
+        log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
         log.debug(f'event: {event}')
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
