@@ -5,7 +5,8 @@ from aws_cdk import (
     aws_lambda_event_sources as event_sources,
     aws_events as events,
     aws_events_targets as events_targets,
-    aws_logs as logs
+    aws_logs as logs,
+    aws_sns_subscriptions as subs
 )
 
 lambda_default_kwargs = {
@@ -31,6 +32,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_write_data(self.add_art_function)
         resources.art_uploads_table.grant_read_write_data(self.add_art_function)
+        resources.art_processor_topic.grant_publish(self.add_art_function)
         resources.profile_table.grant_read_write_data(self.add_art_function)
         resources.ledger_table.grant_read_write_data(self.add_art_function)
         resources.add_art_queue.grant_send_messages(self.add_art_function)
@@ -240,7 +242,7 @@ class SudocoinsArtLambdas:
             schedule=set_artists_schedule,
             targets=[set_artists_target]
         )
-        # PROCESS ARTS
+        # ART PROCESSOR
         art_processor_function = _lambda.Function(
             scope,
             'ArtProcessorV2',
@@ -248,11 +250,15 @@ class SudocoinsArtLambdas:
             handler='art.art_processor.lambda_handler',
             **lambda_default_kwargs
         )
+        resources.art_table.grant_read_write_data(art_processor_function)
         art_processor_function.add_event_source(
             event_sources.SqsEventSource(
                 resources.add_art_queue,
                 batch_size=10,
                 enabled=True
             )
+        )
+        resources.art_processor_topic.add_subscription(
+            subs.LambdaSubscription(art_processor_function)
         )
 

@@ -122,6 +122,11 @@ class SudocoinsImportedResources:
             fifo=True,
             content_based_deduplication=True
         )
+        self.art_processor_topic = sns.Topic.from_topic_arn(
+            scope,
+            'ArtProcessor',
+            topic_arn='arn:aws:sns:us-west-2:977566059069:art-processor'
+        )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
         sudocoins_admin_pool = cognito.UserPool.from_user_pool_id(scope, 'SudoCoins-Admin', 'us-west-2_TpPw8Ed2z')
