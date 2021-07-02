@@ -130,8 +130,13 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
             TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
             MessageStructure='string',
             MessageAttributes={
-                'source': {
-                    'DataType': 'String'
+                'art_id': {
+                    'DataType': 'String',
+                    'StringValue': art_id
+                },
+                'art_url': {
+                    'DataType': 'String',
+                    'StringValue': art_url
                 }
             },
             Message=json.dumps(art_record)
