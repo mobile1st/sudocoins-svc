@@ -23,6 +23,7 @@ def stream_to_s3(data):
     response = requests.get(art_url, stream=True)
     log.info(response.headers)
     file_type = response.headers['content-type']
+    file_size = response.headers['content-length']
     type_index = file_type.find('/')
     file_ending = file_type[type_index + 1:]
 
@@ -37,12 +38,13 @@ def stream_to_s3(data):
     art_table = dynamodb.Table('art')
     art_table.update_item(
         Key={'art_id': data['art_id']},
-        UpdateExpression="SET headers=:head",
+        UpdateExpression="SET file_type=:ft, size=:size",
         ExpressionAttributeValues={
-            ':head': response.headers
+            ':ft': file_type,
+            ':size': file_size
         },
         ReturnValues="UPDATED_NEW"
     )
-    log.info("art headers added to art table")
+    log.info("art file type and size added to art table")
 
     return
