@@ -7,9 +7,11 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    print("hi")
 
     log.info(f'event: {event}')
-    input_json = json.loads(event.get('body', '{}'))
+    # input_json = json.loads(event.get('body', '{}'))
+    input_json = event
 
     if input_json['msg'] == "update":
         return update_colors(input_json['user_id'], input_json['bg_color'],
@@ -34,14 +36,10 @@ def update_colors(user_id, bg_color, tile_color, text_color):
         },
         UpdateExpression=update_expression,
         ExpressionAttributeValues=attribute_values,
-        ReturnValues='ALL_NEW'
+        ReturnValues='UPDATED_NEW'
     )['Attributes']
 
 
 def get_colors(user_id):
-    colors = dynamodb.Table('Profile').get_item(Key={'userId': user_id})['Item']
-    return {
-        "bg_color": colors['bg_color'],
-        "tile_color": colors['tile_color'],
-        "text_color": colors['text_color'],
-    }
+    return dynamodb.Table('Profile').get_item(Key={'userId': user_id},
+                                              ProjectionExpression='userId, bg_color, text_color, tile_color')['Item']
