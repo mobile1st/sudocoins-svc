@@ -120,3 +120,20 @@ class SudocoinsUserLambdas:
                 actions=['sns:Publish']
             )
         )
+        # UPDATE COLORS
+        self.update_colors_function = _lambda.Function(
+            scope,
+            'UserUpdateColorsV2',
+            function_name='UserUpdateColorsV2',
+            handler='user.update_colors.lambda_handler',
+            description='Updates custom gallery colors',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.update_colors_function)
+        self.update_colors_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )

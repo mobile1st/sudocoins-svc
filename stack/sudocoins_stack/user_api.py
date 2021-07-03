@@ -83,3 +83,12 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=contact_integration
         )
+        # UPDATE COLORS
+        update_colors_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.update_colors_function
+        )
+        user_api_v3.add_routes(
+            path='/profile/colors',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=update_colors_integration
+        )
