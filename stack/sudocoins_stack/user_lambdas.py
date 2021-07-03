@@ -125,7 +125,7 @@ class SudocoinsUserLambdas:
             scope,
             'UserUpdateColorsV2',
             function_name='UserUpdateColorsV2',
-            handler='user.update_colors.lambda_handler',
+            handler='user.user_colors.lambda_handler',
             description='Updates custom gallery colors',
             **lambda_default_kwargs
         )
