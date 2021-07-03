@@ -253,4 +253,4 @@ class SudocoinsArtLambdas:
         resources.art_processor_topic.add_subscription(
             subs.LambdaSubscription(art_processor_function)
         )
-
+        resources.art_processor_bucket.grant_read_write(art_processor_function)

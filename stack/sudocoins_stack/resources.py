@@ -12,7 +12,8 @@ from aws_cdk import (
     aws_apigatewayv2 as apigwv2,
     aws_route53 as route53,
     aws_route53_targets as route53_targets,
-    aws_certificatemanager as acm
+    aws_certificatemanager as acm,
+    aws_s3 as s3
 )
 
 
@@ -28,67 +29,8 @@ class SudocoinsImportedResources:
         )
 
     def __init__(self, scope: cdk.Construct):
+        self.import_tables(scope)
         self.sudocoins_domain_name = self.custom_domain(scope)
-        self.traffic_reports_table = dynamodb.Table.from_table_arn(
-            scope,
-            'TrafficReportsTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/TrafficReports'
-        )
-        self.payouts_table = dynamodb.Table.from_table_arn(
-            scope,
-            'PayoutsTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Payouts'
-        )
-        self.ledger_table = dynamodb.Table.from_table_arn(
-            scope,
-            'LedgerTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Ledger'
-        )
-        self.transaction_table = dynamodb.Table.from_table_arn(
-            scope,
-            'TransactionTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Transaction'
-        )
-        self.config_table = dynamodb.Table.from_table_arn(
-            scope,
-            'ConfigTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Config'
-        )
-        self.contact_table = dynamodb.Table.from_table_arn(
-            scope,
-            'ContactTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Contact'
-        )
-        self.profile_table = dynamodb.Table.from_table_arn(
-            scope,
-            'ProfileTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Profile'
-        )
-        self.sub_table = dynamodb.Table.from_table_arn(
-            scope,
-            'SubTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/sub'
-        )
-        self.art_table = dynamodb.Table.from_table_arn(
-            scope,
-            'ArtTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/art'
-        )
-        self.art_uploads_table = dynamodb.Table.from_table_arn(
-            scope,
-            'ArtUploadsTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/art_uploads'
-        )
-        self.verifications_table = dynamodb.Table.from_table_arn(
-            scope,
-            'VerificationsTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/Verifications'
-        )
-        self.art_votes_table = dynamodb.Table.from_table_arn(
-            scope,
-            'ArtVotesTable',
-            'arn:aws:dynamodb:us-west-2:977566059069:table/art_votes'
-        )
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
         self.sudocoins_authorizer = self.init_authorizer(scope)
         self.transaction_topic = sns.Topic.from_topic_arn(
@@ -120,6 +62,32 @@ class SudocoinsImportedResources:
             'ArtProcessorTopic',
             display_name='ArtProcessor',
             topic_name='ArtProcessor'
+        )
+        self.art_processor_bucket = s3.Bucket(
+            scope,
+            'ArtProcessorBucket',
+            bucket_name='art-processor-bucket'
+        )
+
+    def import_tables(self, scope):
+        self.traffic_reports_table = self.import_table(scope, 'TrafficReports')
+        self.payouts_table = self.import_table(scope, 'Payouts')
+        self.ledger_table = self.import_table(scope, 'Ledger')
+        self.transaction_table = self.import_table(scope, 'Transaction')
+        self.config_table = self.import_table(scope, 'Config')
+        self.contact_table = self.import_table(scope, 'Contact')
+        self.profile_table = self.import_table(scope, 'Profile')
+        self.sub_table = self.import_table(scope, 'sub')
+        self.art_table = self.import_table(scope, 'art')
+        self.art_uploads_table = self.import_table(scope, 'art_uploads')
+        self.verifications_table = self.import_table(scope, 'Verifications')
+        self.art_votes_table = self.import_table(scope, 'art_votes')
+
+    def import_table(self, scope, table_name):
+        return dynamodb.Table.from_table_arn(
+            scope,
+            f'{table_name}Table',
+            f'arn:aws:dynamodb:us-west-2:977566059069:table/{table_name}'
         )
 
     def init_admin_authorizer(self, scope: cdk.Construct):
