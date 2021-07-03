@@ -37,7 +37,7 @@ def get_arts(art_ids):
                     '#N': 'name'
                 },
                 'ProjectionExpression': 'art_id, click_count, art_url,'
-                                        'recent_sk, preview_url, #N'
+                                        'recent_sk, preview_url, #N, file_type, size'
             }
         }
     )

@@ -22,6 +22,6 @@ def get_recent(count, timestamp):
         ScanIndexForward=False,
         Limit=count,
         IndexName='Recent_index',
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk",
+        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, file_type, size",
         ExpressionAttributeNames={'#n': 'name'}
     )['Items']

@@ -22,5 +22,5 @@ def get_uploads(user_id):
         IndexName='User_uploaded_art_view_idx',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='shareId, click_count, art_url, art_id,'
-                             'preview_url, #n'
+                             'preview_url, #n,'
     )['Items']

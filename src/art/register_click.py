@@ -34,13 +34,15 @@ def register_click(data):
             ReturnValues="UPDATED_NEW"
         )
         log.info("art_uploads table click_count increased")
+
         art_uploads_record = dynamodb.Table('art_uploads').get_item(
             Key={'shareId': data['shareId']},
             ProjectionExpression="art_id, user_id")['Item']
         log.info(f'art_uploads_record: {art_uploads_record}')
+
         if 'user_id' in art_uploads_record:
             update_user_count(art_uploads_record['user_id'])
-        # get art record in art table and update click count
+
         if 'art_id' in art_uploads_record:
             art_id = art_uploads_record['art_id']
             dynamodb.Table('art').update_item(
@@ -53,6 +55,7 @@ def register_click(data):
                 ReturnValues="UPDATED_NEW"
             )
             log.info("art table click_count increased")
+
             art_votes_record = {
                 "unique_id": str(uuid.uuid1()),
                 "art_id": art_id,
@@ -63,9 +66,9 @@ def register_click(data):
                 Item=art_votes_record
             )
             log.info("record added to art_votes table")
+
     # if it's not a custom art url, then it's a generic art url
     elif 'art_id' in data:
-        # add to click count
         dynamodb.Table('art').update_item(
             Key={'art_id': data['art_id']},
             UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
