@@ -28,7 +28,7 @@ def stream_to_s3(data):
     log.info(response.headers)
 
     s3 = boto3.client('s3')
-    s3_bucket = "artprocessor"
+    s3_bucket = "art-processor-bucket"
     s3_file_path = data['art_id'] + '.' + file_ending
     response.raw.decode_content = True
     conf = boto3.s3.transfer.TransferConfig(multipart_threshold=10000, max_concurrency=4)

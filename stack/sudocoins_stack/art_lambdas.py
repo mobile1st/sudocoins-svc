@@ -242,11 +242,17 @@ class SudocoinsArtLambdas:
             targets=[set_artists_target]
         )
         # ART PROCESSOR
+        requests_layer = _lambda.LayerVersion.from_layer_version_arn(
+            scope,
+            'RequestsLayer',
+            'arn:aws:lambda:us-west-2:977566059069:layer:requests:1'
+        )
         art_processor_function = _lambda.Function(
             scope,
-            'ArtProcessorV2',
-            function_name='ArtProcessorV2',
+            'ArtProcessorV3',
+            function_name='ArtProcessorV3',
             handler='art.art_processor.lambda_handler',
+            layers=[requests_layer],
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(art_processor_function)
