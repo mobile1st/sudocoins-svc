@@ -1,7 +1,11 @@
 def get_sub_safe(event):
-    """ sub is extracted from the authorizer JWT claims """
+    """ sub is extracted from header or the authorizer JWT claims """
     if not event:
         return None
+
+    sub = event.get('headers', {}).get('sub')
+    if sub:
+        return sub
 
     return event \
         .get('requestContext', {}) \

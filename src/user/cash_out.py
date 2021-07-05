@@ -14,8 +14,7 @@ history = History(dynamodb)
 
 def lambda_handler(event, context):
     try:
-        global log
-        log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
+        set_log_context(event)
         log.debug(f'event: {event}')
         cash_out_data = json.loads(event['body'])
         requested_sub = cash_out_data['sub']
@@ -40,6 +39,11 @@ def lambda_handler(event, context):
         log.exception(msg)
         send_notification(msg)
         return error_response(msg)
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def error_response(msg):

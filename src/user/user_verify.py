@@ -10,6 +10,7 @@ secret = '6LfDfokaAAAAAMYePyids1EPPZ4guZkD6yJHC3Lm'
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.debug(f'event: {event}')
     input_json = json.loads(event['body'])
     recaptcha_response = call_google_recaptcha(input_json['token'])
@@ -18,6 +19,11 @@ def lambda_handler(event, context):
     update_profile_with_recaptcha_response(user_id, success_response)
 
     return update_profile_with_recaptcha_response(user_id, success_response)
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def call_google_recaptcha(input_token):

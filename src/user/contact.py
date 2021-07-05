@@ -10,6 +10,7 @@ sns_client = boto3.client('sns')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.debug(f'event: {event}')
     input_json = json.loads(event['body'])
     message = {
@@ -37,3 +38,8 @@ def lambda_handler(event, context):
     return {
         'success': True
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))

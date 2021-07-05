@@ -8,6 +8,7 @@ sqs = boto3.resource('sqs')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.info(f'art_prompt {event}')
 
     share_id = event['pathParameters']['shareId']
@@ -24,6 +25,11 @@ def lambda_handler(event, context):
         user_id = source_ip
 
     return get_by_share_id(source_ip, share_id, user_id)
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def get_by_share_id(source_ip, share_id, user_id):

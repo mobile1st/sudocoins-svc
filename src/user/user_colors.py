@@ -8,7 +8,7 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     print("hi")
-
+    set_log_context(event)
     log.info(f'event: {event}')
     # input_json = json.loads(event.get('body', '{}'))
     input_json = event
@@ -21,6 +21,11 @@ def lambda_handler(event, context):
         return get_colors(input_json['user_id'])
 
     return
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def update_colors(user_id, bg_color, tile_color, text_color):

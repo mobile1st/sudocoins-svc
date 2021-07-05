@@ -1,18 +1,23 @@
 import boto3
 from util import sudocoins_logger
 from boto3.dynamodb.conditions import Key
-from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     query_params = event['queryStringParameters']
     count = int(query_params['count'])
     return {
         'art': get_recent(count, query_params['timestamp'])
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def get_recent(count, timestamp):

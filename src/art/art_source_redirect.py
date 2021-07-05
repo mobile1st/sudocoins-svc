@@ -11,6 +11,7 @@ dynamodb = boto3.resource('dynamodb', config=config)
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.debug(f'event: {event}')
     if event.get('queryStringParameters') is None:
         log.warn('the request does not contain query parameters')
@@ -100,3 +101,7 @@ def lambda_handler(event, context):
 
     return response
 
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))

@@ -10,6 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.debug(f'event: {event}')
     try:
         body = json.loads(event['body'])
@@ -19,6 +20,11 @@ def lambda_handler(event, context):
         return share(user_id, art_id)
     except Exception as e:
         log.exception(e)
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def share(user_id, art_id):

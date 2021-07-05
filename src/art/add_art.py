@@ -20,8 +20,7 @@ art = Art(dynamodb)
 # }
 def lambda_handler(event, context):
     try:
-        global log
-        log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
+        set_log_context(event)
         log.debug(f'event: {event}')
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
@@ -38,6 +37,11 @@ def lambda_handler(event, context):
             'status': 'fail',
             'message': "Sorry, your input doesn't return any Art. Please Add another Art."
         }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def parse_url(url):

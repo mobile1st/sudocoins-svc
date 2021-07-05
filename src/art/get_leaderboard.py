@@ -6,9 +6,8 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    global log
-    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
-    leaderboard = getConfig()
+    set_log_context(event)
+    leaderboard = get_config()
 
     return {
         'influencers': leaderboard['leaders'],
@@ -16,12 +15,12 @@ def lambda_handler(event, context):
     }
 
 
-def getConfig():
-    configTable = dynamodb.Table('Config')
-    configKey = "Leaderboard"
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
-    response = configTable.get_item(Key={'configKey': configKey})
-    leaderboard = response['Item']
 
-    return leaderboard
-
+def get_config():
+    return dynamodb.Table('Config').get_item(
+        Key={'configKey': 'Leaderboard'}
+    )['Item']

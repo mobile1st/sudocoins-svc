@@ -8,6 +8,7 @@ sqs = boto3.resource('sqs')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.debug(f'add_view event{event}')
     query_params = event['queryStringParameters']
     share_id = query_params.get('shareId')
@@ -25,3 +26,8 @@ def lambda_handler(event, context):
     queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='tile_views')
 
     return ''
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))

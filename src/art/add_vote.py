@@ -11,6 +11,7 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     log.debug(f'set_vote event{event}')
     query_params = event['queryStringParameters']
 
@@ -68,6 +69,11 @@ def lambda_handler(event, context):
                 }
 
     return
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def get_recent(count, timestamp):

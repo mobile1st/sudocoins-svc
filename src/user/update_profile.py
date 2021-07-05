@@ -11,6 +11,7 @@ def lambda_handler(event, context):
     Arguments: user_name, twitter_handle, gravatarEmail
     Returns: fields updated
     """
+    set_log_context(event)
     log.debug(f'event: {event}')
     input_json = json.loads(event.get('body', '{}'))
     user_id = input_json['userId'] if 'userId' in input_json else get_user_id(input_json['sub'])
@@ -29,6 +30,11 @@ def lambda_handler(event, context):
     return {
         'profile': profile
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def check_user_name_exists(user_name):

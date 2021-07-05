@@ -13,8 +13,7 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-    global log
-    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
+    set_log_context(event)
     log.debug(f'event: {event}')
     jsonInput = json.loads(event.get('body', '{}'))
     sub, email, facebook, signupMethod, ip, shareId = parseJson(jsonInput)
@@ -46,6 +45,11 @@ def lambda_handler(event, context):
         "rate": str(rate),
         "sudoRate": str(1000)
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def loadProfile(sub, email, facebook, signupMethod, context, ip, shareId):

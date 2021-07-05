@@ -9,6 +9,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     user_agent = event['headers']['user-agent']
     art_id = event['pathParameters']['shareId']
     log.info(f'user_agent {user_agent} art_id: {art_id}')
@@ -30,6 +31,11 @@ def lambda_handler(event, context):
         'headers': {'Content-Type': 'text/html'},
         'body': get_preview_html(art['name'], url)
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def is_browser(user_agent):

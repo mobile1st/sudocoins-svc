@@ -8,10 +8,16 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     # returns the art shared by the user
+    set_log_context(event)
     user_id = event['pathParameters']['userId']
     return {
         'art': get_uploads(user_id)
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def get_uploads(user_id):

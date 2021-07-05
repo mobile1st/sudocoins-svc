@@ -7,6 +7,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    set_log_context(event)
     body = json.loads(event['body'])
     arts = body['arts']
     if len(arts) == 0:
@@ -17,6 +18,11 @@ def lambda_handler(event, context):
     return {
         'arts': art_uploads_record
     }
+
+
+def set_log_context(event):
+    global log
+    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
 def get_arts(art_ids):

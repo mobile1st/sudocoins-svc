@@ -1,25 +1,17 @@
 import boto3
-from util import sudocoins_logger
-from art.art import Art
 
-log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
-    trending_art = getConfig()
+    trending_art = get_config()
 
     return {
         'trending': trending_art
     }
 
 
-def getConfig():
-    configTable = dynamodb.Table('Config')
-    configKey = "TrendingArt"
-
-    response = configTable.get_item(Key={'configKey': configKey})
-    config = response['Item']
-
-    return config['art']
+def get_config():
+    return dynamodb.Table('Config').get_item(
+        Key={'configKey': 'TrendingArt'}
+    )['Item']
