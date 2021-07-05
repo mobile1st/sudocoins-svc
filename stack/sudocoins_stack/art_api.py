@@ -1,3 +1,4 @@
+import typing
 from resources import SudocoinsImportedResources
 from art_lambdas import SudocoinsArtLambdas
 from aws_cdk import (
@@ -8,17 +9,12 @@ from aws_cdk import (
 
 
 class SudocoinsArtApi:
-    default_cors_preflight = {
-        'allow_methods': [apigwv2.CorsHttpMethod.ANY],
-        'allow_origins': ['*'],
-        'allow_headers': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token',
-                          'X-Amz-User-Agent']
-    }
 
     def __init__(self,
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources,
-                 lambdas: SudocoinsArtLambdas):
+                 lambdas: SudocoinsArtLambdas,
+                 cors_preflight: typing.Optional[apigwv2.CorsPreflightOptions]):
         art_api_v3 = apigwv2.HttpApi(
             scope,
             'ArtApiV3',
@@ -26,7 +22,7 @@ class SudocoinsArtApi:
                 domain_name=resources.sudocoins_domain_name,
                 mapping_key='art'
             ),
-            cors_preflight=self.default_cors_preflight
+            cors_preflight=cors_preflight
         )
         # ADD ART
         add_art_integration = api_integrations.LambdaProxyIntegration(

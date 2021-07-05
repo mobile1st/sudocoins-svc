@@ -1,3 +1,4 @@
+import typing
 from resources import SudocoinsImportedResources
 from user_lambdas import SudocoinsUserLambdas
 from aws_cdk import (
@@ -8,17 +9,12 @@ from aws_cdk import (
 
 
 class SudocoinsUserApi:
-    default_cors_preflight = {
-        'allow_methods': [apigwv2.CorsHttpMethod.ANY],
-        'allow_origins': ['*'],
-        'allow_headers': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token',
-                          'X-Amz-User-Agent']
-    }
 
     def __init__(self,
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources,
-                 lambdas: SudocoinsUserLambdas):
+                 lambdas: SudocoinsUserLambdas,
+                 cors_preflight: typing.Optional[apigwv2.CorsPreflightOptions]):
         user_api_v3 = apigwv2.HttpApi(
             scope,
             'UserApiV3',
@@ -26,7 +22,7 @@ class SudocoinsUserApi:
                 domain_name=resources.sudocoins_domain_name,
                 mapping_key='user'
             ),
-            cors_preflight=self.default_cors_preflight
+            cors_preflight=cors_preflight
         )
         # GET PROFILE
         get_profile_integration = api_integrations.LambdaProxyIntegration(

@@ -1,3 +1,4 @@
+import typing
 from resources import SudocoinsImportedResources
 from admin_lambdas import SudocoinsAdminLambdas
 from aws_cdk import (
@@ -8,17 +9,12 @@ from aws_cdk import (
 
 
 class SudocoinsAdminApi:
-    default_cors_preflight = {
-        'allow_methods': [apigwv2.CorsHttpMethod.ANY],
-        'allow_origins': ['*'],
-        'allow_headers': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token',
-                          'X-Amz-User-Agent']
-    }
 
     def __init__(self,
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources,
-                 lambdas: SudocoinsAdminLambdas):
+                 lambdas: SudocoinsAdminLambdas,
+                 cors_preflight: typing.Optional[apigwv2.CorsPreflightOptions]):
         admin_api_v2 = apigwv2.HttpApi(
             scope,
             'AdminApiV2',
@@ -26,7 +22,7 @@ class SudocoinsAdminApi:
                 domain_name=resources.sudocoins_domain_name,
                 mapping_key='admin'
             ),
-            cors_preflight=self.default_cors_preflight
+            cors_preflight=cors_preflight
         )
         # TRAFFIC REPORT
         traffic_report_chart_data_integration = api_integrations.LambdaProxyIntegration(

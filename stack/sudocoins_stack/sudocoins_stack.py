@@ -6,8 +6,16 @@ from admin_api import SudocoinsAdminApi
 from art_api import SudocoinsArtApi
 from user_api import SudocoinsUserApi
 from aws_cdk import (
-    core as cdk
+    core as cdk,
+    aws_apigatewayv2 as apigwv2,
 )
+
+default_cors_preflight = {
+    'allow_methods': [apigwv2.CorsHttpMethod.ANY],
+    'allow_origins': ['*'],
+    'allow_headers': ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token',
+                      'X-Amz-User-Agent', 'sub']
+}
 
 
 class SudocoinsStack(cdk.Stack):
@@ -16,8 +24,8 @@ class SudocoinsStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
         resources = SudocoinsImportedResources(self)
         admin_lambdas = SudocoinsAdminLambdas(self, resources)
-        admin_api = SudocoinsAdminApi(self, resources, admin_lambdas)
+        admin_api = SudocoinsAdminApi(self, resources, admin_lambdas, default_cors_preflight)
         art_lambdas = SudocoinsArtLambdas(self, resources)
-        art_api = SudocoinsArtApi(self, resources, art_lambdas)
+        art_api = SudocoinsArtApi(self, resources, art_lambdas, default_cors_preflight)
         user_lambdas = SudocoinsUserLambdas(self, resources)
-        user_api = SudocoinsUserApi(self, resources, user_lambdas)
+        user_api = SudocoinsUserApi(self, resources, user_lambdas, default_cors_preflight)
