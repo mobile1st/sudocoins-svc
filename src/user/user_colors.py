@@ -7,11 +7,9 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    print("hi")
     set_log_context(event)
     log.info(f'event: {event}')
-    # input_json = json.loads(event.get('body', '{}'))
-    input_json = event
+    input_json = json.loads(event.get('body', '{}'))
 
     if input_json['msg'] == "update":
         return update_colors(input_json['user_id'], input_json['bg_color'],
