@@ -280,3 +280,4 @@ class SudocoinsArtLambdas:
             schedule=set_retry_schedule,
             targets=[set_retry_target]
         )
+        resources.art_processor_topic.grant_publish(processor_retry_function)
