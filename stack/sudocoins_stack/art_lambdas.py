@@ -253,6 +253,7 @@ class SudocoinsArtLambdas:
             function_name='ArtProcessorV3',
             handler='art.art_processor.lambda_handler',
             layers=[requests_layer],
+            timeout=cdk.Duration.seconds(60),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(art_processor_function)
