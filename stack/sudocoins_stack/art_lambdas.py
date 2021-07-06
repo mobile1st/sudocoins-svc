@@ -260,3 +260,23 @@ class SudocoinsArtLambdas:
             subs.LambdaSubscription(art_processor_function)
         )
         resources.art_processor_bucket.grant_read_write(art_processor_function)
+        # RETRY ART PROCESSING
+        processor_retry_function = _lambda.Function(
+            scope,
+            'ArtProcessorRetryV2',
+            function_name='ArtProcessorRetryV2',
+            handler='art.processor_retry.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_data(processor_retry_function)
+        resources.grant_read_index_data(processor_retry_function, [resources.art_votes_table])
+        set_retry_schedule = events.Schedule.rate(cdk.Duration.minutes(600))
+        set_retry_target = events_targets.LambdaFunction(handler=processor_retry_function)
+        events.Rule(
+            scope,
+            "ArtProcessorRetry",
+            description="Periodically checks to see what Arts need to be re-processed",
+            enabled=True,
+            schedule=set_retry_schedule,
+            targets=[set_retry_target]
+        )
