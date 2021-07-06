@@ -124,7 +124,8 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
             "click_count": 0,
             "first_user": user_id,
             "sort_idx": 'true',
-            "creator": open_sea['creator']
+            "creator": open_sea['creator'],
+            "process_status": None
         }
         dynamodb.Table('art').put_item(
             Item=art_record

@@ -18,6 +18,15 @@ def lambda_handler(event, context):
 
 
 def stream_to_s3(data):
+    art_table = dynamodb.Table('art')
+    art_table.update_item(
+        Key={'art_id': data['art_id']},
+        UpdateExpression="SET process_status=:ps",
+        ExpressionAttributeValues={
+            ':ps': "attempted"
+        },
+        ReturnValues="UPDATED_NEW"
+    )
     art_url = data['art_url']
     response = requests.get(art_url, stream=True)
 
@@ -35,13 +44,13 @@ def stream_to_s3(data):
     s3.upload_fileobj(response.raw, s3_bucket, s3_file_path, Config=conf)
     log.info('upload to s3 finished')
 
-    art_table = dynamodb.Table('art')
     art_table.update_item(
         Key={'art_id': data['art_id']},
-        UpdateExpression="SET file_type=:ft, size=:size",
+        UpdateExpression="SET file_type=:ft, size=:size, process_status=:ps",
         ExpressionAttributeValues={
             ':ft': file_type,
-            ':size': file_size
+            ':size': file_size,
+            ':ps': "processed"
         },
         ReturnValues="UPDATED_NEW"
     )
