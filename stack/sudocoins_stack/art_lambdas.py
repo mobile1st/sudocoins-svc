@@ -269,7 +269,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(processor_retry_function)
-        resources.grant_read_index_data(processor_retry_function, [resources.art_votes_table])
+        resources.grant_read_index_data(processor_retry_function, [resources.art_table])
         set_retry_schedule = events.Schedule.rate(cdk.Duration.minutes(600))
         set_retry_target = events_targets.LambdaFunction(handler=processor_retry_function)
         events.Rule(
