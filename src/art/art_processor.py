@@ -36,12 +36,11 @@ def stream_to_s3(data):
     file_ending = file_type[type_index + 1:]
     log.info(response.headers)
 
-    s3 = boto3.client('s3')
     s3_bucket = "art-processor-bucket"
     s3_file_path = data['art_id'] + '.' + file_ending
     response.raw.decode_content = True
-    conf = boto3.s3.transfer.TransferConfig(multipart_threshold=10000, max_concurrency=4)
-    s3.upload_fileobj(response.raw, s3_bucket, s3_file_path, Config=conf)
+    client = boto3.client('s3')
+    client.put_object(Bucket=s3_bucket, Body=response.content, Key=s3_file_path, ContentType=file_type)
     log.info('upload to s3 finished')
 
     art_table.update_item(
