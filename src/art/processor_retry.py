@@ -13,8 +13,8 @@ def lambda_handler(event, context):
     log.debug(f'add_view event{event}')
 
     art_records = dynamodb.Table('art').query(
-        KeyConditionExpression=Key("process_status").eq("attempted"),
-        IndexName='process_status-index',
+        KeyConditionExpression=Key("process_status").eq("STREAM_TO_S3"),
+        IndexName='process_status_index',
         ProjectionExpression="art_id, open_sea_data")['Items']
 
     art_list = []

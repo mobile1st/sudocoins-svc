@@ -2,7 +2,6 @@ import boto3
 import json
 from util import sudocoins_logger
 from art.art import Art
-import mimetypes
 import http.client
 from urllib.parse import urlparse
 
@@ -20,42 +19,28 @@ def lambda_handler(event, context):
 
 
 def stream_to_s3(data):
-    art_table = dynamodb.Table('art')
-    art_table.update_item(
-        Key={'art_id': data['art_id']},
-        UpdateExpression="SET process_status=:ps",
-        ExpressionAttributeValues={
-            ':ps': "attempted"
-        },
-        ReturnValues="UPDATED_NEW"
-    )
+
     file = download(data['art_url'])
 
     s3_bucket = "art-processor-bucket"
-    s3_file_path = data['art_id'] + extension(file['mimeType'])
+    s3_file_path = data['art_id']
     client = boto3.client('s3')
     client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
     log.info('upload to s3 finished')
 
+    art_table = dynamodb.Table('art')
     art_table.update_item(
         Key={'art_id': data['art_id']},
-        UpdateExpression="SET file_type=:ft, size=:size, process_status=:ps",
+        UpdateExpression="SET file_type=:ft, size=:size",
         ExpressionAttributeValues={
             ':ft': file['mimeType'],
-            ':size': len(file['bytes']),
-            ':ps': "processed"
-        },
-        ReturnValues="UPDATED_NEW"
-    )
+            ':size': len(file['bytes'])  # why do we need this?
+            # TODO add cdn_url: '{prefix}+{art_id}'
+        })
+    art_table.update_item(
+        Key={'art_id': data['art_id']},
+        UpdateExpression="remove process_status")
     log.info("art file type and size added to art table")
-
-    return
-
-
-def extension(mime_type: str):
-    key = mime_type.split(';')[0]
-    ext = mimetypes.guess_extension(key)
-    return ext if ext else ''
 
 
 def download(url: str):
