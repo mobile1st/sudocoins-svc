@@ -36,7 +36,9 @@ setuptools.setup(
         "aws-cdk.aws-route53==1.111.0",
         "aws-cdk.aws-route53-targets==1.111.0",
         "aws-cdk.aws-certificatemanager==1.111.0",
-        "aws-cdk.aws-s3==1.111.0"
+        "aws-cdk.aws-s3==1.111.0",
+        "aws-cdk.aws-cloudfront==1.111.0",
+        "aws-cdk.aws-cloudfront_origins==1.111.0"
     ],
 
     python_requires=">=3.6",

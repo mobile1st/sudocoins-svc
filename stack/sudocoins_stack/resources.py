@@ -13,7 +13,9 @@ from aws_cdk import (
     aws_route53 as route53,
     aws_route53_targets as route53_targets,
     aws_certificatemanager as acm,
-    aws_s3 as s3
+    aws_s3 as s3,
+    aws_cloudfront as cloudfront,
+    aws_cloudfront_origins as origins
 )
 
 
@@ -31,6 +33,7 @@ class SudocoinsImportedResources:
     def __init__(self, scope: cdk.Construct):
         self.import_tables(scope)
         self.sudocoins_domain_name = self.custom_domain(scope)
+        self.sudocoins_cdn = self.init_cdn(scope)
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
         self.sudocoins_authorizer = self.init_authorizer(scope)
         self.transaction_topic = sns.Topic.from_topic_arn(
@@ -115,7 +118,7 @@ class SudocoinsImportedResources:
         )
 
     def custom_domain(self, scope: cdk.Construct):
-        hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
+        self.hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
             scope,
             'SudocoinsZone',
             hosted_zone_id='Z078942423UGVMS8LO8GZ',
@@ -139,8 +142,46 @@ class SudocoinsImportedResources:
         route53.ARecord(
             scope,
             'SudocoinsApiARecord',
-            zone=hosted_zone,
+            zone=self.hosted_zone,
             record_name='app.sudocoins.com',
             target=route53.RecordTarget.from_alias(target)
         )
         return domain_name
+
+    def init_cdn(self, scope):
+        self.art_bucket = s3.Bucket(
+            scope,
+            'ArtBucket',
+            bucket_name='sudocoins-art-bucket',
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL
+        )
+        certificate = acm.Certificate.from_certificate_arn(
+            scope,
+            'SudocoinsCdnCertificate',
+            'arn:aws:acm:us-east-1:977566059069:certificate/952a2b92-846a-43c3-80e0-a000483e7643'
+        )
+        distribution = cloudfront.Distribution(
+            scope,
+            'ArtDistribution',
+            default_behavior=cloudfront.BehaviorOptions(
+                origin=origins.S3Origin(self.art_bucket),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+            ),
+            certificate=certificate,
+            domain_names=['cdn.sudocoins.com']
+        )
+        target = route53_targets.CloudFrontTarget(distribution)
+        route53.ARecord(
+            scope,
+            'SudocoinsCdnARecord',
+            zone=self.hosted_zone,
+            record_name='cdn.sudocoins.com',
+            target=route53.RecordTarget.from_alias(target)
+        )
+        route53.AaaaRecord(
+            scope,
+            'SudocoinsCdnAAAARecord',
+            zone=self.hosted_zone,
+            record_name='cdn.sudocoins.com',
+            target=route53.RecordTarget.from_alias(target)
+        )
