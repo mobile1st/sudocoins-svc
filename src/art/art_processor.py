@@ -32,7 +32,7 @@ def stream_to_s3(data):
     file = download(data['art_url'])
 
     s3_bucket = "art-processor-bucket"
-    s3_file_path = data['art_id'] + file['extension']
+    s3_file_path = data['art_id'] + mimetypes.guess_extension(file['mimeType'])
     client = boto3.client('s3')
     client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
     log.info('upload to s3 finished')
@@ -55,7 +55,7 @@ def stream_to_s3(data):
 def download(url: str):
     log.info(f'download {url}')
     url = urlparse(url)
-    conn = http.client.HTTPSConnection(url.hostname)
+    conn = http.client.HTTPSConnection(url.hostname, timeout=10)
     conn.request("GET", url.path)
     response = conn.getresponse()
     length = response.getheader('Content-Length')
@@ -63,4 +63,4 @@ def download(url: str):
     log.info(f'download status: {response.status} starting to read: {content_type} {length if length else "?"} bytes')
     content_bytes = response.read()
     log.info(f'download success')
-    return {'mimeType': content_type, 'bytes': content_bytes, 'extension': mimetypes.guess_extension(content_type)}
+    return {'mimeType': content_type, 'bytes': content_bytes}
