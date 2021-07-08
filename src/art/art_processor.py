@@ -12,15 +12,16 @@ art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
-    log.debug('art processor called')
     data = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {data}')
-    stream_to_s3(data)
-    log.info('record updated')
+
+    if 'STREAM_TO_S3' == data.get('process'):
+        stream_to_s3(data)
+    else:
+        log.info(f'unsupported process type for: {data.get("process")}')
 
 
 def stream_to_s3(data):
-
     file = download(data['art_url'])
 
     s3_bucket = 'sudocoins-art-bucket'
@@ -40,7 +41,8 @@ def stream_to_s3(data):
     art_table.update_item(
         Key={'art_id': data['art_id']},
         UpdateExpression="remove process_status")
-    log.info("art file type and size added to art table")
+
+    log.info("art table updated")
 
 
 def download(url: str):

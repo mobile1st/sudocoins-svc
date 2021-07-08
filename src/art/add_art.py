@@ -142,6 +142,10 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
                 'art_url': {
                     'DataType': 'String',
                     'StringValue': art_url
+                },
+                'process': {
+                    'DataType': 'String',
+                    'StringValue': "STREAM_TO_S3"
                 }
             },
             Message=json.dumps(art_record)
