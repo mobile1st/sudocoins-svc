@@ -242,17 +242,11 @@ class SudocoinsArtLambdas:
             targets=[set_artists_target]
         )
         # ART PROCESSOR
-        requests_layer = _lambda.LayerVersion.from_layer_version_arn(
-            scope,
-            'RequestsLayer',
-            'arn:aws:lambda:us-west-2:977566059069:layer:requests:1'
-        )
         art_processor_function = _lambda.Function(
             scope,
             'ArtProcessorV3',
             function_name='ArtProcessorV3',
             handler='art.art_processor.lambda_handler',
-            layers=[requests_layer],
             timeout=cdk.Duration.seconds(60),
             **lambda_default_kwargs
         )
@@ -260,7 +254,7 @@ class SudocoinsArtLambdas:
         resources.art_processor_topic.add_subscription(
             subs.LambdaSubscription(art_processor_function)
         )
-        resources.art_processor_bucket.grant_read_write(art_processor_function)
+        resources.art_bucket.grant_read_write(art_processor_function)
         # RETRY ART PROCESSING
         processor_retry_function = _lambda.Function(
             scope,

@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
+s3_client = boto3.client('s3')
 art = Art(dynamodb)
 
 
@@ -22,10 +23,9 @@ def stream_to_s3(data):
 
     file = download(data['art_url'])
 
-    s3_bucket = "art-processor-bucket"
+    s3_bucket = 'sudocoins-art-bucket'
     s3_file_path = data['art_id']
-    client = boto3.client('s3')
-    client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
+    s3_client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
     log.info('upload to s3 finished')
 
     art_table = dynamodb.Table('art')
