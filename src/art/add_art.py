@@ -6,11 +6,11 @@ import uuid
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
 from util import sudocoins_logger
-from art.art import Art
+from art.ledger import Ledger
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-art = Art(dynamodb)
+ledger = Ledger(dynamodb)
 
 # (user_id, url) -> {
 #   status: 'exist' | 'fail' | 'success'
@@ -203,7 +203,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         ReturnValues="UPDATED_NEW"
     )
 
-    art.addLedgerRecord(5, user_id, 'Add Art')
+    ledger.add(5, user_id, 'Add Art')
 
     return {
         'status': 'success',

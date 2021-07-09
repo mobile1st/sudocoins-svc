@@ -1,13 +1,13 @@
 import boto3
 import json
 from util import sudocoins_logger
-from art.art import Art
+from art.ledger import Ledger
 import uuid
 from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-art = Art(dynamodb)
+ledger = Ledger(dynamodb)
 
 
 def lambda_handler(event, context):
@@ -124,4 +124,4 @@ def update_user_count(user_id):
             },
             ReturnValues="UPDATED_NEW"
         )
-        art.addLedgerRecord(5, user_id, '100 Views')
+        ledger.add(5, user_id, '100 Views')

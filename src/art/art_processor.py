@@ -1,14 +1,12 @@
 import boto3
 import json
 from util import sudocoins_logger
-from art.art import Art
 import http.client
 from urllib.parse import urlparse
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
-art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
