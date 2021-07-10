@@ -15,10 +15,10 @@ def lambda_handler(event, context):
     data = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {data}')
 
-    if 'STREAM_TO_S3' == data.get('process'):
+    if 'STREAM_TO_S3' == data.get('process_status'):
         stream_to_s3(data)
     else:
-        log.info(f'unsupported process type for: {data.get("process")}')
+        log.info(f'unsupported process type for: {data.get("process_status")}')
 
 
 def stream_to_s3(data):
