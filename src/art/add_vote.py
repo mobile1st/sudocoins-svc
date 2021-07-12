@@ -1,11 +1,14 @@
 import boto3
 from boto3.dynamodb.conditions import Key
+
+from art.art import Art
 from util import sudocoins_logger
 import uuid
 from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
+arts = Art(dynamodb)
 
 
 def lambda_handler(event, context):
@@ -37,7 +40,7 @@ def lambda_handler(event, context):
     log.info("record added to art_votes table")
 
     art_votes = get_votes(user_id)
-    recent_arts = get_recent(20, timestamp)
+    recent_arts = arts.get_recent(20, timestamp)
     if len(art_votes) == 0:
         return {
             "art_id": recent_arts[0]['art_id'],
@@ -56,7 +59,7 @@ def lambda_handler(event, context):
             if k['art_id'] in votes_list:
                 count -= 1
                 if count == 0:
-                    recent_arts = get_recent(20, k['recent_sk'])
+                    recent_arts = arts.get_recent(20, k['recent_sk'])
                     count = len(recent_arts)
             else:
                 return {
@@ -72,17 +75,6 @@ def lambda_handler(event, context):
 def set_log_context(event):
     global log
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
-
-
-def get_recent(count, timestamp):
-    return dynamodb.Table('art').query(
-        KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(timestamp),
-        ScanIndexForward=False,
-        Limit=count,
-        IndexName='Recent_index',
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk",
-        ExpressionAttributeNames={'#n': 'name'}
-    )['Items']
 
 
 def get_votes(user_id):

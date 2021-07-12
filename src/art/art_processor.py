@@ -32,15 +32,12 @@ def stream_to_s3(data):
     art_table = dynamodb.Table('art')
     art_table.update_item(
         Key={'art_id': data['art_id']},
-        UpdateExpression="SET file_type=:ft, size=:size, cdn_url=:cdn_url",
+        UpdateExpression="SET file_type=:ft, size=:size, cdn_url=:cdn_url REMOVE process_status",
         ExpressionAttributeValues={
             ':ft': file['mimeType'],
             ':size': len(file['bytes']),  # TODO remove, irrelevant after URL rewrite
             ':cdn_url': f'{cdn_prefix}{s3_file_path}'
         })
-    art_table.update_item(
-        Key={'art_id': data['art_id']},
-        UpdateExpression="remove process_status")
 
     log.info("art table updated")
 

@@ -3,9 +3,11 @@ import html
 import http.client
 from urllib.parse import urlparse
 from util import sudocoins_logger
+from art.art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
+arts = Art(dynamodb)
 
 
 def lambda_handler(event, context):
@@ -69,14 +71,7 @@ def get_by_share_id(share_id):
     if 'Item' in art_uploads_record:
         return art_uploads_record['Item']
 
-    art_record = dynamodb.Table('art').get_item(
-        Key={'art_id': share_id},
-        ProjectionExpression="art_url, preview_url, #n",
-        ExpressionAttributeNames={'#n': 'name'})
-    if 'Item' in art_record:
-        return art_record['Item']
-
-    return None
+    return arts.get(share_id)
 
 
 def get_preview_html(title, url):

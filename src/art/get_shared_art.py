@@ -1,11 +1,12 @@
 import boto3
 import json
 from util import sudocoins_logger
+from art.art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sqs = boto3.resource('sqs')
-
+arts = Art(dynamodb)
 
 def lambda_handler(event, context):
     set_log_context(event)
@@ -48,27 +49,14 @@ def get_by_share_id(source_ip, share_id, user_id):
         msg['shareId'] = share_id
         log.info(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
+        return arts.get(art_uploads_record['Item']['art_id'])
 
-        art_record = dynamodb.Table('art').get_item(
-            Key={'art_id': art_uploads_record['Item']['art_id']},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, file_type, size",
-            ExpressionAttributeNames={'#n': 'name'})
-        log.info(art_record)
-
-        return art_record['Item']
-
-    art_record = dynamodb.Table('art').get_item(
-        Key={'art_id': share_id},
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, file_type, size",
-        ExpressionAttributeNames={'#n': 'name'})
-    log.info(art_record)
-
-    if 'Item' in art_record:
+    art = arts.get(share_id)
+    if art:
         msg['art_id'] = share_id
         log.debug(f'sending message: {msg}')
         queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
-
-        return art_record['Item']
+        return art
 
     return
 

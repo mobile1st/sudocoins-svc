@@ -30,10 +30,10 @@ def set_log_context(event):
 def share(user_id, art_id):
     time_now = str(datetime.utcnow().isoformat())
 
+    # art.get_for_copy
     art_record = dynamodb.Table('art').get_item(
         Key={'art_id': art_id},
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url, #tc,"
-                             "open_sea_data ",
+        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, buy_url, #tc, open_sea_data ",
         ExpressionAttributeNames={'#n': 'name', '#tc': 'contractId#tokenId'})
 
     if 'Item' in art_record:
