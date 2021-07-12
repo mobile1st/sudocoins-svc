@@ -5,12 +5,15 @@ import http.client
 import uuid
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
+
+from art.art import Art
 from util import sudocoins_logger
 from art.ledger import Ledger
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 ledger = Ledger(dynamodb)
+art = Art(dynamodb)
 
 # (user_id, url) -> {
 #   status: 'exist' | 'fail' | 'success'
@@ -79,10 +82,6 @@ def call_open_sea(contract_id, token_id):
 
 
 def add(contract_id, token_id, open_sea_response, input_url, user_id):
-    # BEGIN register_art(contract_id, token_id, open_sea_response, input_url) -> art
-    time_now = str(datetime.utcnow().isoformat())
-    contract_token_id = str(contract_id) + "#" + str(token_id)
-
     open_sea = {
         'redirect': input_url,
         'name': open_sea_response['name'],
@@ -98,65 +97,8 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
     }
 
     preview_url, art_url = get_urls(open_sea)
-
-    if open_sea['permalink'] is None:
-        buy_url = input_url
-    else:
-        buy_url = open_sea['permalink']
-
-    art_object = dynamodb.Table('art').query(
-        KeyConditionExpression=Key('contractId#tokenId').eq(contract_token_id),
-        ScanIndexForward=False,
-        IndexName='Art_dedupe_idx')
-
-    if not art_object['Count'] > 0:
-        art_id = str(uuid.uuid1())
-        art_record = {
-            'art_id': art_id,
-            "name": open_sea['name'],
-            'buy_url': buy_url,
-            'contractId#tokenId': contract_token_id,
-            'preview_url': preview_url,
-            'art_url': art_url,
-            "open_sea_data": open_sea,
-            "timestamp": time_now,
-            "recent_sk": time_now + "#" + art_id,
-            "click_count": 0,
-            "first_user": user_id,
-            "sort_idx": 'true',
-            "creator": open_sea['creator'],
-            "process_status": "STREAM_TO_S3"
-        }
-        dynamodb.Table('art').put_item(
-            Item=art_record
-        )
-        sns_client = boto3.client("sns")
-        sns_client.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
-            MessageStructure='string',
-            MessageAttributes={
-                'art_id': {
-                    'DataType': 'String',
-                    'StringValue': art_id
-                },
-                'art_url': {
-                    'DataType': 'String',
-                    'StringValue': art_url
-                },
-                'process': {
-                    'DataType': 'String',
-                    'StringValue': "STREAM_TO_S3"
-                }
-            },
-            Message=json.dumps(art_record)
-        )
-        log.info("art pushed to sns")
-
-
-    elif art_object['Count'] > 0:
-        art_id = art_object['Items'][0]['art_id']
-
-    # END register_art(contract_id, token_id, open_sea_response, input_url) -> art
+    buy_url = open_sea['permalink'] if open_sea.get('permalink') else input_url
+    art_id = get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id)
 
     # BEGIN register_art_upload(art, user_id) -> art_upload
     # check to see if art_uploads record already exists
@@ -182,7 +124,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         'art_url': art_url,
         "open_sea_data": open_sea,
         "click_count": 0,
-        "timestamp": time_now,
+        "timestamp": str(datetime.utcnow().isoformat()),
         "dedupe_key": dedupe_key,
         "art_id": art_id,
         'creator': open_sea['creator']
@@ -210,6 +152,15 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         'shareId': art_uploads_record['shareId'],
         'balance': new_sudo['Attributes']['sudocoins']
     }
+
+
+def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id):
+    contract_token_id = str(contract_id) + "#" + str(token_id)
+    art_id = art.get_id(contract_token_id)
+    if art_id:
+        return art_id
+
+    return art.add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id)['art_id']
 
 
 def get_urls(open_sea):
