@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
-cdn_prefix = 'https://cdn.sudocoins.com/'
 
 
 def lambda_handler(event, context):
@@ -16,30 +15,29 @@ def lambda_handler(event, context):
     log.info(f'payload: {data}')
 
     if 'STREAM_TO_S3' == data.get('process_status'):
-        stream_to_s3(data)
+        stream_to_s3(data['art_id'], data['art_url'])
     else:
         log.info(f'unsupported process type for: {data.get("process_status")}')
 
 
-def stream_to_s3(data):
-    file = download(data['art_url'])
+def stream_to_s3(art_id: str, art_url: str):
+    file = download(art_url)
 
     s3_bucket = 'sudocoins-art-bucket'
-    s3_file_path = data['art_id'] + extension(file['mimeType'])
+    s3_file_path = art_id + extension(file['mimeType'])
     s3_client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
-    log.info('upload to s3 finished')
+    log.info('upload to sudocoins-art-bucket finished')
 
     art_table = dynamodb.Table('art')
     art_table.update_item(
-        Key={'art_id': data['art_id']},
+        Key={'art_id': art_id},
         UpdateExpression="SET file_type=:ft, size=:size, cdn_url=:cdn_url REMOVE process_status",
         ExpressionAttributeValues={
             ':ft': file['mimeType'],
-            ':size': len(file['bytes']),  # TODO remove, irrelevant after URL rewrite
-            ':cdn_url': f'{cdn_prefix}{s3_file_path}'
+            ':cdn_url': f'https://cdn.sudocoins.com/{s3_file_path}'
         })
 
-    log.info("art table updated")
+    log.info(f"art table updated artId: {art_id}")
 
 
 def extension(mime_type: str):
@@ -49,7 +47,7 @@ def extension(mime_type: str):
 
 
 def download(url: str):
-    log.info(f'download {url}')
+    log.info(f'download start {url}')
     url = urlparse(url)
     conn = http.client.HTTPSConnection(url.hostname, timeout=10)
     conn.request("GET", url.path)
