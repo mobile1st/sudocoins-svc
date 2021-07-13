@@ -28,9 +28,9 @@ class Art:
         log.info(f"art.get {art_id}")
         art = self.art_table.get_item(
             Key={'art_id': art_id},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, file_type, size",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, file_type, cdn_url",
             ExpressionAttributeNames={'#n': 'name'})
-        return art['Item'] if art.get('Item') else None
+        return self.__use_cdn_url(art['Item'] if art.get('Item') else None)
 
     def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id):
         time_now = str(datetime.utcnow().isoformat())
@@ -52,6 +52,7 @@ class Art:
             "creator": open_sea['creator'],
             "process_status": "STREAM_TO_S3"
         }
+
         self.art_table.put_item(Item=art_record)
         self.sns.publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
@@ -81,7 +82,21 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, cdn_url",
             ExpressionAttributeNames={'#n': 'name'}
         )
-        return res['Items'] if res.get('Items') else None
+        if not res.get('Items'):
+            return None
+
+        for art in res['Items']:
+            self.__use_cdn_url(art)
+
+        return res['Items']
+
+    def __use_cdn_url(self, art):
+        if not art:
+            return art
+        if 'cdn_url' in art:
+            art['art_url'] = art['cdn_url']
+            del art['cdn_url']
+        return art
