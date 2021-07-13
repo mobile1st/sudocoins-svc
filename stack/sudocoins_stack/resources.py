@@ -53,18 +53,17 @@ class SudocoinsImportedResources:
             fifo=True,
             content_based_deduplication=True
         )
-        self.affiliates_queue = sqs.Queue(
-            scope,
-            'affiliates.fifo',
-            queue_name='affiliates.fifo',
-            fifo=True,
-            content_based_deduplication=True
-        )
         self.art_processor_topic = sns.Topic(
             scope,
             'ArtProcessorTopic',
             display_name='ArtProcessor',
             topic_name='ArtProcessor'
+        )
+        self.affiliates_topic = sns.Topic(
+            scope,
+            'AffiliateTopic',
+            display_name='Affiliates',
+            topic_name='Affiliates'
         )
         self.art_processor_bucket = s3.Bucket(
             scope,

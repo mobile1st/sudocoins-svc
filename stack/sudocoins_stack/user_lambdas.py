@@ -6,7 +6,8 @@ from aws_cdk import (
     aws_events as events,
     aws_events_targets as events_targets,
     aws_iam as iam,
-    aws_logs as logs
+    aws_logs as logs,
+    aws_sns_subscriptions as subs
 )
 
 lambda_default_kwargs = {
@@ -35,7 +36,7 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
         resources.grant_read_index_data(self.get_profile_function, [resources.profile_table])
-        resources.affiliates_queue.grant_send_messages(self.get_profile_function)
+        resources.affiliates_topic.grant_publish(self.get_profile_function)
         # UPDATE PROFILE
         self.update_profile_function = _lambda.Function(
             scope,
@@ -136,4 +137,19 @@ class SudocoinsUserLambdas:
                 resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
                 actions=['dynamodb:Query']
             )
+        )
+        # AFFILIATES
+        self.affiliates_function = _lambda.Function(
+            scope,
+            'AffiliatesV2',
+            function_name='AffiliatesV2',
+            handler='user.affiliates.lambda_handler',
+            description='Processes affiliate transactions',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.affiliates_function)
+        resources.art_uploads_table.grant_read_write_data(self.affiliates_function)
+        resources.ledger_table.grant_read_write_data(self.affiliates_function)
+        resources.affiliates_topic.add_subscription(
+            subs.LambdaSubscription(self.affiliates_function)
         )
