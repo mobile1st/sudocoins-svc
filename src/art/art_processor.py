@@ -46,12 +46,28 @@ def extension(mime_type: str):
     return ext if ext else ''
 
 
+def get_request(url):
+    url = urlparse(url)
+    conn = http.client.HTTPSConnection(url.hostname, timeout=30)
+    conn.request("GET", url.path)
+    return conn.getresponse()
+
+
+def get_with_redirects(url):
+    response = get_request(url)
+    while 300 <= response.status <= 400:
+        location = response.getheader('Location')
+        log.info(f'download {response.status} redirect to: {location}')
+        response = get_request(location)
+    if response.status > 400:
+        raise Exception(f'download failed: {response.status} content: {response.read()}')
+
+    return response
+
+
 def download(url: str):
     log.info(f'download start {url}')
-    url = urlparse(url)
-    conn = http.client.HTTPSConnection(url.hostname, timeout=10)
-    conn.request("GET", url.path)
-    response = conn.getresponse()
+    response = get_with_redirects(url)
     length = response.getheader('Content-Length')
     content_type = response.getheader('Content-Type')
     log.info(f'download status: {response.status} starting to read: {content_type} {length if length else "?"} bytes')

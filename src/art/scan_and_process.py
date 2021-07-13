@@ -1,95 +1,71 @@
 import boto3
-import json
-import mimetypes
-import http.client
-from urllib.parse import urlparse
-import ssl
+
+from art_processor import stream_to_s3
 
 
-dynamodb = boto3.resource('dynamodb')
-ssl._create_default_https_context = ssl._create_unverified_context
+dynamodb_client = boto3.client('dynamodb')
+item_count = 0
+
+# TODO remove size attribute
+# TODO review non image / video or zero byte downloads
 
 
-def stream_to_s3(data):
-    art_table = dynamodb.Table('art')
-    art_table.update_item(
-        Key={'art_id': data['art_id']['S']},
-        UpdateExpression="SET process_status=:ps",
-        ExpressionAttributeValues={
-            ':ps': "attempted"
-        },
-        ReturnValues="UPDATED_NEW"
-    )
-    file = download(data['art_url']['S'])
-
-    s3_bucket = "art-processor-bucket"
-    s3_file_path = data['art_id']['S'] + mimetypes.guess_extension(file['mimeType'])
-    client = boto3.client('s3')
-    client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
-
-    art_table.update_item(
-        Key={'art_id': data['art_id']['S']},
-        UpdateExpression="SET file_type=:ft, size=:size, process_status=:ps",
-        ExpressionAttributeValues={
-            ':ft': file['mimeType'],
-            ':size': len(file['bytes']),
-            ':ps': "processed"
-        },
-        ReturnValues="UPDATED_NEW"
-    )
-
-    print("file uploaded")
-
-    return
-
-
-def download(url: str):
-    url = urlparse(url)
-    conn = http.client.HTTPSConnection(url.hostname, timeout=15)
-    conn.request("GET", url.path)
-    response = conn.getresponse()
-    length = response.getheader('Content-Length')
-    content_type = response.getheader('Content-Type')
-    content_bytes = response.read()
-    return {'mimeType': content_type, 'bytes': content_bytes}
-
-
-
-client2 = boto3.client('dynamodb')
-response2 = client2.scan(
-TableName='art')
-data = response2['Items']
-while 'LastEvaluatedKey' in response2:
-    response2 = client2.scan(TableName='art',ExclusiveStartKey=response2['LastEvaluatedKey'])
-    data.extend(response2['Items'])
-
-
-client = boto3.client('s3')
-response = client.list_objects(
-    Bucket='art-processor-bucket'
-)
-keys = []
-for i in response['Contents']:
-    index = i['Key'].find('.')
-    keys.append(i['Key'][:index])
-
-
-bad_ids = []
-count = 0
-count2 = 0
-for i in data:
+def safe_stream_to_s3(art_id, item):
+    art_url = item.get("art_url", {}).get('S')
+    print(f'STREAM_TO_S3 {art_id} {art_url}')
     try:
-        if i['art_id']['S'] in keys:
-            count2 += 1
-            print("added count: " + str(count2))
-        else:
-            stream_to_s3(i)
-            count += 1
-            print("uploaded count: " + str(count))
-            #print(i['art_id']['S'])
+        stream_to_s3(art_id, art_url)
     except Exception as e:
-        print(e)
-        bad_ids.append(i['art_id']['S'])
-        continue
+        print(f'FAILED to download {art_url} {e} Retry with alternative url')
+        image_url = item.get("open_sea_data", {}).get('M', {}).get("image_url", {}).get('S', {})
+        try:
+            stream_to_s3(art_id, image_url)
+        except Exception as e:
+            print(f'FAILED to download fallback {image_url} {e}')
 
-print(bad_ids)
+
+def process_art(item):
+    art_id = item.get("art_id", {}).get('S')
+    cdn_url = item.get("cdn_url", {}).get('S')
+    file_type = item.get("file_type", {}).get('S')
+    process_status = item.get("process_status", {}).get('S')
+    # if process_status:
+    #     print(f'PRC_ST {art_id} -> {process_status} {cdn_url} {file_type}')
+    # if cdn_url:
+    #     print(f'CDN_OK {art_id} -> {process_status} {cdn_url} {file_type}')
+    # if not file_type:
+    #     print(f'NO_FT  {art_id} -> {process_status} {cdn_url} {file_type}')
+    if not cdn_url or 'html' in file_type or 'text' in file_type:
+        return safe_stream_to_s3(art_id, item)
+
+
+repeat = True
+scan_res = dynamodb_client.scan(TableName='art')
+while repeat:
+    for art in scan_res['Items']:
+        item_count += 1
+        process_art(art)
+
+    if 'LastEvaluatedKey' in scan_res:
+        scan_res = dynamodb_client.scan(TableName='art', ExclusiveStartKey=scan_res['LastEvaluatedKey'])
+    else:
+        repeat = False
+
+print(f'Processed {item_count} rows')
+
+# for i in data:
+#     try:
+#         if i['art_id']['S'] in keys:
+#             count2 += 1
+#             print("added count: " + str(count2))
+#         else:
+#             stream_to_s3(i)
+#             count += 1
+#             print("uploaded count: " + str(count))
+#             #print(i['art_id']['S'])
+#     except Exception as e:
+#         print(e)
+#         bad_ids.append(i['art_id']['S'])
+#         continue
+#
+# print(bad_ids)
