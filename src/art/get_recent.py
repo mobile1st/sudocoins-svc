@@ -1,11 +1,11 @@
 import boto3
 from util import sudocoins_logger
-from boto3.dynamodb.conditions import Key
 from art.art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 arts = Art(dynamodb)
+
 
 def lambda_handler(event, context):
     set_log_context(event)

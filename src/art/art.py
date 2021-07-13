@@ -15,6 +15,7 @@ class Art:
         self.dynamodb = dynamodb
         self.art_table = self.dynamodb.Table('art')
         self.sns = boto3.client("sns")
+        self.dynamodb_client = boto3.client('dynamodb')
 
     def get_id(self, contract_token_id):
         log.info(f"art.get_id {contract_token_id}")
@@ -82,7 +83,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, cdn_url",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, file_type, cdn_url",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
@@ -100,3 +101,28 @@ class Art:
             art['art_url'] = art['cdn_url']
             del art['cdn_url']
         return art
+
+    def get_arts(self, art_ids):
+        log.info(f"art.get_arts {art_ids}")
+
+        art_keys = [{'art_id': {'S': i}} for i in art_ids]
+        art_record = self.dynamodb_client.batch_get_item(
+            RequestItems={
+                'art': {
+                    'Keys': art_keys,
+                    'ExpressionAttributeNames': {'#N': 'name'},
+                    'ProjectionExpression': 'art_id,click_count,art_url,recent_sk,preview_url,#N,file_type,cdn_url'
+                }
+            }
+        )
+
+        for art in art_record['Responses']['art']:
+            if 'cdn_url' in art:
+                art['art_url']['S'] = art['cdn_url']['S']
+                del art['cdn_url']
+
+        return sorted(art_record['Responses']['art'], key=lambda k: int(k['click_count']['N']), reverse=True)
+
+
+a = Art(boto3.resource('dynamodb'))
+print(a.get_arts(['13eba980-e0c9-11eb-a0a7-85584701e4ec', '89692549-e0c8-11eb-b213-85584701e4ec']))

@@ -29,14 +29,14 @@ def process_art(item):
     cdn_url = item.get("cdn_url", {}).get('S')
     file_type = item.get("file_type", {}).get('S')
     process_status = item.get("process_status", {}).get('S')
-    # if process_status:
-    #     print(f'PRC_ST {art_id} -> {process_status} {cdn_url} {file_type}')
-    # if cdn_url:
-    #     print(f'CDN_OK {art_id} -> {process_status} {cdn_url} {file_type}')
-    # if not file_type:
-    #     print(f'NO_FT  {art_id} -> {process_status} {cdn_url} {file_type}')
-    if not cdn_url or 'html' in file_type or 'text' in file_type:
-        return safe_stream_to_s3(art_id, item)
+    if process_status:
+        print(f'PRC_ST {art_id} -> {process_status} {cdn_url} {file_type}')
+    if not cdn_url:
+        print(f'NO_CDN {art_id} -> {process_status} {cdn_url} {file_type}')
+    if 'html' in file_type or 'text' in file_type:
+        print(f'NO_FT  {art_id} -> {process_status} {cdn_url} {file_type}')
+    # if not cdn_url or 'html' in file_type or 'text' in file_type:
+    #     return safe_stream_to_s3(art_id, item)
 
 
 repeat = True
