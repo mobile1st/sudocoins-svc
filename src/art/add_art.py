@@ -164,13 +164,10 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, u
 
 
 def get_urls(open_sea):
-    anim_url: str = open_sea['animation_url']
-
-    # https://api.artblocks.io/generator/ is an html image generator and cannot be embedded directly
-    if anim_url and (not anim_url.startswith('https://api.artblocks.io/generator/')):
+    if open_sea.get('animation_original_url'):
         return open_sea["image_preview_url"],  open_sea["animation_original_url"]
 
-    if open_sea['image_original_url'] is None:
-        return open_sea["image_preview_url"], open_sea['image_url']
+    if open_sea.get('image_original_url'):
+        return open_sea["image_preview_url"], open_sea['image_original_url']
 
-    return open_sea["image_preview_url"], open_sea['image_original_url']
+    return open_sea["image_preview_url"], open_sea['image_url']
