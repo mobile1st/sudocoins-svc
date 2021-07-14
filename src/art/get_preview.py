@@ -51,6 +51,9 @@ def get_preview_url(art):
         parts = preview.split('=')
         return f'{parts[0]}=w1200-h628-p'
 
+    if '.mp4' in art['art_url']:
+        return art['preview_url']
+
     # orig and if > 5MB otherwise use preview
     url = urlparse(art['art_url'])
     conn = http.client.HTTPSConnection(url.hostname)

@@ -52,20 +52,3 @@ while repeat:
         repeat = False
 
 print(f'Processed {item_count} rows')
-
-# for i in data:
-#     try:
-#         if i['art_id']['S'] in keys:
-#             count2 += 1
-#             print("added count: " + str(count2))
-#         else:
-#             stream_to_s3(i)
-#             count += 1
-#             print("uploaded count: " + str(count))
-#             #print(i['art_id']['S'])
-#     except Exception as e:
-#         print(e)
-#         bad_ids.append(i['art_id']['S'])
-#         continue
-#
-# print(bad_ids)
