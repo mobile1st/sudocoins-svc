@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
+cs_client = boto3.client('cloudsearchdomain',
+                      endpoint_url='https://search-art-domain-oemytuqtulkq5plos7ri5qhz7a.us-west-2.cloudsearch.amazonaws.com')
 
 
 def lambda_handler(event, context):
@@ -29,15 +31,18 @@ def stream_to_s3(art_id: str, art_url: str):
     log.info('upload to sudocoins-art-bucket finished')
 
     art_table = dynamodb.Table('art')
-    art_table.update_item(
+    art_item = art_table.update_item(
         Key={'art_id': art_id},
         UpdateExpression="SET mime_type=:mt, cdn_url=:cdn_url REMOVE process_status",
         ExpressionAttributeValues={
             ':mt': file['mimeType'],
             ':cdn_url': f'https://cdn.sudocoins.com/{s3_file_path}'
-        })
-
+        },
+        ReturnValues='ALL_NEW'
+    )['Attributes']
     log.info(f"art table updated artId: {art_id}")
+    upload_art_to_cloudsearch(art_item)
+    log.info(f"cloudsearch updated artId: {art_id}")
 
 
 def extension(mime_type: str):
@@ -74,3 +79,35 @@ def download(url: str):
     content_bytes = response.read()
     log.info(f'download success')
     return {'mimeType': content_type, 'bytes': content_bytes}
+
+
+def upload_art_to_cloudsearch(art_item):
+    art_id = art_item['art_id']
+    name = art_item.get('name')
+    data = art_item.get('open_sea_data', {})
+    desc = data.get('description')
+    upload_document(get_document(art_id, name, desc))
+
+
+def upload_document(doc):
+    response = cs_client.upload_documents(
+        documents=json.dumps(doc),
+        contentType='application/json'
+    )
+    log.info(f'cloudsearch upload response: {response}')
+
+
+def get_document(art_id, name, description):
+    log.info(f'cloudsearch document input art_id: {art_id}, name: {name}, desc: {description}')
+    fields = {
+        'category': 'art'
+    }
+    if name:
+        fields['name'] = name
+    if description:
+        fields['description'] = description
+    return [{
+        'id': art_id,
+        'type': 'add',
+        'fields': fields
+    }]
