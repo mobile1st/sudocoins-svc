@@ -31,9 +31,9 @@ def stream_to_s3(art_id: str, art_url: str):
     art_table = dynamodb.Table('art')
     art_table.update_item(
         Key={'art_id': art_id},
-        UpdateExpression="SET file_type=:ft, cdn_url=:cdn_url REMOVE process_status",
+        UpdateExpression="SET mime_type=:mt, cdn_url=:cdn_url REMOVE process_status",
         ExpressionAttributeValues={
-            ':ft': file['mimeType'],
+            ':mt': file['mimeType'],
             ':cdn_url': f'https://cdn.sudocoins.com/{s3_file_path}'
         })
 

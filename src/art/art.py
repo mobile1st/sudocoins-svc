@@ -29,7 +29,7 @@ class Art:
         log.info(f"art.get {art_id}")
         art = self.art_table.get_item(
             Key={'art_id': art_id},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, file_type, cdn_url",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url",
             ExpressionAttributeNames={'#n': 'name'})
         return self.__use_cdn_url(art['Item'] if art.get('Item') else None)
 
@@ -83,7 +83,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, file_type, cdn_url",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
@@ -111,7 +111,7 @@ class Art:
                 'art': {
                     'Keys': art_keys,
                     'ExpressionAttributeNames': {'#N': 'name'},
-                    'ProjectionExpression': 'art_id,click_count,art_url,recent_sk,preview_url,#N,file_type,cdn_url'
+                    'ProjectionExpression': 'art_id,click_count,art_url,recent_sk,preview_url,#N,mime_type,cdn_url'
                 }
             }
         )
