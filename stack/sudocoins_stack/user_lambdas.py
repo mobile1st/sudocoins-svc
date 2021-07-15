@@ -150,7 +150,7 @@ class SudocoinsUserLambdas:
         resources.profile_table.grant_read_write_data(self.affiliates_function)
         resources.art_uploads_table.grant_read_write_data(self.affiliates_function)
         resources.ledger_table.grant_read_write_data(self.affiliates_function)
-        resources.grant_read_index_data(self.affiliate_function, [resources.ledger_table])
+        resources.grant_read_index_data(self.affiliates_function, [resources.ledger_table])
         resources.affiliates_topic.add_subscription(
             subs.LambdaSubscription(self.affiliates_function)
         )
