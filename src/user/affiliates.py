@@ -12,13 +12,11 @@ ledger = Ledger(dynamodb)
 def lambda_handler(event, context):
     data = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {data}')
-
     shareId = data['affiliate']
 
     user_id = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': shareId},
         ProjectionExpression="user_id")['Item']['user_id']
-
     dynamodb.Table('Profile').update_item(
         Key={'userId': user_id},
         UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
@@ -28,10 +26,9 @@ def lambda_handler(event, context):
         },
         ReturnValues="UPDATED_NEW"
     )
-    log.info("sudo added to affiliate partner's ledger")
-
+    log.info(f'sudo added for: {user_id}')
     ledger.add(100, user_id, 'Affiliate Link Signup')
-    log.info("affiliate signup record added to ledger table")
+    log.info("record added to ledger table")
 
     return
 
