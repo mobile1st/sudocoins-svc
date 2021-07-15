@@ -10,8 +10,8 @@ def lambda_handler(event, context):
     log.debug(f'event: {event}')
     query_params = event['queryStringParameters']
     query = query_params['q']
-    size = query_params.get('size')
-    start = query_params.get('start')
+    size = int(query_params['size']) if query_params.get('size') else None
+    start = int(query_params['start']) if query_params.get('start') else None
     search_result = search(query, size, start)
     return {
         'total': search_result['hits']['found'],
@@ -33,3 +33,6 @@ def search(query, size=None, start=None):
     )
     log.info(f'cloudsearch response: {response}')
     return response
+
+
+int(None)
