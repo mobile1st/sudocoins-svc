@@ -28,9 +28,11 @@ def lambda_handler(event, context):
         },
         ReturnValues="UPDATED_NEW"
     )
+    log.info("sudo added to affiliate partner's ")
 
     ledger.add(100, user_id, 'Affiliate Link Signup')
+    log.info("affiliate signup record added to ledger table")
 
-    return shareId
+    return
 
 
