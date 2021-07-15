@@ -132,3 +132,12 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_preview_integration
         )
+        # ART SEARCH
+        art_search_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.art_search_function
+        )
+        art_api_v3.add_routes(
+            path='/search',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=art_search_integration
+        )

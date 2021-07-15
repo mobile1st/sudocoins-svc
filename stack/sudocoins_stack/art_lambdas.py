@@ -276,3 +276,11 @@ class SudocoinsArtLambdas:
             targets=[set_retry_target]
         )
         resources.art_processor_topic.grant_publish(processor_retry_function)
+        # ART SEARCH
+        self.art_search_function = _lambda.Function(
+            scope,
+            'ArtSearch',
+            function_name='ArtSearch',
+            handler='art.art_search.lambda_handler',
+            **lambda_default_kwargs
+        )
