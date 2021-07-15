@@ -13,7 +13,7 @@ def lambda_handler(event, context):
     data = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {data}')
 
-    shareId = data['shareId']
+    shareId = data['affiliate']
 
     user_id = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': shareId},
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         },
         ReturnValues="UPDATED_NEW"
     )
-    log.info("sudo added to affiliate partner's ")
+    log.info("sudo added to affiliate partner's ledger")
 
     ledger.add(100, user_id, 'Affiliate Link Signup')
     log.info("affiliate signup record added to ledger table")
