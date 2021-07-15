@@ -30,6 +30,8 @@ def process_art(item):
     process_status = item.get("process_status")
     if process_status == 'STREAM_TO_S3' or not cdn_url:
         safe_stream_to_s3(art_id, item)
+    if 'image' not in item.get("mime_type"):
+        print(f'{art_id} -> {item["mime_type"]}')
 
 
 repeat = True

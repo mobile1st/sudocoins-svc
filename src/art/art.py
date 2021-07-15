@@ -122,7 +122,3 @@ class Art:
                 del art['cdn_url']
 
         return sorted(art_record['Responses']['art'], key=lambda k: int(k['click_count']['N']), reverse=True)
-
-
-a = Art(boto3.resource('dynamodb'))
-print(a.get_arts(['13eba980-e0c9-11eb-a0a7-85584701e4ec', '89692549-e0c8-11eb-b213-85584701e4ec']))
