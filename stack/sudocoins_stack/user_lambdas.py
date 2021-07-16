@@ -47,15 +47,9 @@ class SudocoinsUserLambdas:
             **lambda_default_kwargs
         )
         resources.profile_table.grant_read_write_data(self.update_profile_function)
+        resources.grant_read_index_data(self.update_profile_function, [resources.profile_table])
         resources.sub_table.grant_read_data(self.update_profile_function)
-        resources.profile_table.grant_read_data(self.update_profile_function)
-        self.update_profile_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+
         # USER VERIFY
         self.user_verify_function = _lambda.Function(
             scope,
