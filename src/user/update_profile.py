@@ -86,7 +86,7 @@ def get_user_id(sub):
 
 
 def get_current_user_name(user_id):
-    row = dynamodb.Table('profile').get_item(Key={'userId': user_id})['Item']
+    row = dynamodb.Table('Profile').get_item(Key={'userId': user_id})['Item']
     if 'user_name' in row:
         return row['user_name']
     else:
