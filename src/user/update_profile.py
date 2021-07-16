@@ -7,15 +7,27 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    """Updates the profile for a registered users.
-    Arguments: user_name, twitter_handle, gravatarEmail
-    Returns: fields updated
-    """
     set_log_context(event)
     log.debug(f'event: {event}')
     input_json = json.loads(event.get('body', '{}'))
+
     user_id = input_json['userId'] if 'userId' in input_json else get_user_id(input_json['sub'])
+
+    current_user_name = get_current_user_name(user_id)
     user_name = input_json.get('user_name')
+
+    if current_user_name == user_name:
+        profile = update_profile(
+            user_id,
+            input_json.get('gravatarEmail'),
+            user_name,
+            input_json.get('twitter_handle')
+        )
+        return {
+            'profile': profile
+        }
+
+
     if check_user_name_exists(user_name):
         return {
             'message': 'User Name already exists. Please try something different.'
@@ -71,3 +83,13 @@ def update_profile(user_id, gravatar_email, user_name, twitter_handle):
 
 def get_user_id(sub):
     return dynamodb.Table('sub').get_item(Key={'sub': sub})['Item']['userId']
+
+
+def get_current_user_name(user_id):
+    row = dynamodb.Table('profile').get_item(Key={'userId': user_id})['Item']
+    if 'user_name' in row:
+        return row['user_name']
+    else:
+        user_name = None
+        return user_name
+
