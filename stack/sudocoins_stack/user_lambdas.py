@@ -48,6 +48,7 @@ class SudocoinsUserLambdas:
         )
         resources.profile_table.grant_read_write_data(self.update_profile_function)
         resources.sub_table.grant_read_data(self.update_profile_function)
+        resources.profile_table.grant_read_data(self.update_profile_function)
         self.update_profile_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
