@@ -88,7 +88,7 @@ def get_preview_html(title, url):
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@sudocoins" />
             <meta property="og:title" content="{title}" />
-            <meta property="og:description" content="Discover new Art and help creators grow" />
+            <meta property="og:description" content="Sign up and earn by sharing art." />
             <meta property="og:image" content="{url}" />
         </head>
         <body></body>
