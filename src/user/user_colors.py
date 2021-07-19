@@ -45,4 +45,5 @@ def update_colors(user_id, bg_color, tile_color, text_color):
 
 def get_colors(user_id):
     return dynamodb.Table('Profile').get_item(Key={'userId': user_id},
-                                              ProjectionExpression='userId, bg_color, text_color, tile_color')['Item']
+                                              ProjectionExpression='userId, bg_color, text_color, tile_color, email,'
+                                                                   'user_name, twitter_handle')['Item']
