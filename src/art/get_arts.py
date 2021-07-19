@@ -10,7 +10,6 @@ art = Art(dynamodb)
 
 def lambda_handler(event, context):
     set_log_context(event)
-    log.info(event)
     body = json.loads(event['body'])
     return {
         'arts': art.get_arts(body['arts'])
