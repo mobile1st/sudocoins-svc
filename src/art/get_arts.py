@@ -11,12 +11,8 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     body = json.loads(event['body'])
-    arts = body['arts']
-    if len(arts) == 0:
-        return {'arts': None}
-
     return {
-        'arts': art.get_arts(arts)
+        'arts': art.get_arts(body['arts'])
     }
 
 

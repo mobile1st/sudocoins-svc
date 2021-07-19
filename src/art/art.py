@@ -15,7 +15,6 @@ class Art:
         self.dynamodb = dynamodb
         self.art_table = self.dynamodb.Table('art')
         self.sns = boto3.client("sns")
-        self.dynamodb_client = boto3.client('dynamodb')
 
     def get_id(self, contract_token_id):
         log.info(f"art.get_id {contract_token_id}")
@@ -97,28 +96,45 @@ class Art:
     def __use_cdn_url(self, art):
         if not art:
             return art
+
+        # google does image sizing well
+        if 'image' in art['mime_type'] and 'googleusercontent.com/' in art['preview_url']:
+            parts = art['preview_url'].split('=')
+            art['art_url'] = f'{parts[0]}=s4096'
+            del art['cdn_url']
+
+        # we have a cdn too
         if 'cdn_url' in art:
             art['art_url'] = art['cdn_url']
             del art['cdn_url']
+
         return art
 
     def get_arts(self, art_ids):
         log.info(f"art.get_arts {art_ids}")
+        if not art_ids or len(art_ids) == 0:
+            return []
 
-        art_keys = [{'art_id': {'S': i}} for i in art_ids]
-        art_record = self.dynamodb_client.batch_get_item(
-            RequestItems={
-                'art': {
-                    'Keys': art_keys,
-                    'ExpressionAttributeNames': {'#N': 'name'},
-                    'ProjectionExpression': 'art_id,click_count,art_url,recent_sk,preview_url,#N,mime_type,cdn_url'
-                }
-            }
-        )
+        query = {
+            'Keys': [{'art_id': i} for i in art_ids],
+            'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url',
+            'ExpressionAttributeNames': {'#N': 'name'}
+        }
+        response = self.dynamodb.batch_get_item(RequestItems={'art': query})
+        art_index = {}
+        for art in response['Responses']['art']:
+            self.__use_cdn_url(art)
+            art_index[art['art_id']] = art
 
-        for art in art_record['Responses']['art']:
-            if 'cdn_url' in art:
-                art['art_url']['S'] = art['cdn_url']['S']
-                del art['cdn_url']
+        # preserve query art_id order
+        result = []
+        for art_id in art_ids:
+            art = art_index.get(art_id)
+            if art:
+                result.append(art)
 
-        return sorted(art_record['Responses']['art'], key=lambda k: int(k['click_count']['N']), reverse=True)
+        return result
+
+
+# a = Art(boto3.resource('dynamodb'))
+# print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
