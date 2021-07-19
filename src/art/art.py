@@ -98,7 +98,7 @@ class Art:
             return art
 
         # google does image sizing well
-        if 'image' in art['mime_type'] and 'googleusercontent.com/' in art['preview_url']:
+        if self.__is_image(art) and 'googleusercontent.com/' in art['preview_url']:
             parts = art['preview_url'].split('=')
             art['art_url'] = f'{parts[0]}=s4096'
             del art['cdn_url']
@@ -109,6 +109,17 @@ class Art:
             del art['cdn_url']
 
         return art
+
+    def __is_image(self, art):
+        mime_type = art.get('mime_type')
+        if mime_type and 'image' in mime_type:
+            return True
+
+        url = art.get('art_url')
+        if '.jpg' in url or '.png' in url or '.gif' in url or '.svg' in url:
+            return True
+
+        return False
 
     def get_arts(self, art_ids):
         log.info(f"art.get_arts {art_ids}")
@@ -136,5 +147,5 @@ class Art:
         return result
 
 
-# a = Art(boto3.resource('dynamodb'))
-# print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
+a = Art(boto3.resource('dynamodb'))
+print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
