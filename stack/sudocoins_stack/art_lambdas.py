@@ -162,6 +162,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
         resources.grant_read_index_data(self.get_user_arts_function, [resources.art_uploads_table])
+        resources.art_table.grant_read_data(self.get_user_arts_function)
         # SHARE ART
         self.share_art_function = _lambda.Function(
             scope,
