@@ -39,9 +39,7 @@ def register_click(data):
             Key={'shareId': data['shareId']},
             ProjectionExpression="art_id, user_id")['Item']
         log.info(f'art_uploads_record: {art_uploads_record}')
-
-        if 'user_id' in art_uploads_record:
-            update_user_count(art_uploads_record['user_id'])
+        update_user_count(art_uploads_record['user_id'])
 
         if 'art_id' in art_uploads_record:
             art_id = art_uploads_record['art_id']
@@ -60,7 +58,8 @@ def register_click(data):
                 "unique_id": str(uuid.uuid1()),
                 "art_id": art_id,
                 "timestamp": str(datetime.utcnow().isoformat()),
-                "type": "view"
+                "type": "view",
+                "influencer": art_uploads_record['user_id']
             }
             dynamodb.Table('art_votes').put_item(
                 Item=art_votes_record
@@ -69,21 +68,22 @@ def register_click(data):
 
     # if it's not a custom art url, then it's a generic art url
     elif 'art_id' in data:
-        dynamodb.Table('art').update_item(
+        art_row = dynamodb.Table('art').update_item(
             Key={'art_id': data['art_id']},
             UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
             ExpressionAttributeValues={
                 ':inc': 1,
                 ':start': 0
             },
-            ReturnValues="UPDATED_NEW"
+            ReturnValues="ALL_NEW"
         )
         log.info("art table click_count increased")
         art_votes_record = {
             "unique_id": str(uuid.uuid1()),
             "art_id": data['art_id'],
             "timestamp": str(datetime.utcnow().isoformat()),
-            "type": "view"
+            "type": "view",
+            "influencer": art_row['Attributes']['first_user']
         }
         dynamodb.Table('art_votes').put_item(
             Item=art_votes_record

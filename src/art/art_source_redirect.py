@@ -30,21 +30,22 @@ def lambda_handler(event, context):
 
     if 'Item' in art_row:
 
-        art_table.update_item(
+        art_row = art_table.update_item(
             Key={'art_id': row_id},
             UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
             ExpressionAttributeValues={
                 ':inc': 1,
                 ':start': 0
             },
-            ReturnValues="UPDATED_NEW"
+            ReturnValues="ALL_NEW"
         )
         log.info("art table click_count increased")
         art_votes_record = {
             "unique_id": str(uuid.uuid1()),
             "art_id": row_id,
             "timestamp": str(datetime.utcnow().isoformat()),
-            "type": "buy"
+            "type": "buy",
+            "influencer": art_row['Attributes']['first_user']
         }
         dynamodb.Table('art_votes').put_item(
             Item=art_votes_record
@@ -57,14 +58,14 @@ def lambda_handler(event, context):
         row = art_uploads_table.get_item(Key={'shareId': row_id})
 
         if 'Item' in row:
-            art_uploads_table.update_item(
+            art_uploads_row = art_uploads_table.update_item(
                 Key={'shareId': row_id},
                 UpdateExpression="SET click_count = if_not_exists(click_count , :start) + :inc",
                 ExpressionAttributeValues={
                     ':inc': 1,
                     ':start': 0
                 },
-                ReturnValues="UPDATED_NEW"
+                ReturnValues="ALL_NEW"
             )
             log.info("art_uploads table click_count increased")
 
@@ -84,7 +85,8 @@ def lambda_handler(event, context):
                 "unique_id": str(uuid.uuid1()),
                 "art_id": art_id,
                 "timestamp": str(datetime.utcnow().isoformat()),
-                "type": "buy"
+                "type": "buy",
+                "influencer": art_uploads_row['Attributes']['user_id']
             }
             dynamodb.Table('art_votes').put_item(
                 Item=art_votes_record

@@ -32,7 +32,8 @@ def lambda_handler(event, context):
         "ip": ip,
         "vote": vote,
         "timestamp": str(datetime.utcnow().isoformat()),
-        "type": "vote"
+        "type": "vote",
+        "influencer": None
     }
     dynamodb.Table('art_votes').put_item(
         Item=art_votes_record
