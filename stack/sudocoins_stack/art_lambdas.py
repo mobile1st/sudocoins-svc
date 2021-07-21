@@ -142,7 +142,7 @@ class SudocoinsArtLambdas:
         resources.profile_table.grant_read_data(set_leaderboard_function)
         resources.config_table.grant_read_write_data(set_leaderboard_function)
         resources.art_votes_table.grant_read_data(set_leaderboard_function)
-        resources.grant_read_index_data(set_leaderboard_function, [resources.profile_table], [resources.art_votes_table])
+        resources.grant_read_index_data(set_leaderboard_function, [resources.profile_table, resources.art_votes_table])
         set_leaderboard_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_leaderboard_target = events_targets.LambdaFunction(handler=set_leaderboard_function)
         events.Rule(
