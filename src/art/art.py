@@ -97,11 +97,11 @@ class Art:
         if not art:
             return art
 
-        # google does image sizing well
-        if self.__is_image(art) and 'googleusercontent.com/' in art['preview_url']:
-            parts = art['preview_url'].split('=')
-            art['art_url'] = f'{parts[0]}=s4096'
-            del art['cdn_url']
+        # # google does image sizing well
+        # if self.__is_image(art) and 'googleusercontent.com/' in art['preview_url']:
+        #     parts = art['preview_url'].split('=')
+        #     art['art_url'] = f'{parts[0]}=s4096'
+        #     del art['cdn_url']
 
         # we have a cdn too
         if 'cdn_url' in art:
@@ -147,5 +147,5 @@ class Art:
         return result
 
 
-a = Art(boto3.resource('dynamodb'))
-print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
+# a = Art(boto3.resource('dynamodb'))
+# print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
