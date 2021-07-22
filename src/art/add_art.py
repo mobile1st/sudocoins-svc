@@ -145,7 +145,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         ReturnValues="UPDATED_NEW"
     )
     ledger.add(5, user_id, 'Add Art')
-
+    '''
     try:
         dynamodb.Table('creators').put_item(
             Item={
@@ -158,7 +158,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         )
     except Exception as e:
         log.info(e)
-
+    '''
     return {
         'status': 'success',
         'shareId': art_uploads_record['shareId'],
