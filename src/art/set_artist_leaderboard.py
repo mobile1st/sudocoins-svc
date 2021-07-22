@@ -62,17 +62,16 @@ def creator_ranking(scores, creators):
 
 
 def get_creators(scores):
-    client = boto3.client('dynamodb')
     art_keys = []
     for i in scores:
-        element = {'art_id': {'S': i}}
+        element = {'art_id': i}
         art_keys.append(element)
 
     chunks = [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]
 
     creators = []
     for i in chunks:
-        art_row = client.batch_get_item(
+        art_row = dynamodb.batch_get_item(
             RequestItems={
                 'art': {
                     'Keys': i,
@@ -163,15 +162,14 @@ def merge_arts(vote_counts, view_counts, buy_counts):
 def set_config(top_creators):
     config_table = dynamodb.Table('Config')
 
-    updated_leaderboard = config_table.update_item(
+    config_table.update_item(
         Key={
             'configKey': 'Leaderboard'
         },
         UpdateExpression="set creators=:create",
         ExpressionAttributeValues={
             ":create": top_creators
-        },
-        ReturnValues="ALL_NEW"
+        }
     )
 
     return
