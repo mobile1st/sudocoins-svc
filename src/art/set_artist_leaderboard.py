@@ -38,20 +38,21 @@ def creator_ranking(scores, creators):
     for k in creators:
         for i in k:
             try:
-                creator = i['open_sea_data']['M']['creator']['M']['address']['S']
-                score = scores[i['art_id']['S']]
-                avatar = i['preview_url']['S']
+                creator = i['open_sea_data']['creator']['address']
+                score = scores[i['art_id']]
+                avatar = i['preview_url']
 
                 if creator in creator_data:
                     creator_data[creator]['score'] += score
                 else:
                     creator_data[creator] = {
                         "score": score,
-                        "data": i['open_sea_data']['M']['creator']['M'],
+                        "data": i['open_sea_data']['creator'],
                         "avatar": avatar
                     }
             except Exception as e:
                 log.info(e)
+                log.info(i)
                 pass
 
     sorted_dict = OrderedDict(sorted(creator_data.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))
