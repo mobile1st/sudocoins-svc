@@ -36,6 +36,10 @@ class Art:
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id}")
+        if 'address' in open_sea['creator']:
+            creator_address = open_sea['creator']['address']
+        else:
+            creator_address = "unknown"
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -49,7 +53,7 @@ class Art:
             "click_count": 0,
             "first_user": user_id,
             "sort_idx": 'true',
-            "creator": open_sea['creator']['address'],
+            "creator": creator_address,
             "process_status": "STREAM_TO_S3"
         }
 

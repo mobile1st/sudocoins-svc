@@ -113,7 +113,10 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
             'status': 'exist',
             'shareId': art_uploads_object['Items'][0]['shareId']
         }
-
+    if 'address' in open_sea['creator']:
+        creator_address = open_sea['creator']['address']
+    else:
+        creator_address = "unknown"
     art_uploads_record = {
         "shareId": str(uuid.uuid1()),
         'contractId#tokenId': str(contract_id) + "#" + str(token_id),
@@ -127,7 +130,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         "timestamp": str(datetime.utcnow().isoformat()),
         "dedupe_key": dedupe_key,
         "art_id": art_id,
-        'creator': open_sea['creator']['address']
+        'creator': creator_address
     }
     dynamodb.Table('art_uploads').put_item(
         Item=art_uploads_record
