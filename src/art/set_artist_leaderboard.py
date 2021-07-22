@@ -50,9 +50,15 @@ def creator_ranking(scores, creators):
                         "data": i['open_sea_data']['creator'],
                         "avatar": avatar
                     }
+                    print(creator_data[creator]['data']['user'])
+                    if creator_data[creator]['data']['user'] is None:
+                        creator_data[creator]['data']['user'] = {}
+                        creator_data[creator]['data']['user']['username'] = creator_data[creator]['data']['address']
+                    if creator_data[creator]['data']['user']['username'] is None:
+                        creator_data[creator]['data']['user']['username'] = creator_data[creator]['data']['address']
+
             except Exception as e:
                 log.info(e)
-                log.info(i)
                 pass
 
     sorted_dict = OrderedDict(sorted(creator_data.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))

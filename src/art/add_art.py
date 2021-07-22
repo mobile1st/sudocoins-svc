@@ -127,7 +127,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         "timestamp": str(datetime.utcnow().isoformat()),
         "dedupe_key": dedupe_key,
         "art_id": art_id,
-        'creator': open_sea['creator']
+        'creator': open_sea['creator']['address']
     }
     dynamodb.Table('art_uploads').put_item(
         Item=art_uploads_record
@@ -144,8 +144,20 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
         },
         ReturnValues="UPDATED_NEW"
     )
-
     ledger.add(5, user_id, 'Add Art')
+
+    try:
+        dynamodb.Table('creators').put_item(
+            Item={
+                'address': open_sea_response['creator']['address'],
+                'open_sea_data': open_sea_response['creator'],
+                'timestamp': str(datetime.utcnow().isoformat()),
+                'last_update': str(datetime.utcnow().isoformat())
+            },
+            ConditionExpression='attribute_not_exists(address)'
+        )
+    except Exception as e:
+        log.info(e)
 
     return {
         'status': 'success',

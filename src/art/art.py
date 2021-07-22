@@ -49,7 +49,7 @@ class Art:
             "click_count": 0,
             "first_user": user_id,
             "sort_idx": 'true',
-            "creator": open_sea['creator'],
+            "creator": open_sea['creator']['address'],
             "process_status": "STREAM_TO_S3"
         }
 
