@@ -161,9 +161,7 @@ def creator_ranking(scores, creators):
             log.exception(e)
             pass
 
-    sorted_dict = OrderedDict(sorted(creator_data.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))
-
-    return list(sorted_dict.items())[:20]
+    return sorted(creator_data.values(), key=lambda x: x['score'], reverse=True)[:20]
 
 
 def get_creators_for_art_ids(scores):
