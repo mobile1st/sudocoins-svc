@@ -41,11 +41,9 @@ def get_uploads(user_id):
 
     for a in uploads:
         idx = art_index.get(a['art_id'])
-        if idx:
+        if idx and idx.get('art_url'):
             a['art_url'] = idx['art_url']  # this maybe a cdn url
-            a['mime_type'] = idx['mime_type']
+        if idx and idx.get('mime_type'):
+            a['mime_type'] = idx.get('mime_type')
 
     return uploads
-
-
-# print(lambda_handler({'pathParameters': {'userId': '4c13133b-8014-11eb-a887-2548c0671a58'}}, None))
