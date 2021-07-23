@@ -11,50 +11,53 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     last_day = (datetime.utcnow() - timedelta(days=14)).isoformat()
-    scores = get_views(last_day)
+
+    creators = get_creators(last_day)
+    leaders = get_leaders(last_day)
+    log.info(f'leaders: {leaders} creators: {creators}')
+
+    set_config(leaders, creators)
+    log.info("Leaderboard config set")
+
+
+def set_config(leaders, creators):
+    config_table = dynamodb.Table('Config')
+    config_table.update_item(
+        Key={'configKey': 'Leaderboard'},
+        UpdateExpression="set leaders=:lead, creators=:create",
+        ExpressionAttributeValues={
+            ":lead": leaders,
+            ":create": creators
+        },
+    )
+
+
+def get_leaders(last_day):
+    scores = get_views_by_leader(last_day)
     log.info("calculated top influencers based on views")
     log.info(scores)
-
-    influencers = get_influencers(scores)
-    log.info(influencers)
-
-    set_config(influencers)
-    log.info("influencers leaderboard config set")
-
-    return influencers
-
-
-def get_influencers(scores):
-    dynamodb = boto3.resource('dynamodb')
     profiles = []
 
+    # TODO this will need to be in a loop when we have more than 100 users
     query = {
         'Keys': [{'userId': i[0]} for i in scores],
         'ProjectionExpression': 'userId, email, user_name, twitter_handle, gravatarEmail'
     }
-    response = dynamodb.batch_get_item(RequestItems={'Profile': query})
-
-    print(response)
-
-    influencers = response['Responses']['Profile']
-    profiles.append(influencers)
+    influencers = dynamodb.batch_get_item(RequestItems={'Profile': query})['Responses']['Profile']
+    profiles.extend(influencers)
 
     scores = dict(scores)
-    print(scores)
-    for i in influencers:
-        click_count = scores[i['userId']]['score']
-        i['click_count'] = click_count
+    for i in profiles:
+        i['click_count'] = scores[i['userId']]['score']
 
     arts = []
     arts_dict = {}
     for i in scores:
-        print(scores[i]['art_id'])
         if scores[i]['art_id'] not in arts_dict:
-            print("here")
             element = {'art_id': scores[i]['art_id']}
             arts.append(element)
             arts_dict[scores[i]['art_id']] = 0
-    print(arts)
+
     art_rows = dynamodb.batch_get_item(
         RequestItems={
             'art': {
@@ -64,7 +67,6 @@ def get_influencers(scores):
         }
     )
     avatars = art_rows['Responses']['art']
-    print(avatars)
 
     art_keys = {}
     for i in avatars:
@@ -72,35 +74,15 @@ def get_influencers(scores):
 
     for i in scores:
         preview_url = art_keys[scores[i]['art_id']]
-        # print(i)
         for k in influencers:
-            print(k)
+            # print(k)
             if i == k['userId']:
                 k['avatar'] = preview_url
 
-    newlist = sorted(influencers, key=lambda k: k['click_count'], reverse=True)
-
-    return newlist
+    return sorted(influencers, key=lambda k: k['click_count'], reverse=True)
 
 
-def set_config(leaders):
-    config_table = dynamodb.Table('Config')
-
-    updated_leaderboard = config_table.update_item(
-        Key={
-            'configKey': 'Leaderboard'
-        },
-        UpdateExpression="set leaders=:lead",
-        ExpressionAttributeValues={
-            ":lead": leaders
-        },
-        ReturnValues="ALL_NEW"
-    )
-
-    print(updated_leaderboard)
-
-
-def get_views(last_day):
+def get_views_by_leader(last_day):
     views = dynamodb.Table('art_votes').query(
         KeyConditionExpression=Key("type").eq('view') & Key("timestamp").gt(last_day),
         ScanIndexForward=False,
@@ -110,17 +92,17 @@ def get_views(last_day):
     )['Items']
     # create a dictionary that maps art_id=>view_count int
     view_counts = {}
-    for i in views:
-        if i['influencer'] in view_counts:
-            if i['art_id'] in view_counts[i['influencer']]:
-                view_counts[i['influencer']][i['art_id']] += 1
-                view_counts[i['influencer']]['total'] += 1
+    for art_id, influencer in [[i['art_id'], i['influencer']] for i in views]:
+        if influencer in view_counts:
+            if art_id in view_counts[influencer]:
+                view_counts[influencer][art_id] += 1
+                view_counts[influencer]['total'] += 1
             else:
-                view_counts[i['influencer']][i['art_id']] = 1
-                view_counts[i['influencer']]['total'] += 1
+                view_counts[influencer][art_id] = 1
+                view_counts[influencer]['total'] += 1
         else:
-            view_counts[i['influencer']] = {i['art_id']: 1}
-            view_counts[i['influencer']]['total'] = 1
+            view_counts[influencer] = {art_id: 1}
+            view_counts[influencer]['total'] = 1
 
     scores = {}
     for i in view_counts:
@@ -135,3 +117,109 @@ def get_views(last_day):
     top_20 = list(sorted_dict.items())[:20]
 
     return top_20
+
+
+def get_creators(last_day):
+    scores = {}
+    add_votes(scores, last_day)
+    add_views(scores, last_day)
+    add_buys(scores, last_day)
+    log.info("scores created")
+
+    creators = get_creators_for_art_ids(scores)
+    log.info("creator data received")
+
+    return creator_ranking(scores, creators)
+
+
+def creator_ranking(scores, creators):
+    creator_data = {}
+    for i in creators:
+        creator = i.get('open_sea_data', {}).get('creator')
+        if not creator:
+            log.info(f'No creator for art_id: {i["art_id"]}')
+            continue
+
+        try:
+            creator_address = creator['address']
+            score = scores[i['art_id']]
+
+            if creator_address in creator_data:
+                creator_data[creator_address]['score'] += score
+            else:
+                creator_data[creator_address] = {
+                    "score": score,
+                    "data": creator,
+                    "avatar": i['preview_url']
+                }
+                if not creator.get('user'):
+                    creator['user'] = {}
+                if not creator['user'].get('username'):
+                    creator['user']['username'] = creator['address']
+
+        except Exception as e:
+            log.exception(e)
+            pass
+
+    sorted_dict = OrderedDict(sorted(creator_data.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))
+
+    return list(sorted_dict.items())[:20]
+
+
+def get_creators_for_art_ids(scores):
+    art_keys = [{'art_id': i} for i in scores]
+    creators = []
+    for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
+        art_row = dynamodb.batch_get_item(
+            RequestItems={
+                'art': {
+                    'Keys': i,
+                    'ProjectionExpression': 'art_id, open_sea_data, preview_url'
+                }
+            }
+        )
+        creators.extend(art_row['Responses']['art'])
+
+    return creators
+
+
+def add_votes(scores, last_day):
+    votes = dynamodb.Table('art_votes').query(
+        KeyConditionExpression=Key("type").eq('vote') & Key("timestamp").gt(last_day),
+        ScanIndexForward=False,
+        IndexName='type-timestamp-index',
+        ProjectionExpression="art_id, vote"
+    )['Items']
+    count_by_art_id(scores, votes, lambda i: int_or_zero(i['vote']))
+
+
+def add_views(scores, last_day):
+    views = dynamodb.Table('art_votes').query(
+        KeyConditionExpression=Key("type").eq('view') & Key("timestamp").gt(last_day),
+        ScanIndexForward=False,
+        IndexName='type-timestamp-index',
+        ProjectionExpression="art_id, vote"
+    )['Items']
+    count_by_art_id(scores, views, lambda i: 1)
+
+
+def add_buys(scores, last_day):
+    buys = dynamodb.Table('art_votes').query(
+        KeyConditionExpression=Key("type").eq('buy') & Key("timestamp").gt(last_day),
+        ScanIndexForward=False,
+        IndexName='type-timestamp-index',
+        ProjectionExpression="art_id, vote"
+    )['Items']
+    count_by_art_id(scores, buys, lambda i: 1)
+
+
+def count_by_art_id(scores, d, fn_count):
+    for art_id, vote in [[i['art_id'], fn_count(i)] for i in d]:
+        scores[art_id] = scores.get(art_id, 0) + vote
+
+
+def int_or_zero(v: str):
+    try:
+        return int(v) if v else 0
+    except ValueError:
+        return 0
