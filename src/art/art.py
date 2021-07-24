@@ -126,16 +126,18 @@ class Art:
         if not art_ids or len(art_ids) == 0:
             return []
 
-        query = {
-            'Keys': [{'art_id': i} for i in art_ids],
-            'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url',
-            'ExpressionAttributeNames': {'#N': 'name'}
-        }
-        response = self.dynamodb.batch_get_item(RequestItems={'art': query})
         art_index = {}
-        for art in response['Responses']['art']:
-            self.__use_cdn_url(art)
-            art_index[art['art_id']] = art
+        art_keys = [{'art_id': i} for i in art_ids]
+        for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
+            query = {
+                'Keys': i,
+                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url',
+                'ExpressionAttributeNames': {'#N': 'name'}
+            }
+            response = self.dynamodb.batch_get_item(RequestItems={'art': query})
+            for art in response['Responses']['art']:
+                self.__use_cdn_url(art)
+                art_index[art['art_id']] = art
 
         # preserve query art_id order
         result = []
