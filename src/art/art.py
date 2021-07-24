@@ -35,7 +35,7 @@ class Art:
     def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id):
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
-        log.info(f"art.add {art_id}")
+        log.info(f"art.add {art_id} {open_sea}")
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -151,3 +151,5 @@ class Art:
 
 # a = Art(boto3.resource('dynamodb'))
 # print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
+
+print(None.get('creator', {}).get('address'))
