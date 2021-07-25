@@ -147,9 +147,3 @@ class Art:
                 result.append(art)
 
         return result
-
-
-# a = Art(boto3.resource('dynamodb'))
-# print(a.get_arts(['89692549-e0c8-11eb-b213-85584701e4ec', '13eba980-e0c9-11eb-a0a7-85584701e4ec']))
-
-print(None.get('creator', {}).get('address'))
