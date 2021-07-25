@@ -2,7 +2,6 @@ import boto3
 from util import sudocoins_logger
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta
-from collections import OrderedDict
 from operator import getitem
 
 log = sudocoins_logger.get()
@@ -33,19 +32,19 @@ def set_config(leaders, creators):
 
 
 def get_leaders(last_day):
-    scores = get_views_by_leader(last_day)
-    log.info("calculated top influencers based on views")
-    log.info(scores)
-    profiles = []
+    scores = get_top20_view_leaders(last_day)
+    log.info(f'top20 leaders: {scores}')
 
-    # TODO this will need to be in a loop when we have more than 100 users
-    query = {
-        'Keys': [{'userId': i[0]} for i in scores],
-        'ProjectionExpression': 'userId, email, user_name, twitter_handle, gravatarEmail'
-    }
-    influencers = dynamodb.batch_get_item(RequestItems={'Profile': query})['Responses']['Profile']
-    profiles.extend(influencers)
+    leaders = dynamodb.batch_get_item(
+        RequestItems={
+            'Profile': {
+                'Keys': [{'userId': i[0]} for i in scores],
+                'ProjectionExpression': 'userId, email, user_name, twitter_handle, gravatarEmail'
+            }
+        }
+    )['Responses']['Profile']
 
+    profiles = list(leaders)
     scores = dict(scores)
     for i in profiles:
         i['click_count'] = scores[i['userId']]['score']
@@ -74,15 +73,15 @@ def get_leaders(last_day):
 
     for i in scores:
         preview_url = art_keys[scores[i]['art_id']]
-        for k in influencers:
+        for k in leaders:
             # print(k)
             if i == k['userId']:
                 k['avatar'] = preview_url
 
-    return sorted(influencers, key=lambda k: k['click_count'], reverse=True)
+    return sorted(leaders, key=lambda k: k['click_count'], reverse=True)
 
 
-def get_views_by_leader(last_day):
+def get_top20_view_leaders(last_day):
     views = dynamodb.Table('art_votes').query(
         KeyConditionExpression=Key("type").eq('view') & Key("timestamp").gt(last_day),
         ScanIndexForward=False,
@@ -113,10 +112,7 @@ def get_views_by_leader(last_day):
         b = list(arts.keys())[0]
         scores[i]['art_id'] = b
 
-    sorted_dict = OrderedDict(sorted(scores.items(), key=lambda x: getitem(x[1], 'score'), reverse=True))
-    top_20 = list(sorted_dict.items())[:20]
-
-    return top_20
+    return sorted(scores.items(), key=lambda x: getitem(x[1], 'score'), reverse=True)[:20]
 
 
 def get_creators(last_day):
