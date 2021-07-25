@@ -107,6 +107,11 @@ class Art:
         # we have a cdn too
         if 'cdn_url' in art:
             art['art_url'] = art['cdn_url']
+
+            # mobile safari does not work with opensea URLs in previews...
+            if 'googleusercontent.com/' not in art['preview_url']:
+                art['preview_url'] = art['cdn_url']
+
             del art['cdn_url']
 
         return art
