@@ -1,4 +1,6 @@
 import boto3
+import json
+import ast
 import time
 from art_document import ArtDocument
 
@@ -62,10 +64,18 @@ def get_rekognition_labels(art_s3_name):
             MinConfidence=70
         )
         # print(json.dumps(response, indent=4))
-        return ','.join([label['Name'] for label in response['Labels']])
+        return get_as_string_set(response['Labels'])
     except Exception as e:
         print(f'rekognition failed for {art_s3_name}, reason: {e}')
         return None
+
+
+def get_as_comma_separated_string(labels):
+    return ','.join([label['Name'] for label in labels])
+
+
+def get_as_string_set(labels):
+    return set([label['Name'] for label in labels])
 
 
 def ingest():
@@ -99,4 +109,36 @@ def ingest():
         print(f'Stop data source sync operation: {result}')
 
 
-ingest()
+def ingest_dynamodb_labels():
+    arts = get_arts()
+    for item in arts:
+        art_id = item['art_id']
+        try:
+            # os_data = item.get('open_sea_data', {})
+            # pretty_print_os_response(os_data.get('open_sea_response'))
+            mime_type = item.get('mime_type')
+            cdn_url = item.get('cdn_url')
+            labels = None
+            if mime_type and cdn_url and (mime_type == 'image/jpeg' or mime_type == 'image/png'):
+                labels = get_rekognition_labels(cdn_url.replace(cdn_url_prefix, ''))
+            print(f'{art_id}: {labels}')
+            if labels:
+                dynamodb.Table('art').update_item(
+                    Key={'art_id': art_id},
+                    UpdateExpression="ADD rekognition_labels :labels",
+                    ExpressionAttributeValues={":labels": labels},
+                )
+        except Exception as e:
+            print(f'{art_id} exception: {e}')
+
+
+def pretty_print_os_response(os_response):
+    try:
+        os_response = ast.literal_eval(os_response)
+    except:
+        os_response = None
+    if os_response:
+        print(json.dumps(os_response, indent=4))
+
+
+ingest_dynamodb_labels()

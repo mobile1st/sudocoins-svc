@@ -46,11 +46,13 @@ class ArtDocument(object):
             fields['labels'] = self._labels
         if self._tags:
             fields['tags'] = self._tags
+        return fields
 
     def to_kendra_doc(self, data_source_id, job_execution_id):
+        blob = self._get_blob()
         doc = {
             'Id': self._art_id,
-            'Blob': json.dumps(self._get_blob()).encode('utf-8'),  # TODO
+            'Blob': json.dumps(blob),
             'ContentType': 'PLAIN_TEXT',
             'Attributes': [
                 {
@@ -75,5 +77,12 @@ class ArtDocument(object):
         }
         if self._name:
             doc['Title'] = self._name
+        # if blob.get('labels'):
+        #     doc['Attributes'].append({
+        #         'Key': 'labels',
+        #         'Value': {
+        #             'StringValue': labels # String list
+        #         }
+        #     })
 
         return doc

@@ -5,7 +5,7 @@ from util import sudocoins_logger
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-sqs = boto3.resource('sqs')
+sns_client = boto3.client('sns')
 
 
 def lambda_handler(event, context):
@@ -24,7 +24,6 @@ def lambda_handler(event, context):
             "art_id": i['art_id']
         }
 
-        sns_client = boto3.client("sns")
         sns_client.publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
             MessageStructure='string',
@@ -36,6 +35,10 @@ def lambda_handler(event, context):
                 'art_url': {
                     'DataType': 'String',
                     'StringValue': i['open_sea_data']['image_url']
+                },
+                'process': {
+                    'DataType': 'String',
+                    'StringValue': 'STREAM_TO_S3'
                 }
             },
             Message=json.dumps(msg)
@@ -44,8 +47,6 @@ def lambda_handler(event, context):
 
     log.info("arts pushed to sns")
     log.info(art_list)
-
-    return ''
 
 
 def set_log_context(event):

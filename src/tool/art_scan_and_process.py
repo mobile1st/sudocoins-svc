@@ -1,6 +1,6 @@
 import boto3
 
-from art.art_processor import stream_to_s3
+from art.artprocessor.stream_to_s3 import stream_to_s3
 
 
 dynamodb = boto3.resource('dynamodb')

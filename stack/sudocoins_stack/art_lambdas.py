@@ -6,7 +6,9 @@ from aws_cdk import (
     aws_events as events,
     aws_events_targets as events_targets,
     aws_logs as logs,
-    aws_sns_subscriptions as subs
+    aws_sns as sns,
+    aws_sns_subscriptions as subs,
+    aws_iam as iam
 )
 
 lambda_default_kwargs = {
@@ -244,26 +246,59 @@ class SudocoinsArtLambdas:
             schedule=set_artists_schedule,
             targets=[set_artists_target]
         )
-        # ART PROCESSOR
-        art_processor_function = _lambda.Function(
+        # STREAM TO S3
+        stream_to_s3_function = _lambda.Function(
             scope,
-            'ArtProcessorV3',
-            function_name='ArtProcessorV3',
-            handler='art.art_processor.lambda_handler',
+            'ArtProcessorStreamToS3',
+            function_name='ArtProcessorStreamToS3',
+            handler='art.artprocessor.stream_to_s3.lambda_handler',
             timeout=cdk.Duration.seconds(60),
             **lambda_default_kwargs
         )
-        resources.art_table.grant_read_write_data(art_processor_function)
+        resources.art_table.grant_read_write_data(stream_to_s3_function)
+        resources.art_processor_topic.grant_publish(stream_to_s3_function)
         resources.art_processor_topic.add_subscription(
-            subs.LambdaSubscription(art_processor_function)
+            subs.LambdaSubscription(
+                stream_to_s3_function,
+                filter_policy={
+                    'process': sns.SubscriptionFilter.string_filter(allowlist=['STREAM_TO_S3'])
+                }
+            )
         )
-        resources.art_bucket.grant_read_write(art_processor_function)
+        resources.art_bucket.grant_read_write(stream_to_s3_function)
+        # REKOGNITION START
+        rekognition_start_function = _lambda.Function(
+            scope,
+            'ArtProcessorRekognitionStart',
+            function_name='ArtProcessorRekognitionStart',
+            handler='art.artprocessor.rekognition_start.lambda_handler',
+            timeout=cdk.Duration.seconds(60),
+            **lambda_default_kwargs
+        )
+        rekognition_start_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['*'],
+                actions=['rekognition:DetectLabels']
+            )
+        )
+        resources.art_table.grant_read_write_data(rekognition_start_function)
+        resources.art_processor_topic.grant_publish(rekognition_start_function)
+        resources.art_processor_topic.add_subscription(
+            subs.LambdaSubscription(
+                rekognition_start_function,
+                filter_policy={
+                    'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_START'])
+                }
+            )
+        )
+        resources.art_bucket.grant_read_write(rekognition_start_function)
         # RETRY ART PROCESSING
         processor_retry_function = _lambda.Function(
             scope,
             'ArtProcessorRetryV2',
             function_name='ArtProcessorRetryV2',
-            handler='art.processor_retry.lambda_handler',
+            handler='art.artprocessor.processor_retry.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(processor_retry_function)
