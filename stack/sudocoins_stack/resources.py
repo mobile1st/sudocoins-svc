@@ -31,6 +31,7 @@ class SudocoinsImportedResources:
         )
 
     def __init__(self, scope: cdk.Construct):
+        self.construct_tables(scope)
         self.import_tables(scope)
         self.sudocoins_domain_name = self.custom_domain(scope)
         self.sudocoins_cdn = self.init_cdn(scope)
@@ -69,6 +70,15 @@ class SudocoinsImportedResources:
             scope,
             'ArtProcessorBucket',
             bucket_name='art-processor-bucket'
+        )
+
+    def construct_tables(self, scope):
+        self.creators_table = dynamodb.Table(
+            scope,
+            'CreatorsTable',
+            table_name='creators2',
+            partition_key=dynamodb.Attribute(name='address', type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
 
     def import_tables(self, scope):
