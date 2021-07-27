@@ -273,7 +273,6 @@ class SudocoinsArtLambdas:
             function_name='ArtProcessorRekognitionStart',
             handler='art.artprocessor.rekognition_start.lambda_handler',
             timeout=cdk.Duration.seconds(60),
-            layers=[resources.requests_layer],
             **lambda_default_kwargs
         )
         rekognition_start_function.role.add_to_policy(
