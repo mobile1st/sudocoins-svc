@@ -31,7 +31,6 @@ class SudocoinsImportedResources:
         )
 
     def __init__(self, scope: cdk.Construct):
-        self.construct_layers(scope)
         self.construct_tables(scope)
         self.import_tables(scope)
         self.sudocoins_domain_name = self.custom_domain(scope)
@@ -78,7 +77,7 @@ class SudocoinsImportedResources:
             scope,
             'RequestsLayer',
             layer_version_name='requests-layer',
-            code=_lambda.Code.from_asset('sudocoins_dependencies/requests')
+            code=_lambda.Code.from_asset('sudocoins_dependencies/requests2')
         )
 
     def construct_tables(self, scope):
