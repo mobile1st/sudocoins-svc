@@ -33,6 +33,24 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_profile_integration
         )
+        # GET PROFILE DEV
+        get_profile_dev_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_profile_dev_function
+        )
+        user_api_v3.add_routes(
+            path='/profileDev',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_profile_dev_integration
+        )
+        # GET USERID FOR META USER
+        get_user_id_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_user_id_function
+        )
+        user_api_v3.add_routes(
+            path='/userId/{publicAddress}',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_user_id_integration
+        )
         # UPDATE PROFILE
         update_profile_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.update_profile_function
