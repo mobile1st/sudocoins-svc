@@ -17,7 +17,6 @@ lambda_default_kwargs = {
     'log_retention': logs.RetentionDays.THREE_MONTHS
 }
 
-
 class SudocoinsUserLambdas:
     def __init__(self,
                  scope: cdk.Construct,
@@ -36,7 +35,32 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
         resources.grant_read_index_data(self.get_profile_function, [resources.profile_table])
-        resources.affiliates_topic.grant_publish(self.get_profile_function)
+        resources.affiliates_queue.grant_send_messages(self.get_profile_function)
+        # GET PROFILE DEV
+        self.get_profile_dev_function = _lambda.Function(
+            scope,
+            'UserGetProfileDEV',
+            function_name='UserGetProfileDEV',
+            handler='user.get_profile_dev.lambda_handler',
+            description='Gets all data for displaying the profil page',
+            **lambda_default_kwargs
+        )
+        resources.transaction_topic.grant_publish(self.get_profile_dev_function)
+        resources.profile_table.grant_read_write_data(self.get_profile_dev_function)
+        resources.sub_table.grant_read_write_data(self.get_profile_dev_function)
+        resources.config_table.grant_read_data(self.get_profile_dev_function)
+        resources.grant_read_index_data(self.get_profile_dev_function, [resources.profile_table])
+        resources.affiliates_queue.grant_send_messages(self.get_profile_dev_function)
+        # GET USERID FOR META USER
+        self.get_user_id_function = _lambda.Function(
+            scope,
+            'UserGetMetaIdV2',
+            function_name='UserGetMetaIdV2',
+            handler='user.get_user_id.lambda_handler',
+            description='Get userId for meta mask user by publicAddress',
+            **lambda_default_kwargs
+        )
+        resources.sub_table.grant_read_write_data(self.get_user_id_function)
         # UPDATE PROFILE
         self.update_profile_function = _lambda.Function(
             scope,
