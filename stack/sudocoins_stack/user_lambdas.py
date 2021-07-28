@@ -50,7 +50,7 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_profile_dev_function)
         resources.config_table.grant_read_data(self.get_profile_dev_function)
         resources.grant_read_index_data(self.get_profile_dev_function, [resources.profile_table])
-        resources.affiliates_queue.grant_send_messages(self.get_profile_dev_function)
+        resources.affiliates_topic.grant_publish(self.get_profile_function)
         # GET USERID FOR META USER
         self.get_user_id_function = _lambda.Function(
             scope,
