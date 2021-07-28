@@ -110,7 +110,7 @@ def call_open_sea(contract_id, token_id):
     return open_sea_response
 
 
-def add(contract_id, token_id, open_sea_response, input_url, user_id):
+def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
     open_sea = {
         'redirect': input_url,
         'name': open_sea_response['name'],
@@ -127,7 +127,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
 
     preview_url, art_url = get_urls(open_sea)
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else input_url
-    art_id = get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id)
+    art_id = get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags)
 
     # BEGIN register_art_upload(art, user_id) -> art_upload
     # check to see if art_uploads record already exists
@@ -195,13 +195,13 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id):
     }
 
 
-def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id):
+def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags):
     contract_token_id = str(contract_id) + "#" + str(token_id)
     art_id = art.get_id(contract_token_id)
     if art_id:
         return art_id
 
-    return art.add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id)['art_id']
+    return art.add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags)['art_id']
 
 
 def get_urls(open_sea):
