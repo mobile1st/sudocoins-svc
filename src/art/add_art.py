@@ -66,8 +66,15 @@ def parse_url(url):
         log.debug(f'variables {variables}')
         contract_id = variables[0]
         token_id = variables[1]
+    elif url.find('foundation.app') != -1:
+        contract_id = '0x3B3ee1931Dc30C1957379FAc9aba94D1C48a5405'
+        variables = url.split('-')
+        chunks = len(variables)
+        token_id = variables[chunks-1]
     log.debug(f'contract_id: {contract_id}, token_id: {token_id}')
     return contract_id, token_id
+
+
 
 
 def call_open_sea(contract_id, token_id):
