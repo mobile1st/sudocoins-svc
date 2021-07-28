@@ -71,6 +71,22 @@ def parse_url(url):
         variables = url.split('-')
         chunks = len(variables)
         token_id = variables[chunks-1]
+    elif url.find('axieinfinity.com') != -1:
+        contract_id = '0xf5b0a3efb8e8e4c201e2a935f110eaaf3ffecb8d'
+        variables = url.split('/')
+        chunks = len(variables)
+        token_id = variables[chunks - 1]
+    elif url.find('larvalabs.com') != -1:
+        contract_id = '0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb'
+        variables = url.split('/')
+        chunks = len(variables)
+        token_id = variables[chunks - 1]
+    elif url.find('superrare.com') != -1:
+        contract_id = '0xb932a70a57673d89f4acffbe830e8ed7f75fb9e0'
+        variables = url.split('-')
+        chunks = len(variables)
+        token_id = variables[chunks - 1]
+
     log.debug(f'contract_id: {contract_id}, token_id: {token_id}')
     return contract_id, token_id
 
