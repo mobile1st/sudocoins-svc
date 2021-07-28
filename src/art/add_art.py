@@ -28,12 +28,13 @@ def lambda_handler(event, context):
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
         user_id = body['userId']
+        tags = body.get("tags")
         log.info(f'user_id: {user_id} url: {input_url}')
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)
 
-        return add(contract_id, token_id, open_sea_response, input_url, user_id)
+        return add(contract_id, token_id, open_sea_response, input_url, user_id, tags)
     except Exception as e:
         log.exception(e)
         return {
@@ -84,6 +85,11 @@ def parse_url(url):
     elif url.find('superrare.com') != -1:
         contract_id = '0xb932a70a57673d89f4acffbe830e8ed7f75fb9e0'
         variables = url.split('-')
+        chunks = len(variables)
+        token_id = variables[chunks - 1]
+    elif url.find('zora.co') != -1:
+        contract_id = '0xabefbc9fd2f806065b4f3c237d4b59d9a97bcac7'
+        variables = url.split('/')
         chunks = len(variables)
         token_id = variables[chunks - 1]
 

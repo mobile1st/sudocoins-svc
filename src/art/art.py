@@ -32,7 +32,7 @@ class Art:
             ExpressionAttributeNames={'#n': 'name'})
         return self.__use_cdn_url(art['Item'] if art.get('Item') else None)
 
-    def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id):
+    def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags):
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea}")
@@ -51,7 +51,8 @@ class Art:
             "first_user": user_id,
             "sort_idx": 'true',
             "creator": creator_address,
-            "process_status": "STREAM_TO_S3"
+            "process_status": "STREAM_TO_S3",
+            "tags": tags
         }
 
         self.art_table.put_item(Item=art_record)
