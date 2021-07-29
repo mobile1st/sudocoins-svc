@@ -14,10 +14,10 @@ def lambda_handler(event, context):
     creators = get_creators(last_day)
     leaders = get_leaders(last_day)
     trending = get_trending()
-    log.info(f'leaders: {leaders} creators: {creators} trending: {trending}')
+    # log.info(f'leaders: {leaders} creators: {creators} trending: {trending}')
 
     set_config(leaders, creators, trending)
-    log.info("Leaderboard config set")
+    # log.info("Leaderboard config set")
 
 
 def get_trending():
@@ -25,7 +25,7 @@ def get_trending():
     trending_arts = config_table.get_item(
         Key={'configKey': 'TrendingArt'},
         ProjectionExpression="art"
-    )['Item'][:20]
+    )['Item']['art'][:20]
 
     trending = dynamodb.batch_get_item(
         RequestItems={
@@ -36,8 +36,13 @@ def get_trending():
         }
     )['Responses']['art']
 
-    return trending
+    final_trending = []
+    for i in trending_arts:
+        for k in trending:
+            if i == k['art_id']:
+                final_trending.append(k)
 
+    return final_trending
 
 
 def set_config(leaders, creators, trending):
@@ -55,7 +60,7 @@ def set_config(leaders, creators, trending):
 
 def get_leaders(last_day):
     scores = get_top20_view_leaders(last_day)
-    log.info(f'top20 leaders: {scores}')
+    # log.info(f'top20 leaders: {scores}')
 
     leaders = dynamodb.batch_get_item(
         RequestItems={
