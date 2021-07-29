@@ -13,21 +13,43 @@ def lambda_handler(event, context):
 
     creators = get_creators(last_day)
     leaders = get_leaders(last_day)
-    log.info(f'leaders: {leaders} creators: {creators}')
+    trending = get_trending()
+    log.info(f'leaders: {leaders} creators: {creators} trending: {trending}')
 
-    set_config(leaders, creators)
+    set_config(leaders, creators, trending)
     log.info("Leaderboard config set")
 
 
-def set_config(leaders, creators):
+def get_trending():
+    config_table = dynamodb.Table('Config')
+    trending_arts = config_table.get_item(
+        Key={'configKey': 'TrendingArt'},
+        ProjectionExpression="art"
+    )['Item'][:20]
+
+    trending = dynamodb.batch_get_item(
+        RequestItems={
+            'art': {
+                'Keys': [{'art_id': i} for i in trending_arts],
+                'ProjectionExpression': 'art_id, preview_url, click_count'
+            }
+        }
+    )['Responses']['art']
+
+    return trending
+
+
+
+def set_config(leaders, creators, trending):
     config_table = dynamodb.Table('Config')
     config_table.update_item(
         Key={'configKey': 'Leaderboard'},
-        UpdateExpression="set leaders=:lead, creators=:create",
+        UpdateExpression="set leaders=:lead, creators=:create, trending=:trend",
         ExpressionAttributeValues={
             ":lead": leaders,
-            ":create": creators
-        },
+            ":create": creators,
+            ":trend": trending
+        }
     )
 
 
