@@ -3,10 +3,12 @@ import json
 import ast
 import time
 from art_document import ArtDocument
+from util.sudocoins_encoder import SudocoinsEncoder
 
 kendra = boto3.client('kendra')
 dynamodb = boto3.resource('dynamodb')
 rekognition = boto3.client('rekognition')
+sns_client = boto3.client('sns')
 
 cdn_url_prefix = 'https://cdn.sudocoins.com/'
 
@@ -161,4 +163,26 @@ def pretty_print_os_response(os_response):
         print(json.dumps(os_response, indent=4))
 
 
-ingest_dynamodb_labels()
+def rek_start():
+    arts = get_arts()
+    for item in arts:
+        art_id = item['art_id']
+        sns_client.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
+            MessageStructure='string',
+            MessageAttributes={
+                'art_id': {
+                    'DataType': 'String',
+                    'StringValue': art_id
+                },
+                'process': {
+                    'DataType': 'String',
+                    'StringValue': 'REKOGNITION_START'
+                }
+            },
+            Message=json.dumps(item, cls=SudocoinsEncoder)
+        )
+        print(f'{art_id} published')
+
+
+rek_start()

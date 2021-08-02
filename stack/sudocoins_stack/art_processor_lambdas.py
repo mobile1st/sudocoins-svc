@@ -81,6 +81,13 @@ class SudocoinsArtProcessorLambdas:
                 actions=['rekognition:DetectLabels', 'rekognition:StartLabelDetection']
             )
         )
+        rekognition_start_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:iam::977566059069:role/SudocoinsStack-RekognitionArtProcessorStartLabelDe-1V1RMJ9IXQINJ'],
+                actions=['iam:PassRole']
+            )
+        )
         resources.art_table.grant_read_write_data(rekognition_start_function)
         resources.art_processor_topic.grant_publish(rekognition_start_function)
         resources.art_processor_topic.add_subscription(

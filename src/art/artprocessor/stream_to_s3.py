@@ -4,7 +4,7 @@ from util import sudocoins_logger
 import mimetypes
 import http.client
 from urllib.parse import urlparse
-from util.decimal_encoder import DecimalEncoder
+from util.sudocoins_encoder import SudocoinsEncoder
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -60,7 +60,7 @@ def stream_to_s3(art_id: str, art_url: str):
                 'StringValue': process_status
             }
         },
-        Message=json.dumps(art_item, cls=DecimalEncoder)
+        Message=json.dumps(art_item, cls=SudocoinsEncoder)
     )
     log.info(f'{art_id} published process status: {process_status}')
 
