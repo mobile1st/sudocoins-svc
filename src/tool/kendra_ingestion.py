@@ -2,7 +2,7 @@ import boto3
 import json
 import ast
 import time
-from art_document import ArtDocument
+from art.artprocessor.art_document import ArtDocument
 from util.sudocoins_encoder import SudocoinsEncoder
 
 kendra = boto3.client('kendra')

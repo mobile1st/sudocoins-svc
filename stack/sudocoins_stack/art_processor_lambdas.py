@@ -84,7 +84,9 @@ class SudocoinsArtProcessorLambdas:
         rekognition_start_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=['arn:aws:iam::977566059069:role/SudocoinsStack-RekognitionArtProcessorStartLabelDe-1V1RMJ9IXQINJ'],
+                resources=[
+                    'arn:aws:iam::977566059069:role/SudocoinsStack-RekognitionArtProcessorStartLabelDe-1V1RMJ9IXQINJ'
+                ],
                 actions=['iam:PassRole']
             )
         )
@@ -113,6 +115,16 @@ class SudocoinsArtProcessorLambdas:
                 effect=iam.Effect.ALLOW,
                 resources=['*'],
                 actions=['rekognition:GetLabelDetection']
+            )
+        )
+        rekognition_end_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=[
+                    'arn:aws:kendra:us-west-2:977566059069:index/8f96a3bb-3aae-476e-94ec-0d446877b42a',
+                    'arn:aws:kendra:us-west-2:977566059069:index/8f96a3bb-3aae-476e-94ec-0d446877b42a/data-source/52596114-645e-40fa-b154-3ada7b3a7942'
+                ],
+                actions=['kendra:StartDataSourceSyncJob', 'kendra:BatchPutDocument', 'kendra:StopDataSourceSyncJob']
             )
         )
         resources.art_table.grant_read_write_data(rekognition_end_function)

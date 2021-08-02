@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from util.sudocoins_encoder import SudocoinsEncoder
 
 
 class ArtDocument(object):
@@ -52,7 +53,7 @@ class ArtDocument(object):
         blob = self._get_blob()
         doc = {
             'Id': self._art_id,
-            'Blob': json.dumps(blob),
+            'Blob': json.dumps(blob, cls=SudocoinsEncoder),
             'ContentType': 'PLAIN_TEXT',
             'Attributes': [
                 {
