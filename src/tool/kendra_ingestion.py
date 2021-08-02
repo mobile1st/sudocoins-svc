@@ -17,7 +17,7 @@ data_source_id = '52596114-645e-40fa-b154-3ada7b3a7942'
 def get_arts():
     art_table = dynamodb.Table('art')
     arts = []
-    scan_kwargs = {}
+    scan_kwargs = {'Limit': 100}
     done = False
     start_key = None
     while not done:
@@ -27,6 +27,7 @@ def get_arts():
         arts.extend(response.get('Items', []))
         start_key = response.get('LastEvaluatedKey', None)
         done = start_key is None
+        break
     return arts
 
 
@@ -119,8 +120,27 @@ def ingest_dynamodb_labels():
             mime_type = item.get('mime_type')
             cdn_url = item.get('cdn_url')
             labels = None
-            if mime_type and cdn_url and (mime_type == 'image/jpeg' or mime_type == 'image/png'):
-                labels = get_rekognition_labels(cdn_url.replace(cdn_url_prefix, ''))
+            if mime_type and cdn_url:
+                art_s3_name = cdn_url.replace(cdn_url_prefix, '')
+                if 'image/jpeg' in mime_type or 'image/png' in mime_type:
+                    continue
+                    # labels = get_rekognition_labels(art_s3_name)
+                else:
+                    if 'video/mp4' in mime_type or 'video/quicktime' in mime_type:
+                        response = rekognition.start_label_detection(
+                            Video={
+                                'S3Object': {
+                                    'Bucket': 'sudocoins-art-bucket',
+                                    'Name': art_s3_name
+                                }
+                            },
+                            MinConfidence=70,
+                            NotificationChannel={
+                                'SNSTopicArn': 'arn:aws:sns:us-west-2:977566059069:ArtProcessorStartLabelDetection',
+                                'RoleArn': 'arn:aws:iam::977566059069:role/SudocoinsStack-RekognitionArtProcessorStartLabelDe-1V1RMJ9IXQINJ'
+                            }
+                        )
+                        print(response)
             print(f'{art_id}: {labels}')
             if labels:
                 dynamodb.Table('art').update_item(
