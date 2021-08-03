@@ -31,7 +31,7 @@ def get_trending():
         RequestItems={
             'art': {
                 'Keys': [{'art_id': i} for i in trending_arts],
-                'ProjectionExpression': 'art_id, preview_url, click_count'
+                'ProjectionExpression': 'art_id, preview_url, click_count, name'
             }
         }
     )['Responses']['art']
