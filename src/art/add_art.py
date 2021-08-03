@@ -29,7 +29,13 @@ def lambda_handler(event, context):
         input_url = body['url']
         user_id = body['userId']
         tags = body.get("tags")
-        log.info(f'user_id: {user_id} url: {input_url}')
+        log.info(f'user_id: {user_id} url: {input_url} tags: {tags}')
+
+        if tags is not None:
+            art_set = set()
+            for i in tags:
+                art_set.add(i)
+            tags = art_set
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)
