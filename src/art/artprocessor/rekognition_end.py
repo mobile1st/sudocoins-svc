@@ -2,6 +2,7 @@ import boto3
 import json
 from art.artprocessor.art_document import ArtDocument
 from util import sudocoins_logger
+from time import sleep
 
 log = sudocoins_logger.get()
 
@@ -71,11 +72,7 @@ def push_art_to_kendra(art_item):
 
 
 def put_document(art_doc):
-    start_response = kendra.start_data_source_sync_job(
-        Id=kendra_data_source_id,
-        IndexId=kendra_index_id
-    )
-    job_execution_id = start_response['ExecutionId']
+    job_execution_id = get_job_execution_id()
     try:
         put_response = kendra.batch_put_document(
             IndexId=kendra_index_id,
@@ -87,6 +84,29 @@ def put_document(art_doc):
             Id=kendra_data_source_id,
             IndexId=kendra_index_id
         )
+
+
+def get_job_execution_id():
+    i = 0
+    while True:
+        i += 1
+        job_execution_id = acquire_job_execution_id()
+        if job_execution_id:
+            break
+        sleep(0.05)
+    if i > 1:
+        log.info(f'job_execution_id acquired after {i} tries')
+    return job_execution_id
+
+
+def acquire_job_execution_id():
+    try:
+        return kendra.start_data_source_sync_job(
+            Id=kendra_data_source_id,
+            IndexId=kendra_index_id
+        )['ExecutionId']
+    except kendra.exceptions.ConflictException:
+        return None
 
 
 def get_as_string_set(labels, video_response=False):
