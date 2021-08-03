@@ -254,3 +254,13 @@ class SudocoinsArtLambdas:
             handler='art.art_search.lambda_handler',
             **lambda_default_kwargs
         )
+        self.art_search_function.role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=[
+                    'arn:aws:kendra:us-west-2:977566059069:index/8f96a3bb-3aae-476e-94ec-0d446877b42a',
+                    'arn:aws:kendra:us-west-2:977566059069:index/8f96a3bb-3aae-476e-94ec-0d446877b42a/data-source/52596114-645e-40fa-b154-3ada7b3a7942'
+                ],
+                actions=['kendra:Query']
+            )
+        )

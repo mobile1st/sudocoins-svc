@@ -19,7 +19,7 @@ data_source_id = '52596114-645e-40fa-b154-3ada7b3a7942'
 def get_arts():
     art_table = dynamodb.Table('art')
     arts = []
-    scan_kwargs = {'Limit': 100}
+    scan_kwargs = {}
     done = False
     start_key = None
     while not done:
@@ -29,7 +29,6 @@ def get_arts():
         arts.extend(response.get('Items', []))
         start_key = response.get('LastEvaluatedKey', None)
         done = start_key is None
-        break
     return arts
 
 
@@ -182,7 +181,26 @@ def rek_start():
             },
             Message=json.dumps(item, cls=SudocoinsEncoder)
         )
+        time.sleep(0.5)
         print(f'{art_id} published')
 
 
-rek_start()
+def search():
+    response = kendra.query(
+        IndexId=index_id,
+        QueryText='art',
+        QueryResultTypeFilter='DOCUMENT',
+        PageNumber=2,
+        PageSize=5
+        # SortingConfiguration={
+        #     'DocumentAttributeKey': 'string',
+        #     'SortOrder': 'DESC'|'ASC'
+        # },
+    )
+    print(json.dumps(response, indent=4))
+    print([item['DocumentId'] for item in response['ResultItems']])
+
+
+search()
+
+#rek_start()

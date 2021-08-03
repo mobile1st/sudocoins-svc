@@ -2,8 +2,8 @@ import boto3
 from util import sudocoins_logger
 
 log = sudocoins_logger.get()
-client = boto3.client('cloudsearchdomain',
-                      endpoint_url='https://search-art-domain-oemytuqtulkq5plos7ri5qhz7a.us-west-2.cloudsearch.amazonaws.com')
+kendra = boto3.client('kendra')
+index_id = '8f96a3bb-3aae-476e-94ec-0d446877b42a'
 
 
 def lambda_handler(event, context):
@@ -14,8 +14,8 @@ def lambda_handler(event, context):
     start = query_params.get('start')
     search_result = search(query, size, start)
     return {
-        'total': search_result['hits']['found'],
-        'arts': [hit['id'] for hit in search_result['hits']['hit']]
+        'total': search_result['TotalNumberOfResults'],
+        'arts': [item['DocumentId'] for item in search_result['ResultItems']]
     }
 
 
@@ -25,11 +25,16 @@ def set_log_context(event):
 
 
 def search(query, size=None, start=None):
-    response = client.search(
-        query=query,
-        returnFields='_no_fields',
-        size=int(size) if size else 10,
-        start=int(start) if start else 0
+    # TODO this hack is just for backward compatibility, should modify UI too
+    page_size = int(size) if size else 10
+    _start = (int(start) + 1) if start else 1
+    page_number = int(_start / page_size) + 1 if _start >= page_size else 1
+    response = kendra.query(
+        IndexId=index_id,
+        QueryText=query,
+        QueryResultTypeFilter='DOCUMENT',
+        PageNumber=page_number,
+        PageSize=page_size
     )
-    log.info(f'cloudsearch response: {response}')
+    log.info(f'kendra response: {response}')
     return response
