@@ -84,7 +84,7 @@ class SudocoinsImportedResources:
         self.creators_table = dynamodb.Table(
             scope,
             'CreatorsTable',
-            table_name='creators2',
+            table_name='creators',
             partition_key=dynamodb.Attribute(name='address', type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
