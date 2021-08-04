@@ -276,3 +276,7 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.update_tags_function)
 
 
+
+
+
+
