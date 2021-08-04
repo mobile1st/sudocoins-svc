@@ -147,6 +147,6 @@ class SudocoinsArtApi:
         )
         art_api_v3.add_routes(
             path='/update-tags',
-            methods=[apigwv2.HttpMethod.GET],
+            methods=[apigwv2.HttpMethod.POST],
             integration=update_tags_integration
         )
