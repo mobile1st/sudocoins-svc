@@ -24,10 +24,16 @@ def lambda_handler(event, context):
             }
         )
         log.info('tags updated')
-        return
+        return {
+            'status': 'success',
+            'message': "Tags updated"
+        }
     else:
         log.info('user not authorized to update tags')
-        return
+        return {
+            'status': 'fail',
+            'message': "Tags not updated"
+        }
 
 
 def set_log_context(event):
