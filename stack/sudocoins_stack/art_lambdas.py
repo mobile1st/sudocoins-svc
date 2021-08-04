@@ -264,3 +264,15 @@ class SudocoinsArtLambdas:
                 actions=['kendra:Query']
             )
         )
+        # UPDATE ART TAGS
+        self.update_tags_function = _lambda.Function(
+            scope,
+            'UpdateTagsV2',
+            function_name='UpdateTagsV2',
+            handler='art.update_tags.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.update_tags_function)
+
+

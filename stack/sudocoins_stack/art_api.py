@@ -141,3 +141,12 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=art_search_integration
         )
+        # UPDATE TAGS
+        update_tags_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.update_tags_function
+        )
+        art_api_v3.add_routes(
+            path='/update-tags',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=update_tags_integration
+        )
