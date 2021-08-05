@@ -275,6 +275,20 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.update_tags_function)
+        # ARTIST PAGE
+        self.artist_page_function = _lambda.Function(
+            scope,
+            'ArtistPageV2',
+            function_name='ArtistPageV2',
+            handler='art.artist_page.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.artist_page_function)
+        resources.grant_read_index_data(
+            self.artist_page_function,
+            [resources.art_table]
+        )
 
 
 

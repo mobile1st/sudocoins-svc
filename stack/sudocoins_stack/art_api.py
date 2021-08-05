@@ -150,3 +150,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=update_tags_integration
         )
+        # ARTIST PAGE
+        artist_page_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.artist_page_function
+        )
+        art_api_v3.add_routes(
+            path='/artist-page',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=artist_page_integration
+        )
+
