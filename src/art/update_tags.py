@@ -15,25 +15,24 @@ def lambda_handler(event, context):
         Key={'art_id': input_json['art_id']}
     )['Item']
 
-    if art_record['first_user'] == input_json['user_id']:
-        dynamodb.Table('art').update_item(
-            Key={'art_id': input_json['art_id']},
-            UpdateExpression="SET tags = :tag",
-            ExpressionAttributeValues={
-                ':tag': input_json['tags']
-            }
-        )
-        log.info('tags updated')
-        return {
-            'status': 'success',
-            'message': "Tags updated"
-        }
+    if 'tags' in art_record:
+        tags = art_record['tags']
+        for i in input_json['tags']:
+            if i not in tags:
+                tags.append(i)
     else:
-        log.info('user not authorized to update tags')
-        return {
-            'status': 'fail',
-            'message': "Tags not updated"
+        tags = input_json['tags']
+
+    dynamodb.Table('art').update_item(
+        Key={'art_id': input_json['art_id']},
+        UpdateExpression="SET tags = :tag",
+        ExpressionAttributeValues={
+            ':tag': tags
         }
+    )
+    log.info('tags updated')
+
+    return
 
 
 def set_log_context(event):
