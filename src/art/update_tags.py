@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         Key={'art_id': input_json['art_id']}
     )['Item']
 
-    if 'tags' in art_record:
+    if 'tags' in art_record and art_record['tags'] is not None:
         tags = art_record['tags']
         for i in input_json['tags']:
             if i not in tags:
@@ -32,7 +32,10 @@ def lambda_handler(event, context):
     )
     log.info('tags updated')
 
-    return
+    return {
+        'status': 'success',
+        'message': "Tags updated"
+    }
 
 
 def set_log_context(event):
