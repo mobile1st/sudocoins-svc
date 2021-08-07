@@ -39,7 +39,10 @@ def register_click(data):
             Key={'shareId': data['shareId']},
             ProjectionExpression="art_id, user_id")['Item']
         log.info(f'art_uploads_record: {art_uploads_record}')
-        update_user_count(art_uploads_record['user_id'])
+        try:
+            update_user_count(art_uploads_record['user_id'])
+        except Exception as e:
+            log.info(e)
 
         if 'art_id' in art_uploads_record:
             art_id = art_uploads_record['art_id']
