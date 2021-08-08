@@ -32,10 +32,7 @@ def lambda_handler(event, context):
     )
     log.info('tags updated')
 
-    return {
-        'status': 'success',
-        'message': "Tags updated"
-    }
+    return
 
 
 def set_log_context(event):

@@ -29,7 +29,7 @@ def get_uploads(user_id):
         ScanIndexForward=False,
         IndexName='User_uploaded_art_view_idx',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n'
+        ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags'
     )['Items']
 
     art_ids = [i['art_id'] for i in uploads]
@@ -54,4 +54,4 @@ def get_uploads(user_id):
     return sanitized
 
 
-lambda_handler({'pathParameters': {'userId': '64e1975c-2a94-11eb-9ec8-2d6e99b50af0'}}, None)
+#  lambda_handler({'pathParameters': {'userId': '64e1975c-2a94-11eb-9ec8-2d6e99b50af0'}}, None)
