@@ -142,7 +142,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
             'status': 'exist',
             'shareId': art_uploads_object['Items'][0]['shareId']
         }
-    creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else None
+    creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
     art_uploads_record = {
         "shareId": str(uuid.uuid1()),
         'contractId#tokenId': str(contract_id) + "#" + str(token_id),
