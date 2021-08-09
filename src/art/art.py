@@ -36,7 +36,7 @@ class Art:
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea}")
-        creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else None
+        creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
