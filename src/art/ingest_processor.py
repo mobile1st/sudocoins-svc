@@ -21,12 +21,15 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {art_object}')
-
     if art_object['open_sea_url'] is None:
         log.info("open sea url doesn't exist")
         return
-
-    add(art_object)
+    try:
+        add(art_object)
+        log.info("success")
+    except Exception as e:
+        log.info("fail")
+        log.info(e)
 
     return
 
