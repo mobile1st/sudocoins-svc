@@ -13,10 +13,10 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     created = dynamodb.Table('art').query(
-        KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").lt(time_now),
+        KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").lt(time_now),
         ScanIndexForward=False,
         Limit=1,
-        IndexName='Recent_index',
+        IndexName='sort_idx-event_date-index',
         ProjectionExpression="event_date"
     )['Items'][0]['event_date']
 
