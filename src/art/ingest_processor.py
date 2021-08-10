@@ -26,9 +26,9 @@ def lambda_handler(event, context):
         return
     try:
         add(art_object)
-        log.info("success")
+        log.info('status: success')
     except Exception as e:
-        log.info("fail")
+        log.info('status: failure')
         log.info(e)
 
     return
