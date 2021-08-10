@@ -321,9 +321,9 @@ class SudocoinsArtLambdas:
                 ingest_processor_function
             )
         )
-        resources.art_table.grant_read_write_data(self.ingest_processor_function)
+        resources.art_table.grant_read_write_data(ingest_processor_function)
         resources.grant_read_index_data(
-            self.ingest_processor_function,
+            ingest_processor_function,
             [resources.art_table]
         )
 
