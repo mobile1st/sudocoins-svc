@@ -47,10 +47,9 @@ def parse_url(url):
         return contract_id, token_id
     else:
         sub1 = url.find('matic/')
-        start = sub1 + 7
+        start = sub1 + 6
         rest = url[start:]
         variables = rest.split('/')
-        log.debug(f'variables {variables}')
         contract_id = variables[0]
         token_id = variables[1]
 
@@ -105,7 +104,7 @@ def add(art_object):
             "image_original_url": art_object.get('asset', {}).get('image_original_url'),
             "animation_url": art_object.get('asset', {}).get('animation_url'),
             "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
-            "creator": art_object.get('asset_contract'),
+            "creator": art_object.get('asset', {}).get('asset_contract'),
             "permalink": art_object.get('open_sea_url'),
             "collection": art_object.get('collection')
         }

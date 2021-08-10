@@ -37,12 +37,13 @@ def lambda_handler(event, context):
             MessageStructure='string',
             Message=json.dumps(msg)
         )
+        log.info(f'art event published: {msg}')
 
     return
 
 
 def call_open_sea():
-    path = "/api/v1/events"
+    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=20"
     conn = http.client.HTTPSConnection("api.opensea.io")
     conn.request("GET", path)
     response = conn.getresponse()
