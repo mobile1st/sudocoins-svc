@@ -90,7 +90,8 @@ def add(art_object):
             "animation_original_url": open_sea_response['animation_original_url'],
             "creator": open_sea_response['creator'],
             "permalink": open_sea_response['permalink'],
-            "collection": art_object.get('collection')
+            "collection": art_object.get('collection'),
+            "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
     elif art_object['blockchain'] == "Polygon":
         contract_id, token_id = parse_url(art_object['open_sea_url'])
@@ -106,7 +107,8 @@ def add(art_object):
             "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
             "creator": art_object.get('asset', {}).get('asset_contract'),
             "permalink": art_object.get('open_sea_url'),
-            "collection": art_object.get('collection')
+            "collection": art_object.get('collection'),
+            "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
 
     preview_url, art_url = get_urls(open_sea)
@@ -159,6 +161,28 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, u
     contract_token_id = str(contract_id) + "#" + str(token_id)
     art_id = art.get_id(contract_token_id)
     if art_id:
-        return art_id
+        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object)
 
     return art.auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags, art_object)['art_id']
+
+
+def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object):
+
+    dynamodb.Table('art').update_item(
+        Key={'art_id': art_id},
+        UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
+                         "last_sale_price=:lsp, event_date=:ed, #n=:na",
+        ExpressionAttributeValues={
+            ':art': art_url,
+            ':buy': buy_url,
+            ':pre': preview_url,
+            ':open': open_sea,
+            ':lsp': int(art_object.get("sale_price_token")),
+            ":ed": art_object.get('created_date'),
+            ":na": open_sea.get('name')
+        },
+        ExpressionAttributeNames={'#n': 'name'}
+    )
+
+    return
+
