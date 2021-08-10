@@ -71,6 +71,12 @@ class SudocoinsImportedResources:
             'ArtProcessorBucket',
             bucket_name='art-processor-bucket'
         )
+        self.ingest_opensea_topic = sns.Topic(
+            scope,
+            'IngestOpenSeaTopic',
+            display_name='IngestOpenSeaTopic',
+            topic_name='IngestOpenSeaTopic'
+        )
 
     def construct_layers(self, scope):
         self.requests_layer = _lambda.LayerVersion(

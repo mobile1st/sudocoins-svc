@@ -52,8 +52,13 @@ class Art:
             "sort_idx": 'true',
             "creator": creator_address,
             "process_status": "STREAM_TO_S3",
-            "tags": tags
+            "tags": tags,
+            "event_date": "0",
+            "event_type": "manually added",
+            "blockchain": "Ethereum",
+            "last_sale_price": 0
         }
+
 
         self.art_table.put_item(Item=art_record)
         self.sns.publish(
@@ -149,3 +154,53 @@ class Art:
                 result.append(art)
 
         return result
+
+
+    def auto_add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags, art_object):
+        time_now = str(datetime.utcnow().isoformat())
+        art_id = str(uuid.uuid1())
+        log.info(f"art.add {art_id} {open_sea} {art_object}")
+        creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
+        art_record = {
+            'art_id': art_id,
+            "name": open_sea['name'],
+            'buy_url': buy_url,
+            'contractId#tokenId': contract_token_id,
+            'preview_url': preview_url,
+            'art_url': art_url,
+            "open_sea_data": open_sea,
+            "timestamp": time_now,
+            "recent_sk": time_now + "#" + art_id,
+            "click_count": 0,
+            "first_user": user_id,
+            "sort_idx": 'true',
+            "creator": creator_address,
+            "process_status": "STREAM_TO_S3",
+            "tags": tags,
+            "event_date": art_object.get('created_date'),
+            "event_type": art_object.get('event_type'),
+            "blockchain": art_object.get('blockchain'),
+            "last_sale_price": int(art_object.get("sale_price_token"))
+        }
+
+        self.art_table.put_item(Item=art_record)
+        self.sns.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
+            MessageStructure='string',
+            MessageAttributes={
+                'art_id': {
+                    'DataType': 'String',
+                    'StringValue': art_id
+                },
+                'art_url': {
+                    'DataType': 'String',
+                    'StringValue': art_url
+                },
+                'process': {
+                    'DataType': 'String',
+                    'StringValue': "STREAM_TO_S3"
+                }
+            },
+            Message=json.dumps(art_record)
+        )
+        return art_record
