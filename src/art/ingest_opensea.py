@@ -22,7 +22,7 @@ def lambda_handler(event, context):
     )['Items'][0]['event_date']
 
     open_sea_response = call_open_sea(created)
-
+    count = 0
     for i in open_sea_response:
         try:
             open_sea_url = i.get('asset', {}).get('permalink', "")
@@ -51,9 +51,13 @@ def lambda_handler(event, context):
                 Message=json.dumps(msg)
             )
             log.info(f'art event published: {msg}')
+            count += 1
+            log.info(count)
         except Exception as e:
             log.info(f'art error: {e}')
             log.info(f'art event: {i}')
+            count += 1
+            log.info(count)
 
     return
 
