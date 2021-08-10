@@ -167,7 +167,6 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, u
 
 
 def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object):
-
     dynamodb.Table('art').update_item(
         Key={'art_id': art_id},
         UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
@@ -183,6 +182,8 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object):
         },
         ExpressionAttributeNames={'#n': 'name'}
     )
+
+    log.info("art record updated")
 
     return
 

@@ -183,6 +183,11 @@ class Art:
             "last_sale_price": int(art_object.get("sale_price_token"))
         }
 
+        if art_url == "" and preview_url is None:
+            art_record["ingest_status"] = 0
+        else:
+            art_record["ingest_status"] = 1
+
         self.art_table.put_item(Item=art_record)
         self.sns.publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
