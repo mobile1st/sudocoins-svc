@@ -307,7 +307,7 @@ class SudocoinsArtLambdas:
             schedule=ingest_opensea_schedule,
             targets=[ingest_opensea_target]
         )
-        resources.ingest_opensea_topic.grant_publish(self.ingest_opensea_function)
+        resources.ingest_opensea_topic.grant_publish(ingest_opensea_function)
         # INGEST PROCESSOR
         ingest_processor_function = _lambda.Function(
             scope,
