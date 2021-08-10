@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
         user_id = body['userId']
-        tags = body.get("tags")
+        tags = body.get("tags", [])
         log.info(f'user_id: {user_id} url: {input_url} tags: {tags}')
 
         contract_id, token_id = parse_url(input_url)

@@ -113,7 +113,7 @@ def add(art_object):
 
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     user_id = "ingest"
-    tags = None
+    tags = []
 
     get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags, art_object)
 
