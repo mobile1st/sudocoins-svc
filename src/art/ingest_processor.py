@@ -32,15 +32,27 @@ def lambda_handler(event, context):
 
 
 def parse_url(url):
-    sub1 = url.find('assets/')
-    start = sub1 + 7
-    rest = url[start:]
-    variables = rest.split('/')
-    log.debug(f'variables {variables}')
-    contract_id = variables[0]
-    token_id = variables[1]
+    if url.find('matic') == -1:
+        sub1 = url.find('assets/')
+        start = sub1 + 7
+        rest = url[start:]
+        variables = rest.split('/')
+        log.debug(f'variables {variables}')
+        contract_id = variables[0]
+        token_id = variables[1]
 
-    return contract_id, token_id
+        return contract_id, token_id
+    else:
+        sub1 = url.find('matic/')
+        start = sub1 + 7
+        rest = url[start:]
+        variables = rest.split('/')
+        log.debug(f'variables {variables}')
+        contract_id = variables[0]
+        token_id = variables[1]
+
+        return contract_id, token_id
+
 
 
 def set_log_context(event):
@@ -79,6 +91,7 @@ def add(art_object):
             "collection": art_object.get('collection')
         }
     elif art_object['blockchain'] == "Polygon":
+        contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea = {
             'redirect': art_object.get('open_sea_url'),
             'name': art_object.get('asset', {}).get('name'),
