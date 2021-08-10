@@ -80,7 +80,7 @@ def add(art_object):
         open_sea_response = call_open_sea(contract_id, token_id)
         open_sea = {
             'redirect': art_object['open_sea_url'],
-            'name': open_sea_response['name'],
+            'name': open_sea_response.get('name', ""),
             'description': open_sea_response['description'],
             "image_url": open_sea_response['image_url'],
             "image_preview_url": open_sea_response['image_preview_url'],
@@ -97,7 +97,7 @@ def add(art_object):
         contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea = {
             'redirect': art_object.get('open_sea_url'),
-            'name': art_object.get('asset', {}).get('name'),
+            'name': art_object.get('asset', {}).get('name', ""),
             'description': art_object.get('asset', {}).get('description'),
             "image_url": art_object.get('asset', {}).get('image_url'),
             "image_preview_url": art_object.get('asset', {}).get('image_preview_url'),
