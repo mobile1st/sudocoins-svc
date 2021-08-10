@@ -17,8 +17,8 @@ def lambda_handler(event, context):
         ScanIndexForward=False,
         Limit=1,
         IndexName='Recent_index',
-        ProjectionExpression="created_date"
-    )['Items'][0]['created_date']
+        ProjectionExpression="event_date"
+    )['Items'][0]['event_date']
 
     open_sea_response = call_open_sea(created)
 
