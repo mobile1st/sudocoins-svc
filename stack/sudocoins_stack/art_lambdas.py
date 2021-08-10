@@ -297,11 +297,11 @@ class SudocoinsArtLambdas:
             handler='art.ingest_opensea.lambda_handler',
             **lambda_default_kwargs
         )
-        ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
+        ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(20))
         ingest_opensea_target = events_targets.LambdaFunction(handler=ingest_opensea_function)
         events.Rule(
             scope,
-            "SetTrendingRule",
+            "IngestOpenseaRule",
             description="Periodically refreshes trending arts sorted by click counts",
             enabled=True,
             schedule=ingest_opensea_schedule,
