@@ -189,23 +189,27 @@ class Art:
             art_record["ingest_status"] = 1
 
         self.art_table.put_item(Item=art_record)
-        self.sns.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
-            MessageStructure='string',
-            MessageAttributes={
-                'art_id': {
-                    'DataType': 'String',
-                    'StringValue': art_id
+        try:
+            self.sns.publish(
+                TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
+                MessageStructure='string',
+                MessageAttributes={
+                    'art_id': {
+                        'DataType': 'String',
+                        'StringValue': art_id
+                    },
+                    'art_url': {
+                        'DataType': 'String',
+                        'StringValue': art_url
+                    },
+                    'process': {
+                        'DataType': 'String',
+                        'StringValue': "STREAM_TO_S3"
+                    }
                 },
-                'art_url': {
-                    'DataType': 'String',
-                    'StringValue': art_url
-                },
-                'process': {
-                    'DataType': 'String',
-                    'StringValue': "STREAM_TO_S3"
-                }
-            },
-            Message=json.dumps(art_record)
-        )
+                Message=json.dumps(art_record)
+            )
+        except Exception as e:
+            print(e)
+
         return art_record
