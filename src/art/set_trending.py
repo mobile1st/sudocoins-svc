@@ -10,7 +10,8 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    trending_art = get_trending()
+    period = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    trending_art = get_trending(period)
     arts = []
     for i in trending_art:
         arts.append(i[0])
@@ -20,6 +21,30 @@ def lambda_handler(event, context):
     return {
         'trending': arts[:100]
     }
+
+
+def get_trending(period):
+
+    record = dynamodb.Table('art').query(
+        KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").gt(period),
+        IndexName='top-sales',
+        ProjectionExpression="art_id, last_sale_price"
+    )
+
+    data = record['Items']
+    while 'LastEvaluatedKey' in record:
+        record = dynamodb.Table('art').query(
+            KeyConditionExpression=Key("sort_idx").eq('true') & Key("recent_sk").gt(period),
+            IndexName='top-sales',
+            ProjectionExpression="art_id, last_sale_price",
+            ExclusiveStartKey=record['LastEvaluatedKey']
+        )
+        data.extend(record['Items'])
+
+    sorted_arts = sorted(data.items(), key=lambda item: item[1], reverse=True)
+
+    return sorted_arts
+
 
 
 def set_config(arts):
@@ -36,7 +61,7 @@ def set_config(arts):
     )
     log.info(f'updated_art {updated_art}')
 
-
+'''
 def get_trending():
     last_day = (datetime.utcnow() - timedelta(days=7)).isoformat()
 
@@ -126,5 +151,4 @@ def merge_arts(vote_counts, view_counts, buy_counts):
             scores[i] = buy_counts[i]
 
     return scores
-
-
+'''
