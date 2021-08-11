@@ -180,7 +180,7 @@ class Art:
             "event_date": art_object.get('created_date'),
             "event_type": art_object.get('event_type'),
             "blockchain": art_object.get('blockchain'),
-            "last_sale_price": int(art_object.get("sale_price_token"))
+            "last_sale_price": int(float(art_object.get("sale_price_token", 0)))
         }
 
         if art_url == "" and preview_url is None:
