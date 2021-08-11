@@ -68,7 +68,8 @@ def call_open_sea(created):
     conn = http.client.HTTPSConnection("api.opensea.io")
     conn.request("GET", path)
     response = conn.getresponse()
-    open_sea_response = json.loads(response.read())
+    response2 = response.read().decode('utf-8')
+    open_sea_response = json.loads(response2)
     log.info(f'open_sea_response: {open_sea_response}')
 
     return open_sea_response['asset_events']
