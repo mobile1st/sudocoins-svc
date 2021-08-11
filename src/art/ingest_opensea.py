@@ -53,7 +53,8 @@ def lambda_handler(event, context):
                     "event_type": i.get('event_type'),
                     "open_sea_url": i.get('asset', {}).get('permalink'),
                     "sale_price_token": i.get('total_price'),
-                    "created_date": i.get('created_date', "")
+                    "created_date": i.get('created_date', ""),
+                    "asset": i.get('asset')
                 }
             sns_client.publish(
                 TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',

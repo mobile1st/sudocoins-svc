@@ -101,7 +101,7 @@ def add(art_object):
             "animation_original_url": open_sea_response['animation_original_url'],
             "creator": open_sea_response['creator'],
             "permalink": open_sea_response['permalink'],
-            "collection": art_object.get('collection'),
+            "asset": art_object.get('asset'),
             "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
     else:
@@ -118,7 +118,7 @@ def add(art_object):
             "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
             "creator": art_object.get('asset', {}).get('asset_contract'),
             "permalink": art_object.get('open_sea_url'),
-            "collection": art_object.get('collection'),
+            "asset": art_object.get('asset'),
             "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
 

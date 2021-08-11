@@ -180,7 +180,12 @@ class Art:
             "event_date": art_object.get('created_date'),
             "event_type": art_object.get('event_type'),
             "blockchain": art_object.get('blockchain'),
-            "last_sale_price": int(float(art_object.get("sale_price_token", 0)))
+            "last_sale_price": int(float(art_object.get("sale_price_token", 0))),
+            "collection_address": art_object.get('asset', {}).get('contract_address', "unknown"),
+            "collection_data": {
+                "name": art_object.get('asset', {}).get('collection', {}).get('name'),
+                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url')
+            }
         }
 
         if art_url == "" and preview_url is None:
