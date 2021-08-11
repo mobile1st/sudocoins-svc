@@ -44,7 +44,8 @@ def lambda_handler(event, context):
         "profile": profile,
         "rate": str(rate),
         "sudoRate": str(1000),
-        "earn": config['earn']
+        "earn": config['earn'],
+        "ethRate": config['ethRate']
     }
 
 
