@@ -94,6 +94,13 @@ class SudocoinsImportedResources:
             partition_key=dynamodb.Attribute(name='address', type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
+        self.ether_events_table = dynamodb.Table(
+            scope,
+            'EtherEventsTable',
+            table_name='ether_events',
+            partition_key=dynamodb.Attribute(name='tx_hash', type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+        )
 
     def import_tables(self, scope):
         self.traffic_reports_table = self.import_table(scope, 'TrafficReports')
