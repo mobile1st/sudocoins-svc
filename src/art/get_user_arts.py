@@ -29,7 +29,7 @@ def get_uploads(user_id):
         ScanIndexForward=False,
         IndexName='User_uploaded_art_view_idx',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags'
+        ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags, last_sale_price'
     )['Items']
 
     art_ids = [i['art_id'] for i in uploads]
