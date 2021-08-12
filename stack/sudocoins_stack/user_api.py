@@ -106,3 +106,13 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=update_colors_integration
         )
+        # GET TWITTER TOKEN
+        get_twitter_token_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_twitter_token_function
+        )
+        user_api_v3.add_routes(
+            path="/twitter/request_token",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_twitter_token_integration
+        )
+

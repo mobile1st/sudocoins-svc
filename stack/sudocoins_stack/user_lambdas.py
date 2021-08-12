@@ -173,3 +173,12 @@ class SudocoinsUserLambdas:
         resources.affiliates_topic.add_subscription(
             subs.LambdaSubscription(self.affiliates_function)
         )
+        # TWITTER AUTH TOKEN
+        self.get_twitter_token_function = _lambda.Function(
+            scope,
+            'RequestTwToken',
+            function_name='RequestTwToken',
+            handler='user.tw_request_token.lambda_handler',
+            description='Returning twitter auth token',
+            **lambda_default_kwargs
+        )
