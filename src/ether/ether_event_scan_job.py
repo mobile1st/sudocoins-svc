@@ -1,7 +1,6 @@
 import json
 import boto3
-import asyncio
-from web3 import Web3, contract
+from web3 import Web3
 from util import sudocoins_logger
 
 # infra_url as etherum relay service
