@@ -115,6 +115,7 @@ class SudocoinsImportedResources:
         self.art_uploads_table = self.import_table(scope, 'art_uploads')
         self.verifications_table = self.import_table(scope, 'Verifications')
         self.art_votes_table = self.import_table(scope, 'art_votes')
+        self.ether_events_table = self.import_table(scope, 'ether_events')
 
     def import_table(self, scope, table_name):
         return dynamodb.Table.from_table_arn(
