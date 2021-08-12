@@ -8,11 +8,8 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    trending_hour = get_trending("hours", 1)
-    trending_day = get_trending("days", 1)
-    trending_week = get_trending("days", 7)
-
-    set_config(trending_hour, trending_day, trending_week)
+    hour, day, week = get_trending()
+    set_config(hour, day, week)
 
     return
 
@@ -34,33 +31,33 @@ def set_config(hour, day, week):
     log.info(f'updated_art {updated_art}')
 
 
-def get_trending(frame, amount):
-    if frame == "hours":
-        period = (datetime.utcnow() - timedelta(hours=amount)).isoformat()
-    elif frame == "days":
-        period = (datetime.utcnow() - timedelta(days=amount)).isoformat()
-
+def get_trending():
+    period = (datetime.utcnow() - timedelta(days=7)).isoformat()
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
-        ProjectionExpression="art_id, last_sale_price"
+        ProjectionExpression="art_id, last_sale_price, event_date"
     )
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price",
+            ProjectionExpression="art_id, last_sale_price, event_date",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
 
     sorted_arts = sorted(data, key=lambda item: item['last_sale_price'], reverse=True)
 
-    arts = []
+    hour = []
+    day = []
+    week = []
     for i in sorted_arts:
-        arts.append(i['art_id'])
+        week.append(i['art_id'])
+        if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
+            hour.append(i['art_id'])
+        if i['event_date'] > (datetime.utcnow() - timedelta(days=1)).isoformat():
+            day.append(i['art_id'])
 
-    set_config(arts[:250])
-
-    return sorted_arts
+    return hour[0:250], day[0:250], week[0:250]
