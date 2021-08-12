@@ -23,10 +23,11 @@ class SudocoinsEtherLambdas:
                  resources: SudocoinsImportedResources):
         # Ether Smart Contract Events Scan CronJob
         ether_events_scan_cronjob = _lambda.Function(
-            self,
+            scope,
             'EtherEventScanJob',
             function_name='EtherEventScanJob',
             handler='ether.ether_event_scan_job.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
             **lambda_default_kwargs
         )
         resources.ether_events_table.grant_read_write_data(ether_events_scan_cronjob)
