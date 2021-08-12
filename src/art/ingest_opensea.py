@@ -32,7 +32,7 @@ def lambda_handler(event, context):
                     "payment_token": i.get("payment_token"),
                     "event_type": i.get('event_type'),
                     "open_sea_url": i.get('asset', {}).get('permalink'),
-                    "sale_price_token": i.get('total_price'),
+                    "sale_price": i.get('total_price'),
                     "created_date": i.get('created_date', ""),
                     "asset": i.get('asset')
                 }
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
                     "payment_token": i.get("payment_token"),
                     "event_type": i.get('event_type'),
                     "open_sea_url": i.get('asset', {}).get('permalink'),
-                    "sale_price_token": i.get('total_price'),
+                    "sale_price": i.get('total_price'),
                     "created_date": i.get('created_date', ""),
                     "asset": i.get('asset')
                 }
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
                     "payment_token": i.get('payment_token'),
                     "event_type": i.get('event_type'),
                     "open_sea_url": i.get('asset', {}).get('permalink'),
-                    "sale_price_token": i.get('total_price'),
+                    "sale_price": i.get('total_price'),
                     "created_date": i.get('created_date', ""),
                     "asset": i.get('asset')
                 }

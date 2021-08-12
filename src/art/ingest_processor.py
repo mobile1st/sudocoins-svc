@@ -7,6 +7,7 @@ from datetime import datetime
 from art.art import Art
 from util import sudocoins_logger
 from art.ledger import Ledger
+from decimal import Decimal, getcontext
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -123,12 +124,10 @@ def add(art_object):
         }
 
     preview_url, art_url = get_urls(open_sea)
-
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
-    user_id = "ingest"
-    tags = []
+    eth_sale_price = eth_price(art_object)
 
-    get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags, art_object)
+    get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
 
     try:
         if art_object['blockchain'] == "Ethereum":
@@ -168,16 +167,16 @@ def get_urls(open_sea):
     return open_sea["image_preview_url"], open_sea['image_url']
 
 
-def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags, art_object):
+def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price):
     contract_token_id = str(contract_id) + "#" + str(token_id)
     art_id = art.get_id(contract_token_id)
     if art_id:
-        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object)
+        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
 
-    return art.auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags, art_object)['art_id']
+    return art.auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
 
 
-def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object):
+def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price):
     dynamodb.Table('art').update_item(
         Key={'art_id': art_id},
         UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
@@ -187,7 +186,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object):
             ':buy': buy_url,
             ':pre': preview_url,
             ':open': open_sea,
-            ':lsp': int(art_object.get("sale_price_token")),
+            ':lsp': eth_sale_price,
             ":ed": art_object.get('created_date'),
             ":na": open_sea.get('name')
         },
@@ -197,4 +196,24 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object):
     log.info("art record updated")
 
     return
+
+
+def eth_price(art_object):
+    getcontext().prec = 18
+    symbol = art_object.get("payment_token", {}).get("symbol", "ETH")
+    log.info(f'symbol: {symbol}')
+    if symbol != 'ETH':
+        total_price = Decimal(art_object.get("sale_price", 0))
+        eth_price = Decimal(art_object.get("payment_token", {}).get("eth_price", "1"))
+        eth_sale_price = int(total_price * eth_price)
+        log.info(f'total_price: {total_price}')
+        log.info(f'eth_price: {eth_price}')
+        log.info(f'eth_sale_price: {eth_sale_price}')
+    else:
+        eth_sale_price = int(art_object.get("sale_price", 0))
+        log.info(f'eth_sale_price: {eth_sale_price}')
+
+    return eth_sale_price
+
+
 

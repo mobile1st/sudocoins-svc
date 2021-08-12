@@ -156,7 +156,7 @@ class Art:
         return result
 
 
-    def auto_add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags, art_object):
+    def auto_add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price):
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea} {art_object}")
@@ -172,15 +172,15 @@ class Art:
             "timestamp": time_now,
             "recent_sk": time_now + "#" + art_id,
             "click_count": 0,
-            "first_user": user_id,
+            "first_user": "ingest",
             "sort_idx": 'true',
             "creator": creator_address,
             "process_status": "STREAM_TO_S3",
-            "tags": tags,
+            "tags": [],
             "event_date": art_object.get('created_date'),
             "event_type": art_object.get('event_type'),
             "blockchain": art_object.get('blockchain'),
-            "last_sale_price": int(float(art_object.get("sale_price_token", 0))),
+            "last_sale_price": eth_sale_price,
             "collection_address": art_object.get('asset', {}).get('contract_address', "unknown"),
             "collection_data": {
                 "name": art_object.get('asset', {}).get('collection', {}).get('name'),
