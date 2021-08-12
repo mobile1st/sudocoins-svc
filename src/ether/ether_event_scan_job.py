@@ -22,11 +22,11 @@ ether_events_table = dynamodb.Table('ether_events')
 
 def lambda_handler(event, context):
     #Logging web3 connection
-    log.debug('Connected:', web3.isConnected())
+    log.debug(web3.isConnected())
     contract = get_smart_contract(ADDRESS, ABI)
     eventFilter = create_event_filter(contract)
     for contract_event in eventFilter.get_new_entries():
-        log.debug('Cron Job Working:', print(contract_event))
+        log.debug(contract_event)
         save_event(contract_event)
 
 # Get Contract from EtherScan
