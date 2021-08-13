@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     log.info(f"user_id {user_id}")
 
     return {
-        'art': arts.get_hears(user_id)
+        'art': get_hearts(user_id)
     }
 
 
@@ -34,4 +34,5 @@ def get_hearts(user_id):
         return res['Items']
     else:
         return []
+
 
