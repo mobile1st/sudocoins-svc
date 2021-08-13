@@ -28,8 +28,7 @@ def lambda_handler(event, context):
     loop = asyncio.get_event_loop()
     contract = get_smart_contract(ADDRESS, ABI)
     eventFilter = create_event_filter(contract)
-    group = asyncio.gather(event_loop(eventFilter, 20))
-    group = asyncio.gather(event_loop(eventFilter, 20))
+    group = asyncio.gather(event_loop(eventFilter, 2))
     timer = Timer(59.0, closeLoop, {group})
     timer.start()
     try:
