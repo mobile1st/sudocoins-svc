@@ -159,4 +159,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=artist_page_integration
         )
+        # GET HEARTS
+        get_hearts_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_hearts_function
+        )
+        art_api_v3.add_routes(
+            path='/get-hearts',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_hearts_integration
+        )
 

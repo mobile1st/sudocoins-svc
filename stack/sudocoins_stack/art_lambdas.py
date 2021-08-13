@@ -109,6 +109,7 @@ class SudocoinsArtLambdas:
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
             handler='art.set_trending.lambda_handler',
+            timeout=cdk.Duration.seconds(5)
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(set_trending_function)
@@ -333,6 +334,17 @@ class SudocoinsArtLambdas:
         )
         resources.art_processor_topic.grant_publish(ingest_processor_function)
         resources.creators_table.grant_read_write_data(ingest_processor_function)
+        # GET HEARTS
+        self.get_hearts_function = _lambda.Function(
+            scope,
+            'GetHeartsV2',
+            function_name='GetHeartsV2',
+            handler='art.get_hearts.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.art_votes_table.grant_read_write_data(self.get_hearts_function)
+        resources.grant_read_index_data(self.get_hearts_function, [resources.art_votes])
+
 
 
 
