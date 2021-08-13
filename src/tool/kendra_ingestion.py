@@ -181,7 +181,7 @@ def rek_start():
             },
             Message=json.dumps(item, cls=SudocoinsEncoder)
         )
-        time.sleep(0.5)
+        time.sleep(0.1)
         print(f'{art_id} published')
 
 
@@ -201,6 +201,16 @@ def search():
     print([item['DocumentId'] for item in response['ResultItems']])
 
 
-search()
+def stop():
+    kendra.stop_data_source_sync_job(
+        Id=data_source_id,
+        IndexId=index_id
+    )
 
-#rek_start()
+
+# stop()
+
+# search()
+
+
+rek_start()

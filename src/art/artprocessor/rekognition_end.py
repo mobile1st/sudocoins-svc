@@ -1,5 +1,6 @@
 import boto3
 import json
+import time
 from art.artprocessor.art_document import ArtDocument
 from util import sudocoins_logger
 from time import sleep
@@ -88,12 +89,16 @@ def put_document(art_doc):
 
 def get_job_execution_id():
     i = 0
+    start = time.time()
     while True:
         i += 1
         job_execution_id = acquire_job_execution_id()
         if job_execution_id:
             break
-        sleep(0.05)
+        if time.time() - start > 5.0:
+            log.warning(f'could not acquire job_execution_id after {i} tries')
+            raise Exception('could not acquire job_execution_id')
+        sleep(0.1)
     if i > 1:
         log.info(f'job_execution_id acquired after {i} tries')
     return job_execution_id
