@@ -343,7 +343,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_votes_table.grant_read_write_data(self.get_hearts_function)
-        resources.grant_read_index_data(self.get_hearts_function, [resources.art_votes])
+        resources.grant_read_index_data(self.get_hearts_function, [resources.art_votes_table])
 
 
 
