@@ -1,7 +1,9 @@
 import os
 import json
 import boto3
+import asyncio
 from web3 import Web3
+from threading import Timer
 from util import sudocoins_logger
 
 # infra_url as etherum relay service
@@ -23,11 +25,17 @@ ether_events_table = dynamodb.Table('ether_events')
 def lambda_handler(event, context):
     #Logging web3 connection
     log.debug(web3.isConnected())
+    loop = asyncio.get_event_loop()
     contract = get_smart_contract(ADDRESS, ABI)
     eventFilter = create_event_filter(contract)
-    for contract_event in eventFilter.get_new_entries():
-        log.debug(contract_event)
-        save_event(contract_event)
+    group = asyncio.gather(event_loop(eventFilter, 20))
+    group = asyncio.gather(event_loop(eventFilter, 20))
+    timer = Timer(59.0, closeLoop, {group})
+    timer.start()
+    try:
+        loop.run_until_complete(group)
+    finally:
+        loop.close()
 
 # Get Contract from EtherScan
 def get_smart_contract(address, abi):
@@ -39,6 +47,17 @@ def get_smart_contract(address, abi):
 def create_event_filter(contract):
     eventFilter = contract.events.Transfer.createFilter(fromBlock="latest")
     return eventFilter;
+
+async def event_loop(filter, interval):
+    while True:
+        print('===========>')
+        log.debug('Getting Event...')
+        for event in filter.get_new_entries():
+            save_event(event)
+        await asyncio.sleep(interval)
+
+def closeLoop(group):
+    group.cancel()
 
 # Save event
 def save_event(event):
@@ -52,8 +71,11 @@ def save_event(event):
             "blockHash": web3.toHex(event['blockHash']),
             "tokenId": event['args']['tokenId']
         }
-        ether_events_table.put_item(
-            Item=eventData
-        )
+        try:
+            ether_events_table.put_item(
+                Item=eventData
+            )
+        except Exception as e:
+            log.exception(e)
     else:
         log.debug("There is no new Event")
