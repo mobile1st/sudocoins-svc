@@ -23,9 +23,10 @@ def lambda_handler(event, context):
 
     data = {'status': tweet}
     request_uri = 'https://api.twitter.com/1.1/statuses/update.json'
-    # resp, content = client.request(request_uri, 'POST', urllib.parse.urlencode(data))
+    resp, content = client.request(request_uri, 'POST', urllib.parse.urlencode(data))
 
-    # log.info(f"response:  {resp}")
+    log.info(f"response:  {resp}")
+    log.info(f"content:  {content}")
 
     return
 
@@ -41,15 +42,17 @@ def get_art():
     )['Item']['ethRate']
 
     for i in trending_art:
-        art = dynamodb.Table('Config').get_item(
-            Key={'art_id': i})
+        log.info(i)
+        art = dynamodb.Table('art').get_item(
+            Key={'art_id': i})['Item']
+        log.info(art)
         if 'name' in art and 'name' in art['collection_data']:
             resp = dynamodb.Table('auto_tweet').get_item(
                 Key={'art_id': i})
             if 'Item' in resp:
                 continue
-            message = art['name'] + " of the " + art['collection_data']['name'] + " collection sells for $"
-            usd_price = str(round(((Decimal(art['last_sale_price']) / (10**18)) / eth_rate), 2))
+            message = art['name'] + " of the " + art['collection_data']['name'] + " collection just sold for "
+            usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10**18)) / eth_rate), 2))
             tweet = message + usd_price + " " + url + art['art_id'] + " #NFTs #ETH"
             msg = {
                 "art_id": i,
@@ -57,5 +60,6 @@ def get_art():
                 "timestamp": str(datetime.utcnow().isoformat())
             }
             dynamodb.Table('auto_tweet').put_item(Item=msg)
+            log.info(f"msg:  {msg}")
 
             return tweet
