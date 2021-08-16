@@ -43,15 +43,15 @@ def lambda_handler(event, context):
 
     art_item = save_labels(art_id, labels)
     log.info(art_item)
-    if art_item:
-        push_art_to_kendra(art_item)
+    push_art_to_kendra(art_item)
 
 
 def save_labels(art_id, labels):
+    art_table = dynamodb.Table('art')
     if not labels:
-        return None
+        return art_table.get_item(Key={'art_id': art_id})['Item']
 
-    return dynamodb.Table('art').update_item(
+    return art_table.update_item(
         Key={'art_id': art_id},
         UpdateExpression='ADD rekognition_labels :labels REMOVE process_status',
         ExpressionAttributeValues={':labels': labels},
@@ -88,6 +88,10 @@ def put_document(art_doc):
 
 
 def get_job_execution_id():
+    kendra.stop_data_source_sync_job(
+        Id=kendra_data_source_id,
+        IndexId=kendra_index_id
+    )
     i = 0
     start = time.time()
     while True:

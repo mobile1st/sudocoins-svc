@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import datetime
 from util.sudocoins_encoder import SudocoinsEncoder
 
@@ -10,6 +11,7 @@ class ArtDocument(object):
         self._description = None
         self._labels = None
         self._tags = None
+        self._price = None
 
     def art_id(self, art_id):
         self._art_id = art_id
@@ -24,11 +26,15 @@ class ArtDocument(object):
         return self
 
     def rekognition_labels(self, labels):
-        self._labels = labels
+        self._labels = set(labels) if labels else set()
         return self
 
     def user_provided_tags(self, tags):
-        self._tags = tags
+        self._tags = set(tags) if tags else set()
+        return self
+
+    def price(self, price):
+        self._price = price
         return self
 
     def __str__(self):
@@ -78,12 +84,19 @@ class ArtDocument(object):
         }
         if self._name:
             doc['Title'] = self._name
-        # if blob.get('labels'):
-        #     doc['Attributes'].append({
-        #         'Key': 'labels',
-        #         'Value': {
-        #             'StringValue': labels # String list
-        #         }
-        #     })
+        tags_and_labels = self._labels.union(self._tags)
+        if tags_and_labels:
+            doc['Attributes'].append({
+                'Key': 'labels',
+                'Value': {
+                    'StringListValue': list(tags_and_labels)
+                }
+            })
+        doc['Attributes'].append({
+            'Key': 'price',
+            'Value': {
+                'LongValue': random.randint(0, 10000)
+            }
+        })
 
         return doc
