@@ -104,6 +104,9 @@ class Art:
         if not art:
             return art
 
+        if self.__is_no_cache_site(art):
+            return art
+
         # # google does image sizing well
         # if self.__is_image(art) and 'googleusercontent.com/' in art['preview_url']:
         #     parts = art['preview_url'].split('=')
@@ -116,6 +119,13 @@ class Art:
             del art['cdn_url']
 
         return art
+
+    def __is_no_cache_site(self, art):
+        art_url = art.get('art_url')
+        if art_url and ('//iframe.voxodeus.io/' in art_url or '//vxviewer-kongz.vercel.app/' in art_url):
+            return True
+
+        return False
 
     def __is_image(self, art):
         mime_type = art.get('mime_type')
