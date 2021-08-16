@@ -109,14 +109,14 @@ class SudocoinsArtLambdas:
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
             handler='art.set_trending.lambda_handler',
-            timeout=cdk.Duration.seconds(15),
+            timeout=cdk.Duration.seconds(25),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(set_trending_function)
         resources.config_table.grant_read_write_data(set_trending_function)
         resources.grant_read_index_data(set_trending_function, [resources.art_table])
         resources.grant_read_index_data(set_trending_function, [resources.art_votes_table])
-        set_trending_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
+        set_trending_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
         set_trending_target = events_targets.LambdaFunction(handler=set_trending_function)
         events.Rule(
             scope,
