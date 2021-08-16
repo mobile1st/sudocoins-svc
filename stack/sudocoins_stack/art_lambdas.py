@@ -353,6 +353,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(self.auto_tweet_function)
+        resources.art_table.grant_read_write_data(self.auto_tweet_function)
         resources.auto_tweet_table.grant_read_write_data(self.auto_tweet_function)
         auto_tweet_schedule = events.Schedule.rate(cdk.Duration.minutes(70))
         auto_tweet_target = events_targets.LambdaFunction(handler=self.auto_tweet_function)
