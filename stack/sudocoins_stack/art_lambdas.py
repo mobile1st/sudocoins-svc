@@ -344,6 +344,27 @@ class SudocoinsArtLambdas:
         )
         resources.art_votes_table.grant_read_write_data(self.get_hearts_function)
         resources.grant_read_index_data(self.get_hearts_function, [resources.art_votes_table])
+        # AUTO TWEET
+        self.auto_tweet_function = _lambda.Function(
+            scope,
+            'AutoTweetV2',
+            function_name='AutoTweetV2',
+            handler='art.auto_tweet.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.auto_tweet_function)
+        resources.auto_tweet_table.grant_read_write_data(self.auto_tweet_function)
+        auto_tweet_schedule = events.Schedule.rate(cdk.Duration.minutes(70))
+        auto_tweet_target = events_targets.LambdaFunction(handler=self.auto_tweet_function)
+        events.Rule(
+            scope,
+            "AutoTweetRule",
+            description="Periodically tweets trending arts",
+            enabled=True,
+            schedule=auto_tweet_schedule,
+            targets=[auto_tweet_target]
+        )
+
 
 
 
