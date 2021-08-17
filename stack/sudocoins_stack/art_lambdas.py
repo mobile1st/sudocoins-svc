@@ -365,6 +365,27 @@ class SudocoinsArtLambdas:
             schedule=auto_tweet_schedule,
             targets=[auto_tweet_target]
         )
+        # AUTO FB
+        self.auto_fb_function = _lambda.Function(
+            scope,
+            'AutoFBV2',
+            function_name='AutoFBV2',
+            handler='art.auto_fb.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.auto_fb_function)
+        resources.art_table.grant_read_write_data(self.auto_fb_function)
+        resources.auto_tweet_table.grant_read_write_data(self.auto_fb_function)
+        auto_fb_schedule = events.Schedule.rate(cdk.Duration.minutes(1440))
+        auto_fb_target = events_targets.LambdaFunction(handler=self.auto_fb_function)
+        events.Rule(
+            scope,
+            "AutoFBRule",
+            description="Periodically posts trending arts",
+            enabled=True,
+            schedule=auto_fb_schedule,
+            targets=[auto_fb_target]
+        )
 
 
 
