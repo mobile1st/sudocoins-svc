@@ -31,7 +31,7 @@ def get_trending():
         RequestItems={
             'art': {
                 'Keys': [{'art_id': i} for i in trending_arts],
-                'ProjectionExpression': 'art_id, preview_url, #N, click_count, last_sale_price',
+                'ProjectionExpression': 'art_id, preview_url, #N, click_count, last_sale_price, art_url, collection_data',
                 'ExpressionAttributeNames': {'#N': 'name'}
             }
         }
@@ -40,10 +40,12 @@ def get_trending():
     final_trending = []
     for i in trending_arts:
         for k in trending:
-            if i == k['art_id'] and k['art_url'] == "":
+            if i == k['art_id'] and k['art_url'] != "":
+                if k['name'] is None:
+                    k['name'] = k['collection_data']['name']
                 final_trending.append(k)
 
-    return final_trending
+    return final_trending[:20]
 
 
 def set_config(leaders, creators, trending):
