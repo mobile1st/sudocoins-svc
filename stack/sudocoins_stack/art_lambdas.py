@@ -371,6 +371,7 @@ class SudocoinsArtLambdas:
             'AutoFBV2',
             function_name='AutoFBV2',
             handler='art.auto_fb.lambda_handler',
+            timeout=cdk.Duration.seconds(8),
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(self.auto_fb_function)
@@ -384,8 +385,7 @@ class SudocoinsArtLambdas:
             description="Periodically posts trending arts",
             enabled=True,
             schedule=auto_fb_schedule,
-            targets=[auto_fb_target],
-            timeout=cdk.Duration.seconds(8),
+            targets=[auto_fb_target]
         )
 
 
