@@ -25,7 +25,7 @@ def get_trending():
     trending_arts = config_table.get_item(
         Key={'configKey': 'TrendingArt'},
         ProjectionExpression="art"
-    )['Item']['art'][:20]
+    )['Item']['art'][:40]
 
     trending = dynamodb.batch_get_item(
         RequestItems={
@@ -40,7 +40,7 @@ def get_trending():
     final_trending = []
     for i in trending_arts:
         for k in trending:
-            if i == k['art_id']:
+            if i == k['art_id'] and k['art_url'] == "":
                 final_trending.append(k)
 
     return final_trending
