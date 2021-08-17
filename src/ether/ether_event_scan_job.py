@@ -49,8 +49,6 @@ def create_event_filter(contract):
 
 async def event_loop(filter, interval):
     while True:
-        print('===========>')
-        log.debug('Getting Event...')
         for event in filter.get_new_entries():
             save_event(event)
         await asyncio.sleep(interval)
