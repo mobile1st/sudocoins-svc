@@ -27,11 +27,11 @@ class SudocoinsEtherLambdas:
             'EtherEventScanJob',
             function_name='EtherEventScanJob',
             handler='ether.ether_event_scan_job.lambda_handler',
-            timeout=cdk.Duration.seconds(58),
+            timeout=cdk.Duration.seconds(298),
             **lambda_default_kwargs
         )
         resources.ether_events_table.grant_read_write_data(ether_events_scan_cronjob)
-        set_event_scan_schedule = events.Schedule.rate(cdk.Duration.minutes(1))
+        set_event_scan_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_event_scan_target = events_targets.LambdaFunction(handler=ether_events_scan_cronjob)
         events.Rule(
             scope,
