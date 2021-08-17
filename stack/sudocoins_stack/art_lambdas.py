@@ -384,7 +384,8 @@ class SudocoinsArtLambdas:
             description="Periodically posts trending arts",
             enabled=True,
             schedule=auto_fb_schedule,
-            targets=[auto_fb_target]
+            targets=[auto_fb_target],
+            timeout=cdk.Duration.seconds(8),
         )
 
 

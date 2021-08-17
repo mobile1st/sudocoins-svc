@@ -46,21 +46,25 @@ def get_art():
         art = dynamodb.Table('art').get_item(
             Key={'art_id': i})['Item']
         log.info(art)
-        if 'name' in art and 'name' in art['collection_data']:
-            resp = dynamodb.Table('auto_tweet').get_item(
-                Key={'art_id': i})
-            if 'Item' in resp:
-                continue
-            message = art['name'] + " of the " + art['collection_data']['name'] + " collection sells for "
-            usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10**18)) / eth_rate), 2))
-            tweet = message + usd_price + " " + url + art['art_id'] + " #NFTs #ETH"
-            msg = {
-                "art_id": i,
-                "message": tweet,
-                "timestamp": str(datetime.utcnow().isoformat()),
-                "platform": "twitter"
-            }
-            dynamodb.Table('auto_tweet').put_item(Item=msg)
-            log.info(f"msg:  {msg}")
+        try:
+            if 'name' is not None and art['collection_data']['name'] is not None:
+                resp = dynamodb.Table('auto_tweet').get_item(
+                    Key={'art_id': i})
+                if 'Item' in resp:
+                    continue
+                message = art['name'] + " of the " + art['collection_data']['name'] + " collection sells for "
+                usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10**18)) / eth_rate), 2))
+                tweet = message + usd_price + " " + url + art['art_id'] + " #NFTs #ETH"
+                msg = {
+                    "art_id": i,
+                    "message": tweet,
+                    "timestamp": str(datetime.utcnow().isoformat()),
+                    "platform": "twitter"
+                }
+                dynamodb.Table('auto_tweet').put_item(Item=msg)
+                log.info(f"msg:  {msg}")
 
-            return tweet
+                return tweet
+        except Exception as e:
+            log.info(e)
+            continue
