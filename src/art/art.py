@@ -28,8 +28,21 @@ class Art:
         log.info(f"art.get {art_id}")
         art = self.art_table.get_item(
             Key={'art_id': art_id},
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, tags, last_sale_price",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
+                                 "tags, last_sale_price, open_sea_data",
             ExpressionAttributeNames={'#n': 'name'})
+        try:
+            if 'Item' in art:
+                art['Item']['alt'] = art['Item'].get('name', "") + " " \
+                                     + art['Item'].get('open_sea_data', {}).get("description", "")
+                if 'tags' in art['Item'] and isinstance(art['Item']['tags'], list):
+                    for i in art['Item']['tags']:
+                        tmp = " " + str(i)
+                        art['Item']['alt'] += tmp
+                del art['open_sea_data']
+        except Exception as e:
+            log.info(e)
+
         return self.__use_cdn_url(art['Item'] if art.get('Item') else None)
 
     def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags):
