@@ -104,7 +104,7 @@ class Art:
         if not art:
             return art
 
-        if self.__is_no_cache_site(art):
+        if self.__is_html(art):
             return art
 
         # # google does image sizing well
@@ -120,12 +120,25 @@ class Art:
 
         return art
 
-    def __is_no_cache_site(self, art):
-        art_url = art.get('art_url')
-        if art_url and ('//iframe.voxodeus.io/' in art_url or '//vxviewer-kongz.vercel.app/' in art_url):
-            return True
+    def __is_html(self, art):
+        art_url: str = art.get('art_url')
+        mime_type: str = art.get('mime_type')
+        if not art_url or '.googleusercontent.com/' in art_url:
+            return False
 
-        return False
+        if mime_type:
+            return mime_type.startswith('text/html')
+
+        # no mimetype yet, make an educated guess
+        extensions = [
+            'jpg', 'jpeg', 'gif', 'svg', 'png', 'eps', 'webp', 'heic', 'bmp', 'tif', 'tiff', 'tga',
+            'mp4', 'webm', 'mov', 'mkv',
+            'mp3', 'wav', 'flac', 'ac3', 'ogg']
+        for ext in extensions:
+            if art_url.endswith('.'+ext):
+                return False
+
+        return True
 
     def __is_image(self, art):
         mime_type = art.get('mime_type')
