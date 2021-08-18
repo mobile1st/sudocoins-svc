@@ -39,7 +39,7 @@ class Art:
                     for i in art['Item']['tags']:
                         tmp = " " + str(i)
                         art['Item']['alt'] += tmp
-                del art['open_sea_data']
+                del art['Item']['open_sea_data']
         except Exception as e:
             log.info(e)
 
