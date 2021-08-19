@@ -7,8 +7,6 @@ dynamodb = boto3.resource('dynamodb')
 art_table = dynamodb.Table('art')
 item_count = 0
 
-# TODO review non-image / video or zero byte downloads
-
 
 def safe_stream_to_s3(art_id, item):
     art_url = item.get("art_url")
@@ -26,12 +24,14 @@ def safe_stream_to_s3(art_id, item):
 
 def process_art(item):
     art_id = item.get("art_id")
+    art_url = item.get("art_url")
     cdn_url = item.get("cdn_url")
     process_status = item.get("process_status")
-    if process_status == 'STREAM_TO_S3' or not cdn_url:
+    if not art_url:
+        print(f'NO_ART_URL {art_id} => DELETE')
+        art_table.delete_item(Key={'art_id': art_id})
+    elif process_status == 'STREAM_TO_S3' or not cdn_url:
         safe_stream_to_s3(art_id, item)
-    if 'image' not in item.get("mime_type"):
-        print(f'{art_id} -> {item["mime_type"]}')
 
 
 repeat = True

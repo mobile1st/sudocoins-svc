@@ -23,6 +23,10 @@ def lambda_handler(event, context):
 
 
 def stream_to_s3(art_id: str, art_url: str):
+    if not art_url:
+        log.info(f'no art_url for art_id: {art_id}')
+        return
+
     file = download(art_url)
 
     s3_bucket = 'sudocoins-art-bucket'
@@ -80,10 +84,21 @@ def get_request(url):
 
 def get_with_redirects(url):
     response = get_request(url)
+    prev_location = url
     while 300 <= response.status <= 400:
         location = response.getheader('Location')
+        if not location:
+            raise Exception(f'download failed: redirect has no target location content: {response.read()}')
+        if location == prev_location:
+            raise Exception(f'download failed: infinite redirect loop for url: {location} content: {response.read()}')
+
+        if location.startswith('/'):
+            p = urlparse(prev_location)
+            location = url[0:prev_location.find('/', prev_location.find(p.hostname))] + location
+
         log.info(f'download {response.status} redirect to: {location}')
         response = get_request(location)
+        prev_location = location
     if response.status > 400:
         raise Exception(f'download failed: {response.status} content: {response.read()}')
 
