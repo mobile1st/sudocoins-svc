@@ -92,14 +92,14 @@ class SudocoinsArtProcessorLambdas:
         )
         resources.art_table.grant_read_write_data(rekognition_start_function)
         resources.art_processor_topic.grant_publish(rekognition_start_function)
-        # resources.art_processor_topic.add_subscription(
-        #     subs.LambdaSubscription(
-        #         rekognition_start_function,
-        #         filter_policy={
-        #             'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_START'])
-        #         }
-        #     )
-        # )
+        resources.art_processor_topic.add_subscription(
+            subs.LambdaSubscription(
+                rekognition_start_function,
+                filter_policy={
+                    'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_START'])
+                }
+            )
+        )
         resources.art_bucket.grant_read_write(rekognition_start_function)
         # REKOGNITION END
         rekognition_end_function = _lambda.Function(
@@ -118,31 +118,21 @@ class SudocoinsArtProcessorLambdas:
                 actions=['rekognition:GetLabelDetection']
             )
         )
-        rekognition_end_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=[
-                    'arn:aws:kendra:us-west-2:977566059069:index/8f96a3bb-3aae-476e-94ec-0d446877b42a',
-                    'arn:aws:kendra:us-west-2:977566059069:index/8f96a3bb-3aae-476e-94ec-0d446877b42a/data-source/52596114-645e-40fa-b154-3ada7b3a7942'
-                ],
-                actions=['kendra:StartDataSourceSyncJob', 'kendra:BatchPutDocument', 'kendra:StopDataSourceSyncJob']
-            )
-        )
         resources.art_table.grant_read_write_data(rekognition_end_function)
         resources.art_processor_topic.grant_publish(rekognition_end_function)
-        # start_label_detection_topic.add_subscription(
-        #     subs.LambdaSubscription(
-        #         rekognition_end_function
-        #     )
-        # )
-        # resources.art_processor_topic.add_subscription(
-        #     subs.LambdaSubscription(
-        #         rekognition_end_function,
-        #         filter_policy={
-        #             'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_END'])
-        #         }
-        #     )
-        # )
+        start_label_detection_topic.add_subscription(
+            subs.LambdaSubscription(
+                rekognition_end_function
+            )
+        )
+        resources.art_processor_topic.add_subscription(
+            subs.LambdaSubscription(
+                rekognition_end_function,
+                filter_policy={
+                    'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_END'])
+                }
+            )
+        )
         resources.art_bucket.grant_read_write(rekognition_end_function)
         # RETRY ART PROCESSING
         processor_retry_function = _lambda.Function(
