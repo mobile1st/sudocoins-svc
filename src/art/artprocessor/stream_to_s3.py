@@ -3,13 +3,14 @@ import json
 from util import sudocoins_logger
 import mimetypes
 import http.client
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote, unquote_plus, parse_qsl, urlencode
 from util.sudocoins_encoder import SudocoinsEncoder
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
 sns_client = boto3.client('sns')
+art_table = dynamodb.Table('art')
 
 
 def lambda_handler(event, context):
@@ -17,15 +18,27 @@ def lambda_handler(event, context):
     log.info(f'payload: {data}')
 
     if 'STREAM_TO_S3' == data.get('process_status'):
-        stream_to_s3(data['art_id'], data['art_url'])
+        safe_stream_to_s3(data['art_id'], data['art_url'])
     else:
         log.info(f'unsupported process type for: {data.get("process_status")}')
 
 
+def safe_stream_to_s3(art_id, art_url):
+    try:
+        stream_to_s3(art_id, art_url)
+    except Exception as e:
+        item = art_table.get_item(Key={'art_id': art_id}).get('Item', {})
+        image_url = item.get("open_sea_data", {}).get("image_url")
+        log.info(f'RETRY download using {art_url} cause: {e}')
+        try:
+            stream_to_s3(art_id, image_url)
+        except Exception as e:
+            log.info(f'FAILED to download {art_id} url: {image_url} {e}')
+
+
 def stream_to_s3(art_id: str, art_url: str):
     if not art_url:
-        log.info(f'no art_url for art_id: {art_id}')
-        return
+        raise Exception(f'download failed: empty art url for art_id: {art_id}')
 
     file = download(art_url)
 
@@ -77,8 +90,10 @@ def extension(mime_type: str):
 
 def get_request(url):
     url = urlparse(url)
-    conn = http.client.HTTPSConnection(url.hostname, timeout=30)
-    conn.request("GET", url.path)
+    conn = http.client.HTTPSConnection(url.hostname, timeout=10)
+    query = extract_query(url)
+    log.debug(f'GET {query}')
+    conn.request("GET", query)
     return conn.getresponse()
 
 
@@ -115,3 +130,13 @@ def download(url: str):
     log.info(f'download success')
     return {'mimeType': content_type, 'bytes': content_bytes}
 
+
+def extract_query(parsed_url):
+    query = parsed_url.query
+    prev_query = None
+    while prev_query != query:
+        prev_query = query
+        query = unquote_plus(query)
+
+    query = urlencode(parse_qsl(query))
+    return quote(parsed_url.path) + ('?' + query if query else '')
