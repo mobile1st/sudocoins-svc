@@ -33,12 +33,17 @@ class Art:
             ExpressionAttributeNames={'#n': 'name'})
         try:
             if 'Item' in art:
-                art['Item']['alt'] = art['Item'].get('name', "") + " " \
-                                     + art['Item'].get('open_sea_data', {}).get("description", "")
-                if 'tags' in art['Item'] and isinstance(art['Item']['tags'], list):
-                    for i in art['Item']['tags']:
-                        tmp = " " + str(i)
-                        art['Item']['alt'] += tmp
+                name = art['Item'].get('name', "")
+                if name is None:
+                    name = ""
+                desc = art['Item'].get('open_sea_data', {}).get("description", "")
+                log.info(desc)
+                if desc is None:
+                    desc = art['Item'].get('open_sea_data', {}).get("asset", {}).get("collection", {}).get('description',{})
+                    log.info(desc)
+                    if desc is None:
+                        desc = ""
+                art['Item']['alt'] = name + " " + desc
                 del art['Item']['open_sea_data']
         except Exception as e:
             log.info(e)
