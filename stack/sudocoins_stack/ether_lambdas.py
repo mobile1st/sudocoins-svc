@@ -27,7 +27,7 @@ class SudocoinsEtherLambdas:
             'EtherEventScanJob',
             function_name='EtherEventScanJob',
             handler='ether.ether_event_scan_job.lambda_handler',
-            timeout=cdk.Duration.seconds(298),
+            timeout=cdk.Duration.seconds(599),
             **lambda_default_kwargs
         )
         resources.ether_events_table.grant_read_write_data(ether_events_scan_cronjob)
