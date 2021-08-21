@@ -8,12 +8,11 @@ log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
 
-
 def lambda_handler(event, context):
-    body = json.loads(event['body'])
-
     time_now = str(datetime.utcnow().isoformat())
     art_id = str(uuid.uuid1())
+
+    body = json.loads(event['body'])
     art_record = {
         'art_id': art_id,
         "name": body['name'],
@@ -37,7 +36,7 @@ def lambda_handler(event, context):
     dynamodb.Table('art').put_item(Item=art_record)
     log.info("art record submitted")
 
-    response = create_presigned_url("minting_bucket", art_id, expiration=360)
+    response = create_presigned_url("art-minting-bucket", art_id, expiration=360)
     log.info("pre-signed url retrieved")
 
     return response
