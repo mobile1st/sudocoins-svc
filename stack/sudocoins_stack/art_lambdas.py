@@ -378,14 +378,14 @@ class SudocoinsArtLambdas:
             targets=[auto_fb_target]
         )
         # MINT PART 1
-        start_mint_function = _lambda.Function(
+        self.start_mint_function = _lambda.Function(
             scope,
             'StartMintV2',
             function_name='StartMintV2',
-            handler='art.artprocessor.start_mint.lambda_handler',
+            handler='art.start_mint.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.minting_bucket.grant_read_write(start_mint_function)
+        resources.minting_bucket.grant_read_write(self.start_mint_function)
 
 
 

@@ -169,12 +169,12 @@ class SudocoinsArtApi:
             integration=get_hearts_integration
         )
         # MINT 1
-        # start_mint_integration = api_integrations.LambdaProxyIntegration(
-        #     handler=lambdas.start_mint_function
-        # )
-        # art_api_v3.add_routes(
-        #     path='/start-mint',
-        #     methods=[apigwv2.HttpMethod.POST],
-        #     integration=start_mint_integration
-        # )
+        start_mint_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.start_mint_function
+        )
+        art_api_v3.add_routes(
+            path='/start-mint',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=start_mint_integration
+        )
 
