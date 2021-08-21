@@ -1,6 +1,8 @@
 import boto3
 from util import sudocoins_logger
-
+from datetime import datetime
+import uuid
+import json
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -8,6 +10,29 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    body = json.loads(event['body'])
+
+    time_now = str(datetime.utcnow().isoformat())
+    art_id = str(uuid.uuid1())
+    art_record = {
+        'art_id': art_id,
+        "name": body['name'],
+        'buy_url': "",
+        'contractId#tokenId': "",
+        'preview_url': "",
+        'art_url': "",
+        "timestamp": time_now,
+        "recent_sk": time_now + "#" + art_id,
+        "click_count": 0,
+        "first_user": body['user_id'],
+        "sort_idx": 'true',
+        "creator": body['public_address'],
+        "process_status": "STREAM_TO_S3",
+        "event_date": "0",
+        "event_type": time_now,
+        "blockchain": "Ethereum",
+        "last_sale_price": 0
+    }
 
     return
 
@@ -18,7 +43,7 @@ def set_log_context(event):
 
 
 def create_presigned_url(bucket_name, object_name, expiration=360):
-    # Generate a presigned URL for the S3 object
+    # Generate a pre-signed URL for the S3 object
     s3_client = boto3.client('s3')
     try:
         response = s3_client.generate_presigned_url('get_object',
