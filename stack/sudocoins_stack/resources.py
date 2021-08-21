@@ -71,13 +71,13 @@ class SudocoinsImportedResources:
             'ArtProcessorBucket',
             bucket_name='art-processor-bucket'
         )
-        '''
+
         self.minting_bucket = s3.Bucket(
             scope,
             'MintingBucket',
-            bucket_name='minting-bucket'
+            bucket_name='minting_bucket'
         )
-        '''
+
         self.ingest_opensea_topic = sns.Topic(
             scope,
             'IngestOpenSeaTopic',

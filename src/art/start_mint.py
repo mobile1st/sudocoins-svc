@@ -34,7 +34,13 @@ def lambda_handler(event, context):
         "last_sale_price": 0
     }
 
-    return
+    dynamodb.Table('art').put_item(Item=art_record)
+    log.info("art record submitted")
+
+    response = create_presigned_url("minting_bucket", art_id, expiration=360)
+    log.info("pre-signed url retrieved")
+
+    return response
 
 
 def set_log_context(event):
@@ -54,5 +60,5 @@ def create_presigned_url(bucket_name, object_name, expiration=360):
         log.info(e)
         return None
 
-    # The response contains the presigned URL
+    # The response contains the pre-signed URL
     return response
