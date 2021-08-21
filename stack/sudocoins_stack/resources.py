@@ -74,8 +74,8 @@ class SudocoinsImportedResources:
 
         self.minting_bucket = s3.Bucket(
             scope,
-            'MintingBucket',
-            bucket_name='minting_bucket'
+            'ArtMintingBucket',
+            bucket_name='art-minting-bucket'
         )
 
         self.ingest_opensea_topic = sns.Topic(
