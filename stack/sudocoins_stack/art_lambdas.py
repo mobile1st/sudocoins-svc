@@ -385,9 +385,8 @@ class SudocoinsArtLambdas:
             handler='art.start_mint.lambda_handler',
             **lambda_default_kwargs
         )
-        '''
         resources.minting_bucket.grant_read_write(self.start_mint_function)
-        '''
+
 
 
 
