@@ -155,12 +155,4 @@ class SudocoinsArtProcessorLambdas:
             targets=[set_retry_target]
         )
         resources.art_processor_topic.grant_publish(processor_retry_function)
-        # MINT PART 1
-        start_mint_function = _lambda.Function(
-            scope,
-            'StartMintV2',
-            function_name='StartMintV2',
-            handler='art.artprocessor.start_mint.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.minting_bucket.grant_read_write(start_mint_function)
+
