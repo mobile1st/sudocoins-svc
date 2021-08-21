@@ -386,6 +386,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.minting_bucket.grant_read_write(self.start_mint_function)
+        resources.art_table.grant_read_write_data(self.start_mint_function)
 
 
 
