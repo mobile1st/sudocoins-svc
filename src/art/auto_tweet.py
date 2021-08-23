@@ -52,9 +52,10 @@ def get_art():
                     Key={'art_id': i})
                 if 'Item' in resp:
                     continue
-                message = art['name'] + " of the " + art['collection_data']['name'] + " collection sells for "
+                message = art['name'] + " sells for "
+                #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10**18)) / eth_rate), 2))
-                tweet = message + usd_price + " " + url + art['art_id'] + " #NFTs #ETH"
+                tweet = message + usd_price + " " + url + art['art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs"
                 msg = {
                     "art_id": i,
                     "message": tweet,
