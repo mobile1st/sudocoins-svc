@@ -92,14 +92,14 @@ class SudocoinsArtProcessorLambdas:
         )
         resources.art_table.grant_read_write_data(rekognition_start_function)
         resources.art_processor_topic.grant_publish(rekognition_start_function)
-        resources.art_processor_topic.add_subscription(
-            subs.LambdaSubscription(
-                rekognition_start_function,
-                filter_policy={
-                    'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_START'])
-                }
-            )
-        )
+        # resources.art_processor_topic.add_subscription(
+        #     subs.LambdaSubscription(
+        #         rekognition_start_function,
+        #         filter_policy={
+        #             'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_START'])
+        #         }
+        #     )
+        # )
         resources.art_bucket.grant_read_write(rekognition_start_function)
         # REKOGNITION END
         rekognition_end_function = _lambda.Function(
@@ -120,19 +120,19 @@ class SudocoinsArtProcessorLambdas:
         )
         resources.art_table.grant_read_write_data(rekognition_end_function)
         resources.art_processor_topic.grant_publish(rekognition_end_function)
-        start_label_detection_topic.add_subscription(
-            subs.LambdaSubscription(
-                rekognition_end_function
-            )
-        )
-        resources.art_processor_topic.add_subscription(
-            subs.LambdaSubscription(
-                rekognition_end_function,
-                filter_policy={
-                    'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_END'])
-                }
-            )
-        )
+        # start_label_detection_topic.add_subscription(
+        #     subs.LambdaSubscription(
+        #         rekognition_end_function
+        #     )
+        # )
+        # resources.art_processor_topic.add_subscription(
+        #     subs.LambdaSubscription(
+        #         rekognition_end_function,
+        #         filter_policy={
+        #             'process': sns.SubscriptionFilter.string_filter(allowlist=['REKOGNITION_END'])
+        #         }
+        #     )
+        # )
         resources.art_bucket.grant_read_write(rekognition_end_function)
         # RETRY ART PROCESSING
         processor_retry_function = _lambda.Function(
