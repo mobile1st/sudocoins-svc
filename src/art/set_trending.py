@@ -8,24 +8,24 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    hour, day, week = get_trending()
-    set_config(hour, day, week)
+    hour, half_day, day = get_trending()
+    set_config(hour, half_day, day)
 
     return
 
 
-def set_config(hour, day, week):
+def set_config(hour, half_day, day):
     config_table = dynamodb.Table('Config')
     updated_art = config_table.update_item(
         Key={
             'configKey': 'TrendingArt'
         },
-        UpdateExpression="set art=:art, trending_hour=:hour, trending_day=:day, trending_week=:week",
+        UpdateExpression="set art=:art, trending_hour=:hour, trending_half_day=:hday, trending_day=:day",
         ExpressionAttributeValues={
             ":art": day,
             ":hour": hour,
-            ":day": day,
-            ":week": week
+            ":hday": half_day,
+            ":day": day
         },
         ReturnValues="ALL_NEW"
     )
@@ -33,7 +33,7 @@ def set_config(hour, day, week):
 
 
 def get_trending():
-    period = (datetime.utcnow() - timedelta(days=7)).isoformat()
+    period = (datetime.utcnow() - timedelta(days=1)).isoformat()
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
@@ -52,13 +52,13 @@ def get_trending():
     sorted_arts = sorted(data, key=lambda item: item['last_sale_price'], reverse=True)
 
     hour = []
+    half_day = []
     day = []
-    week = []
     for i in sorted_arts:
-        week.append(i['art_id'])
+        day.append(i['art_id'])
         if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
             hour.append(i['art_id'])
-        if i['event_date'] > (datetime.utcnow() - timedelta(days=1)).isoformat():
-            day.append(i['art_id'])
+        if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
+            half_day.append(i['art_id'])
 
-    return hour[0:250], day[0:250], week[0:250]
+    return hour[0:250], half_day[0:250], day[0:250]
