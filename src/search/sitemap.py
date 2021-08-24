@@ -12,7 +12,7 @@ sitemap_max_size = 50000
 
 
 class Sitemap(object):
-    _url = 'https://sudocoins.com/art/'
+    _url = 'https://www.sudocoins.com/art/'
     _now = datetime.now().strftime('%Y-%m-%d')
     _name = None
     _last_modified = None
@@ -28,8 +28,8 @@ class Sitemap(object):
         return len(self._root)
 
     def __str__(self) -> str:
-        last_modified = self._last_modified if self._last_modified else 'NEW'
-        if not self.is_loaded():
+        last_modified = 'NEW' if self.is_new() else self._last_modified
+        if self._root is None:
             return f'({last_modified}) {self._name}: NOT LOADED'
 
         return f'({last_modified}) {self._name}: {self.__len__()} elements'
@@ -81,13 +81,16 @@ class Sitemap(object):
     def get_s3_url(self):
         return f'https://{sitemap_bucket_name}.s3.us-west-2.amazonaws.com/{self._name}'
 
-    def is_loaded(self):
-        return self._root is not None
+    def is_new(self):
+        return self._last_modified is None
 
     def is_modified(self):
         return self._modified
 
     def load_from_s3(self):
+        if self.is_new():
+            return self
+
         sitemap_obj = sitemap_bucket.Object(self._name)
         sitemap_str = sitemap_obj.get()['Body'].read().decode('utf-8')
         self._root = Sitemap.get_root_xml(sitemap_str)
@@ -110,9 +113,11 @@ class Sitemap(object):
     def add(self, arts):
         if not arts:
             return
-        if self.__len__() + len(arts) > sitemap_max_size:
+        actual_size = self.__len__()
+        input_size = len(arts)
+        if actual_size + input_size > sitemap_max_size:
             raise Exception('Sitemap cannot contain more than 50,000 URLs. Break into multiple sitemaps.')
-        log.debug(f'adding {len(arts)} elements to the existing {self.__len__()}')
+        log.debug(f'adding {input_size} elements to the existing {actual_size} elements')
         self._modified = True
         for art_id in arts:
             Sitemap.add_art_xml(self._root, art_id)
@@ -134,25 +139,28 @@ class Sitemaps(object):
         if not self._sitemaps:
             log.debug('there were no sitemaps hence creating new in batches')
             self.__write_in_batches(arts)
+            return
 
         last_sitemap = self._sitemaps[len(self._sitemaps) - 1].load_from_s3()
         last_sitemap_size = len(last_sitemap)
+
+        if sitemap_max_size - last_sitemap_size == 0:
+            log.debug('last sitemap is full')
+            self.__write_in_batches(arts)
+            return
+
         input_size = len(arts)
         if sitemap_max_size - last_sitemap_size - input_size >= 0:
             log.debug('last sitemap has empty slots and the input fits in')
             last_sitemap.add(arts)
-        else:
-            if sitemap_max_size - last_sitemap_size == 0:
-                log.debug('last_sitemap is full')
-                self.__write_in_batches(arts)
-            else:
-                log.debug('last sitemap has empty slots and the input is more than the empty slots')
-                available = sitemap_max_size - last_sitemap_size
-                first_batch = arts[:available]
-                last_sitemap.add(first_batch)
-                del arts[:available]
-                log.debug(f'available: {available}, first_batch: {len(first_batch)}, other: {len(arts)}')
-                self.__write_in_batches(arts)
+            return
+
+        log.debug('last sitemap has empty slots and the input is more than the empty slots')
+        arts_copy = arts.copy()
+        available = sitemap_max_size - last_sitemap_size
+        last_sitemap.add(arts_copy[:available])
+        del arts_copy[:available]
+        self.__write_in_batches(arts_copy)
 
     def __write_in_batches(self, arts):
         for batch in [arts[i:i + sitemap_max_size] for i in range(0, len(arts), sitemap_max_size)]:
@@ -160,32 +168,13 @@ class Sitemaps(object):
 
     def write_sitemaps_to_s3(self):
         for sitemap in self._sitemaps:
-            if sitemap.is_loaded() or sitemap.is_modified():
+            if sitemap.is_new() or sitemap.is_modified():
                 sitemap.write_to_s3()
 
     def write_sitemap_index_to_s3(self):
         # TODO
         print('write')
 
-
-# def cucc():
-#     sitemap = Sitemap.from_art_ids('sitemap-0.xml', [
-#         '03ab027e-f9ad-11eb-a118-3db60b974a7b',
-#         '10c06d26-fb41-11eb-a956-772a464c46f1',
-#         'f1bf6ee9-038f-11ec-b601-7974dad1a39c'
-#     ])
-#     print(sitemap)
-#     print(len(sitemap))
-#     sitemap.write_to_file()
-#     with open(sitemap.get_name(), 'r') as f:
-#         xml_string = f.read()
-#     sitemap2 = Sitemap.from_xml_string('sitemap-2.xml', xml_string)
-#     sitemap2.add(['asdasdasd'])
-#     print(sitemap2)
-#     print(len(sitemap2))
-#     sitemap2.write_to_file()
-
-# cucc()
 
 def cucc():
     sitemaps = Sitemaps()
