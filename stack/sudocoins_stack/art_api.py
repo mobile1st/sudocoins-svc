@@ -168,7 +168,7 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_hearts_integration
         )
-        # MINT 1
+        # START MINT
         start_mint_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.start_mint_function
         )
@@ -176,5 +176,14 @@ class SudocoinsArtApi:
             path='/start-mint',
             methods=[apigwv2.HttpMethod.POST],
             integration=start_mint_integration
+        )
+        # SET IPFS
+        set_ipfs_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.set_ipfs_function
+        )
+        art_api_v3.add_routes(
+            path='/set-ipfs',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=set_ipfs_integration
         )
 
