@@ -94,6 +94,7 @@ class Sitemap(object):
         sitemap_obj = sitemap_bucket.Object(self._name)
         sitemap_str = sitemap_obj.get()['Body'].read().decode('utf-8')
         self._root = Sitemap.get_root_xml(sitemap_str)
+        log.debug(f'successfully loaded sitemap: {self}')
         return self
 
     def write_to_file(self):
@@ -127,10 +128,14 @@ class Sitemaps(object):
     def __init__(self):
         sitemaps = sitemap_bucket.objects.filter(Prefix='sitemap')
         self._sitemaps = [Sitemap.from_header(obj.key, obj.last_modified)
-                          for obj in sorted(sitemaps, key=lambda x: x.key)]
+                          for obj in sorted(sitemaps, key=Sitemaps.get_idx)]
 
     def __str__(self) -> str:
         return 'Sitemaps: [\n' + ',\n'.join(map(str, self._sitemaps)) + '\n]'
+
+    @staticmethod
+    def get_idx(s3_obj):
+        return int(s3_obj.key.replace('sitemap-', '').replace('.xml', ''))
 
     def get_next_sitemap_name(self):
         return f'sitemap-{len(self._sitemaps)}.xml'
@@ -167,9 +172,12 @@ class Sitemaps(object):
             self._sitemaps.append(Sitemap.from_art_ids(self.get_next_sitemap_name(), batch))
 
     def write_sitemaps_to_s3(self):
+        uploaded = False
         for sitemap in self._sitemaps:
             if sitemap.is_new() or sitemap.is_modified():
                 sitemap.write_to_s3()
+                uploaded = True
+        return uploaded
 
     def write_sitemap_index_to_s3(self):
         # TODO
@@ -180,7 +188,7 @@ def cucc():
     sitemaps = Sitemaps()
     log.info(sitemaps)
     arts = []
-    for i in range(140000):
+    for i in range(10000):
         arts.append(f'asd-{i}')
     sitemaps.add(arts)
     log.info(sitemaps)
