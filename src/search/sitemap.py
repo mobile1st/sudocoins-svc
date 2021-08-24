@@ -94,7 +94,7 @@ class Sitemap(object):
         sitemap_obj = sitemap_bucket.Object(self._name)
         sitemap_str = sitemap_obj.get()['Body'].read().decode('utf-8')
         self._root = Sitemap.get_root_xml(sitemap_str)
-        log.debug(f'successfully loaded sitemap: {self}')
+        log.info(f'successfully loaded sitemap: {self}')
         return self
 
     def write_to_file(self):
@@ -102,7 +102,7 @@ class Sitemap(object):
         tree.write(self._name, encoding='utf-8', xml_declaration=True)
 
     def write_to_s3(self):
-        log.debug(f'uploading sitemap to s3: {self}')
+        log.info(f'uploading sitemap to s3: {self}')
         response = s3.meta.client.put_object(
             Bucket=sitemap_bucket_name,
             Body=self.get_xml_string(),
@@ -118,15 +118,19 @@ class Sitemap(object):
         input_size = len(arts)
         if actual_size + input_size > sitemap_max_size:
             raise Exception('Sitemap cannot contain more than 50,000 URLs. Break into multiple sitemaps.')
-        log.debug(f'adding {input_size} elements to the existing {actual_size} elements')
+        log.info(f'adding {input_size} elements to the existing {actual_size} elements')
         self._modified = True
         for art_id in arts:
             Sitemap.add_art_xml(self._root, art_id)
 
 
 class Sitemaps(object):
+    _sitemap_index_name = 'sitemaps.xml'
+    _sitemap_name_prefix = 'sitemap-'
+    _sitemap_extension = '.xml'
+
     def __init__(self):
-        sitemaps = sitemap_bucket.objects.filter(Prefix='sitemap')
+        sitemaps = sitemap_bucket.objects.filter(Prefix=self._sitemap_name_prefix)
         self._sitemaps = [Sitemap.from_header(obj.key, obj.last_modified)
                           for obj in sorted(sitemaps, key=Sitemaps.get_idx)]
 
@@ -135,10 +139,10 @@ class Sitemaps(object):
 
     @staticmethod
     def get_idx(s3_obj):
-        return int(s3_obj.key.replace('sitemap-', '').replace('.xml', ''))
+        return int(s3_obj.key.replace(Sitemaps._sitemap_name_prefix, '').replace(Sitemaps._sitemap_extension, ''))
 
     def get_next_sitemap_name(self):
-        return f'sitemap-{len(self._sitemaps)}.xml'
+        return f'{self._sitemap_name_prefix}{len(self._sitemaps)}{self._sitemap_extension}'
 
     def add(self, arts):
         if not self._sitemaps:
@@ -177,22 +181,23 @@ class Sitemaps(object):
             if sitemap.is_new() or sitemap.is_modified():
                 sitemap.write_to_s3()
                 uploaded = True
+        if uploaded:
+            self._write_sitemap_index_to_s3()
         return uploaded
 
-    def write_sitemap_index_to_s3(self):
-        # TODO
-        print('write')
+    def _write_sitemap_index_to_s3(self):
+        root = Xml.Element('sitemapindex')
+        root.attrib['xmlns'] = 'http://www.sitemaps.org/schemas/sitemap/0.9'
+        for sitemap in self._sitemaps:
+            sitemap_elem = Xml.SubElement(root, 'sitemap')
+            Xml.SubElement(sitemap_elem, 'loc').text = sitemap.get_s3_url()
 
-
-def cucc():
-    sitemaps = Sitemaps()
-    log.info(sitemaps)
-    arts = []
-    for i in range(10000):
-        arts.append(f'asd-{i}')
-    sitemaps.add(arts)
-    log.info(sitemaps)
-    sitemaps.write_sitemaps_to_s3()
-
-
-cucc()
+        xml_string = Xml.tostring(root, encoding='unicode', method='xml')
+        log.info(f'uploading sitemap-index to s3')
+        response = s3.meta.client.put_object(
+            Bucket=sitemap_bucket_name,
+            Body=xml_string,
+            Key=self._sitemap_index_name,
+            ContentType='application/xml'
+        )
+        log.debug(f'put_object response: {response}')
