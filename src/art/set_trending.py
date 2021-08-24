@@ -20,9 +20,10 @@ def set_config(hour, day, week):
         Key={
             'configKey': 'TrendingArt'
         },
-        UpdateExpression="set art=:art, trending_day=:day, trending_week=:week",
+        UpdateExpression="set art=:art, trending_hour=:hour, trending_day=:day, trending_week=:week",
         ExpressionAttributeValues={
-            ":art": hour,
+            ":art": day,
+            ":hour": hour,
             ":day": day,
             ":week": week
         },
