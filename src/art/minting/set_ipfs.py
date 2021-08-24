@@ -21,7 +21,11 @@ def lambda_handler(event, context):
     response = requests.post('https://ipfs.infura.io:5001/api/v0/add', files=files,
                              auth=('1xBSq6KuqrbDmhs2ASr722Cs8JF', '3c98ebb9f76fabc45d519718e41dd4f0'))
 
-    return response.text
+    response2 = json.loads(response.text)
+
+    return {
+        "ipfs": response2['Hash']
+    }
 
 
 def set_log_context(event):
