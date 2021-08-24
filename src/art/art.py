@@ -229,12 +229,8 @@ class Art:
             }
         }
 
-        if art_url == "" and preview_url is None:
-            art_record["ingest_status"] = 0
-        else:
-            art_record["ingest_status"] = 1
-
         self.art_table.put_item(Item=art_record)
+
         try:
             self.sns.publish(
                 TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',

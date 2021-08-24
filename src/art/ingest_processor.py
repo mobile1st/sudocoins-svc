@@ -124,6 +124,10 @@ def add(art_object):
         }
 
     preview_url, art_url = get_urls(open_sea)
+    if art_url == "" and preview_url is None:
+        log.info("missing art_url and preview_url")
+        return
+
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     eth_sale_price = eth_price(art_object)
 
