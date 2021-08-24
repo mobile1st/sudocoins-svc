@@ -377,16 +377,26 @@ class SudocoinsArtLambdas:
             schedule=auto_fb_schedule,
             targets=[auto_fb_target]
         )
-        # MINT PART 1
+        # START MINT
         self.start_mint_function = _lambda.Function(
             scope,
             'StartMintV2',
             function_name='StartMintV2',
-            handler='art.start_mint.lambda_handler',
+            handler='art.minting.start_mint.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.minting_bucket.grant_read_write(self.start_mint_function)
+        resources.art_bucket.grant_read_write(self.start_mint_function)
         resources.art_table.grant_read_write_data(self.start_mint_function)
+        # SET IPFS
+        self.set_ipfs_function = _lambda.Function(
+            scope,
+            'SetIPFSV2',
+            function_name='SetIPFSV2',
+            handler='art.minting.set_ipfs.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.art_bucket.grant_read_write(self.set_ipfs_function)
+
 
 
 

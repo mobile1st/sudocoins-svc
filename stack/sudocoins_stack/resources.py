@@ -71,11 +71,6 @@ class SudocoinsImportedResources:
             'ArtProcessorBucket',
             bucket_name='art-processor-bucket'
         )
-        self.minting_bucket = s3.Bucket(
-            scope,
-            'ArtMintingBucket',
-            bucket_name='art-minting-bucket'
-        )
         self.sitemap_bucket = s3.Bucket(
             scope,
             'SitemapBucket',

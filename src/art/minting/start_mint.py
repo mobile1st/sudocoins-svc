@@ -9,37 +9,18 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    time_now = str(datetime.utcnow().isoformat())
     art_id = str(uuid.uuid1())
-
     body = json.loads(event['body'])
-    art_record = {
-        'art_id': art_id,
-        "name": body['name'],
-        'buy_url': "",
-        'contractId#tokenId': "",
-        'preview_url': "",
-        'art_url': "",
-        "timestamp": time_now,
-        "recent_sk": time_now + "#" + art_id,
-        "click_count": 0,
-        "first_user": body['user_id'],
-        "sort_idx": 'true',
-        "creator": body['public_address'],
-        "process_status": "STREAM_TO_S3",
-        "event_date": "0",
-        "event_type": time_now,
-        "blockchain": "Ethereum",
-        "last_sale_price": 0
-    }
+    file_ext = body['file_ext']
+    file_name = art_id + "." + file_ext
 
-    dynamodb.Table('art').put_item(Item=art_record)
-    log.info("art record submitted")
-
-    response = create_presigned_url("art-minting-bucket", art_id, expiration=360)
+    response = create_presigned_url("sudocoins-art-bucket", file_name, expiration=360)
     log.info("pre-signed url retrieved")
 
-    return response
+    return {
+        "file_name": file_name,
+        "presigned_url": response
+    }
 
 
 def set_log_context(event):
