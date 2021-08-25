@@ -227,27 +227,6 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.get_preview_function)
         resources.art_uploads_table.grant_read_write_data(self.get_preview_function)
         resources.grant_read_index_data(self.get_preview_function, [resources.art_table, resources.art_uploads_table])
-        # SET ARTISTS
-        set_artists_function = _lambda.Function(
-            scope,
-            'ArtSetArtistsV2',
-            function_name='ArtSetArtistsV2',
-            handler='art.set_artist_leaderboard.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.art_table.grant_read_data(set_artists_function)
-        resources.config_table.grant_read_write_data(set_artists_function)
-        resources.grant_read_index_data(set_artists_function, [resources.art_votes_table])
-        set_artists_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
-        set_artists_target = events_targets.LambdaFunction(handler=set_artists_function)
-        events.Rule(
-            scope,
-            "SetArtistsRule",
-            description="Periodically refreshes logic to determine the top artists based on 1 day of data",
-            enabled=True,
-            schedule=set_artists_schedule,
-            targets=[set_artists_target]
-        )
         # ART SEARCH
         self.art_search_function = _lambda.Function(
             scope,

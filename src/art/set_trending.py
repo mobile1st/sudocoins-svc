@@ -8,15 +8,37 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    hour, half_day, day = get_trending()
-    set_config(hour, half_day, day)
+    hour, half_day, day, arts = get_trending()
+
+    artists = get_artists(arts)
+
+    set_config(hour, half_day, day, artists)
 
     return
 
 
-def set_config(hour, half_day, day):
+def get_artists(arts):
+    artists = {}
+    for i in arts:
+        if i['creator'] in artists:
+            artists[i['creator']]['score'] += i.get('last_sale_price')
+        else:
+            artists[i['creator']] = {}
+            artists[i['creator']]['score'] = i.get('last_sale_price')
+            artists[i['creator']]['avatar'] = i.get('preview_url')
+            artists[i['creator']]['data'] = {}
+            artists[i['creator']]['data']['address'] = i.get('creator')
+            artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
+            artists[i['creator']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
+
+    leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:250]
+
+    return leaders
+
+
+def set_config(hour, half_day, day, artists):
     config_table = dynamodb.Table('Config')
-    updated_art = config_table.update_item(
+    config_table.update_item(
         Key={
             'configKey': 'TrendingArt'
         },
@@ -29,7 +51,14 @@ def set_config(hour, half_day, day):
         },
         ReturnValues="ALL_NEW"
     )
-    log.info(f'updated_art {updated_art}')
+    config_table.update_item(
+        Key={'configKey': 'Leaderboard'},
+        UpdateExpression="set creators=:create",
+        ExpressionAttributeValues={
+            ":create": artists
+        }
+    )
+    log.info("configs updated")
 
 
 def get_trending():
@@ -37,14 +66,14 @@ def get_trending():
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
-        ProjectionExpression="art_id, last_sale_price, event_date"
+        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data"
     )
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price, event_date",
+            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
@@ -61,4 +90,4 @@ def get_trending():
         if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
             half_day.append(i['art_id'])
 
-    return hour[0:250], half_day[0:250], day[0:250]
+    return hour[0:250], half_day[0:250], day[0:250], sorted_arts
