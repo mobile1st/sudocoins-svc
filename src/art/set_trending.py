@@ -8,32 +8,11 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    hour, half_day, day, arts = get_trending()
+    hour, half_day, day, leaders = get_trending()
 
-    artists = get_artists(arts)
-
-    set_config(hour, half_day, day, artists)
+    set_config(hour, half_day, day, leaders)
 
     return
-
-
-def get_artists(arts):
-    artists = {}
-    for i in arts:
-        if i['creator'] in artists:
-            artists[i['creator']]['score'] += i.get('last_sale_price')
-        else:
-            artists[i['creator']] = {}
-            artists[i['creator']]['score'] = i.get('last_sale_price')
-            artists[i['creator']]['avatar'] = i.get('preview_url')
-            artists[i['creator']]['data'] = {}
-            artists[i['creator']]['data']['address'] = i.get('creator')
-            artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
-            artists[i['creator']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
-
-    leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:250]
-
-    return leaders
 
 
 def set_config(hour, half_day, day, artists):
@@ -83,6 +62,8 @@ def get_trending():
     hour = []
     half_day = []
     day = []
+    artists = {}
+
     for i in sorted_arts:
         day.append(i['art_id'])
         if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
@@ -90,4 +71,17 @@ def get_trending():
         if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
             half_day.append(i['art_id'])
 
-    return hour[0:250], half_day[0:250], day[0:250], sorted_arts
+        if i['creator'] in artists:
+            artists[i['creator']]['score'] += i.get('last_sale_price')
+        else:
+            artists[i['creator']] = {}
+            artists[i['creator']]['score'] = i.get('last_sale_price')
+            artists[i['creator']]['avatar'] = i.get('preview_url')
+            artists[i['creator']]['data'] = {}
+            artists[i['creator']]['data']['address'] = i.get('creator')
+            artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
+            artists[i['creator']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
+
+    leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:40]
+
+    return hour[0:250], half_day[0:250], day[0:250], leaders

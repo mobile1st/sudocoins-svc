@@ -109,7 +109,7 @@ class SudocoinsArtLambdas:
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
             handler='art.set_trending.lambda_handler',
-            timeout=cdk.Duration.seconds(25),
+            timeout=cdk.Duration.seconds(30),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(set_trending_function)
@@ -135,29 +135,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_leaderboard_function)
-        # SET LEADERBOARD
-        set_leaderboard_function = _lambda.Function(
-            scope,
-            'ArtSetLeaderboardV2',
-            function_name='ArtSetLeaderboardV2',
-            handler='art.set_leaderboard.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_data(set_leaderboard_function)
-        resources.config_table.grant_read_write_data(set_leaderboard_function)
-        resources.art_votes_table.grant_read_data(set_leaderboard_function)
-        resources.art_table.grant_read_data(set_leaderboard_function)
-        resources.grant_read_index_data(set_leaderboard_function, [resources.profile_table, resources.art_votes_table])
-        set_leaderboard_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
-        set_leaderboard_target = events_targets.LambdaFunction(handler=set_leaderboard_function)
-        events.Rule(
-            scope,
-            "SetLeaderboardRule",
-            description="Periodically refreshes the promoter leaderboard",
-            enabled=True,
-            schedule=set_leaderboard_schedule,
-            targets=[set_leaderboard_target]
-        )
         # GET USER ARTS
         self.get_user_arts_function = _lambda.Function(
             scope,
