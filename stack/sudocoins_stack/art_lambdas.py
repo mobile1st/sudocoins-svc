@@ -109,7 +109,7 @@ class SudocoinsArtLambdas:
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
             handler='art.set_trending.lambda_handler',
-            timeout=cdk.Duration.seconds(30),
+            timeout=cdk.Duration.seconds(45),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(set_trending_function)
