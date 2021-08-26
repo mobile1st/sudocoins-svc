@@ -52,4 +52,6 @@ def get_uploads(artist):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    return sanitized
+    newlist = sorted(sanitized, key=lambda k: k['last_sale_price'], reverse=True)
+
+    return newlist
