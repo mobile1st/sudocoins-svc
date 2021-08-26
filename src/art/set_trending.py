@@ -77,6 +77,12 @@ def get_trending():
             artists[i['creator']] = {}
             artists[i['creator']]['score'] = i.get('last_sale_price')
             artists[i['creator']]['avatar'] = i.get('preview_url')
+            artists[i['creator']]['name'] = i.get('name')
+            if artists[i['creator']]['name'] is None:
+                artists[i['creator']]['name'] = i.get('collection_data', {}).get('name')
+                if artists[i['creator']]['name'] is None:
+                    artists[i['creator']]['name'] = i.get('creator')
+
             artists[i['creator']]['data'] = {}
             artists[i['creator']]['data']['address'] = i.get('creator')
             artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
