@@ -77,20 +77,22 @@ def get_trending():
             artists[i['creator']] = {}
             artists[i['creator']]['score'] = i.get('last_sale_price')
             artists[i['creator']]['avatar'] = i.get('preview_url')
-            artists[i['creator']]['collection_name'] = i.get('collection_data', {}).get('name')
+
             artists[i['creator']]['data'] = {}
             artists[i['creator']]['data']['address'] = i.get('creator')
             artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
             artists[i['creator']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
-            if 'creator' in i['open_sea_data'] and 'user' in i['open_sea_data']['creator'] and 'username' in i['open_sea_data']['creator']['user'] and i['open_sea_data']['creator']['user']['username'] is not None :
-                artists[i['creator']]['name'] = i['open_sea_data']['creator']['user']
-            elif 'collection_data' in i and 'name' in i['collection_data'] and i['collection_data']['name'] is not None:
-                artists[i['creator']]['name'] = i['collection_data']['name']
-            else:
-                artists[i['creator']]['name'] = i.get('creator')
+            artists[i['creator']]['art1'] = i.get('art_id')
 
+            if artists[i['creator']]['data']['user'] is not None and 'user' in artists[i['creator']]['data']['user']:
+                if artists[i['creator']]['data']['user']['user'] is not None and 'username' in \
+                        artists[i['creator']]['data']['user']['user']:
+                    if artists[i['creator']]['data']['user']['user']['username'] is not None:
+                        artists[i['creator']]['name'] = artists[i['creator']]['data']['user']['user']['username']
 
+            if 'name' not in artists[i['creator']]:
+                artists[i['creator']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
 
     leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:250]
 
