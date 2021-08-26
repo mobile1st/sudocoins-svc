@@ -52,7 +52,7 @@ def get_trending():
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data",
+            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
@@ -77,7 +77,7 @@ def get_trending():
             artists[i['creator']] = {}
             artists[i['creator']]['score'] = i.get('last_sale_price')
             artists[i['creator']]['avatar'] = i.get('preview_url')
-            artists[i['creator']]['name'] = i.get('name')
+            artists[i['creator']]['name'] = i.get('open_sea_data', {}).get('creator', {}).get('user', {}).get('username')
             if artists[i['creator']]['name'] is None:
                 artists[i['creator']]['name'] = i.get('collection_data', {}).get('name')
                 if artists[i['creator']]['name'] is None:
@@ -88,6 +88,6 @@ def get_trending():
             artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
             artists[i['creator']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
-    leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:40]
+    leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:250]
 
     return hour[0:250], half_day[0:250], day[0:250], leaders
