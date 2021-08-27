@@ -31,17 +31,26 @@ class SudocoinsImportedResources:
         )
 
     def __init__(self, scope: cdk.Construct):
-        self.construct_tables(scope)
+        self.import_hosted_zone(scope)
         self.import_tables(scope)
+        self.construct_tables(scope)
+        self.construct_s3_buckets(scope)
+        self.construct_topics(scope)
+        self.construct_queues(scope)
+        self.init_cdn(scope)
         self.sudocoins_domain_name = self.custom_domain(scope)
-        self.sudocoins_cdn = self.init_cdn(scope)
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
         self.sudocoins_authorizer = self.init_authorizer(scope)
-        self.transaction_topic = sns.Topic.from_topic_arn(
+
+    def import_hosted_zone(self, scope):
+        self.hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
             scope,
-            'TransactionTopic',
-            topic_arn='arn:aws:sns:us-west-2:977566059069:transaction-event'
+            'SudocoinsZone',
+            hosted_zone_id='Z078942423UGVMS8LO8GZ',
+            zone_name='sudocoins.com'
         )
+
+    def construct_queues(self, scope):
         self.end_transaction_queue = sqs.Queue.from_queue_arn(
             scope,
             'EndTransactionQueue',
@@ -53,6 +62,13 @@ class SudocoinsImportedResources:
             queue_name='ArtViewCounterQueue.fifo',
             fifo=True,
             content_based_deduplication=True
+        )
+
+    def construct_topics(self, scope):
+        self.transaction_topic = sns.Topic.from_topic_arn(
+            scope,
+            'TransactionTopic',
+            topic_arn='arn:aws:sns:us-west-2:977566059069:transaction-event'
         )
         self.art_processor_topic = sns.Topic(
             scope,
@@ -66,17 +82,6 @@ class SudocoinsImportedResources:
             display_name='Affiliates',
             topic_name='Affiliates'
         )
-        self.art_processor_bucket = s3.Bucket(
-            scope,
-            'ArtProcessorBucket',
-            bucket_name='art-processor-bucket'
-        )
-        self.sitemap_bucket = s3.Bucket(
-            scope,
-            'SitemapBucket',
-            bucket_name='sudocoins-sitemap-bucket',
-            public_read_access=True
-        )
         self.ingest_opensea_topic = sns.Topic(
             scope,
             'IngestOpenSeaTopic',
@@ -84,12 +89,21 @@ class SudocoinsImportedResources:
             topic_name='IngestOpenSeaTopic'
         )
 
-    def construct_layers(self, scope):
-        self.requests_layer = _lambda.LayerVersion(
+    def construct_s3_buckets(self, scope):
+        sitemaps_bucket_name = 'sitemaps2.sudocoins.com'
+        self.sitemaps_bucket = s3.Bucket(
             scope,
-            'RequestsLayer',
-            layer_version_name='requests-layer',
-            code=_lambda.Code.from_asset('sudocoins_dependencies/requests2')
+            'SitemapsBucket',
+            bucket_name=sitemaps_bucket_name,
+            public_read_access=True,
+            website_index_document='sitemaps.xml'
+        )
+        route53.ARecord(
+            scope,
+            'SitemapsBucketARecord',
+            zone=self.hosted_zone,
+            record_name=sitemaps_bucket_name,
+            target=route53.RecordTarget.from_alias(route53_targets.BucketWebsiteTarget(self.sitemaps_bucket))
         )
 
     def construct_tables(self, scope):
@@ -162,12 +176,6 @@ class SudocoinsImportedResources:
         )
 
     def custom_domain(self, scope: cdk.Construct):
-        self.hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
-            scope,
-            'SudocoinsZone',
-            hosted_zone_id='Z078942423UGVMS8LO8GZ',
-            zone_name='sudocoins.com'
-        )
         certificate = acm.Certificate.from_certificate_arn(
             scope,
             'SudocoinsApiCertificate',
