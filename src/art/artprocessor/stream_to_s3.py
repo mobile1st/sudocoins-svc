@@ -57,7 +57,7 @@ def stream_to_s3(art_id: str, art_url: str):
         Key={'art_id': art_id},
         UpdateExpression="SET mime_type=:mt, cdn_url=:cdn_url, process_status=:ps",
         ExpressionAttributeValues={
-            ':mt': file['mimeType'],
+            ':mt': s3_mime_type,
             ':cdn_url': f'https://cdn.sudocoins.com/{s3_file_path}',
             ':ps': process_status
         },
