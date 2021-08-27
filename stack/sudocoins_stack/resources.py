@@ -90,7 +90,7 @@ class SudocoinsImportedResources:
         )
 
     def construct_s3_buckets(self, scope):
-        sitemaps_bucket_name = 'sitemaps2.sudocoins.com'
+        sitemaps_bucket_name = 'sitemaps.sudocoins.com'
         self.sitemaps_bucket = s3.Bucket(
             scope,
             'SitemapsBucket',
