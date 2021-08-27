@@ -74,7 +74,8 @@ class Art:
             "event_date": "0",
             "event_type": "manually added",
             "blockchain": "Ethereum",
-            "last_sale_price": 0
+            "last_sale_price": 0,
+            "process_to_google_search": "TO_BE_INDEXED"
         }
 
 
@@ -226,7 +227,8 @@ class Art:
             "collection_data": {
                 "name": art_object.get('asset', {}).get('collection', {}).get('name'),
                 "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url')
-            }
+            },
+            "process_to_google_search": "TO_BE_INDEXED"
         }
 
         self.art_table.put_item(Item=art_record)
