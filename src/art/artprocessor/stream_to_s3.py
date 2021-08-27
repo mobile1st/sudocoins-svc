@@ -98,7 +98,7 @@ def guess_extension(url: str, mime_type: str, content):
         if url_type != mime_type:
             return url_ext, url_type
         else:
-            return mime_ext, mime_ext
+            return mime_ext, mime_type
 
     # check content signature vs mime type
     signature = file_signatures.type_from_sig(content)
@@ -111,7 +111,7 @@ def guess_extension(url: str, mime_type: str, content):
             return mime_ext, mime_type
 
     # neither url nor content types are available, take mime-type
-    return mime_ext, mime_ext
+    return mime_ext, mime_type
 
 
 def get_request(url):
