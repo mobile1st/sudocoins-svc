@@ -17,7 +17,7 @@ def process_art(item):
     if not art_url:
         print(f'NO_ART_URL {art_id} => DELETE')
         art_table.delete_item(Key={'art_id': art_id})
-    elif process_status == 'STREAM_TO_S3' or not cdn_url or mime_type == 'application/octet-stream':
+    elif process_status == 'STREAM_TO_S3' or not cdn_url or mime_type == 'application/octet-stream' or not mime_type or mime_type == 'None':
         safe_stream_to_s3(art_id, art_url)
 
 

@@ -45,7 +45,7 @@ def stream_to_s3(art_id: str, art_url: str):
     file = download(art_url)
 
     s3_bucket = 'sudocoins-art-bucket'
-    s3_extension, s3_mime_type = guess_extension(file['mimeType'], file['bytes'])
+    s3_extension, s3_mime_type = guess_extension(art_url, file['mimeType'], file['bytes'])
     s3_file_path = art_id + s3_extension
     log.info(f'upload to sudocoins-art-bucket {s3_mime_type} {s3_file_path}')
     s3_client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=s3_mime_type)
@@ -86,24 +86,32 @@ def stream_to_s3(art_id: str, art_url: str):
     log.info(f'{art_id} published process status: {process_status}')
 
 
-def guess_extension(mime_type: str, content):
-    key = mime_type.split(';')[0]
-    mime_ext = mimetypes.guess_extension(key)
+def guess_extension(url: str, mime_type: str, content):
+    # need at least two places to agree on file type
+    mime_type_key = mime_type.split(';')[0]
+    mime_ext = mimetypes.guess_extension(mime_type_key)
+
+    # check url type vs mime type
+    url_type, _ = mimetypes.guess_type(url)
+    if url_type:
+        url_ext = mimetypes.guess_extension(url_type)
+        if url_type != mime_type:
+            return url_ext, url_type
+        else:
+            return mime_ext, mime_ext
+
+    # check content signature vs mime type
     signature = file_signatures.type_from_sig(content)
     sig_ext = '.' + signature.get('file_extension') if signature else None
     sig_type, _ = mimetypes.guess_type('x' + sig_ext if sig_ext else '')
-
-    if sig_ext and mime_ext:
-        if sig_ext != mime_ext:
+    if sig_type:
+        if sig_type != mime_type:
             return sig_ext, sig_type
         else:
             return mime_ext, mime_type
-    elif sig_ext and sig_type:
-        return sig_ext, sig_type
-    elif mime_ext:
-        return mime_ext, mime_ext
-    else:
-        return ''
+
+    # neither url nor content types are available, take mime-type
+    return mime_ext, mime_ext
 
 
 def get_request(url):
