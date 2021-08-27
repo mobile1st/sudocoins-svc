@@ -1,5 +1,7 @@
 import boto3
 import json
+
+from art.artprocessor import file_signatures
 from util import sudocoins_logger
 import mimetypes
 import http.client
@@ -43,8 +45,10 @@ def stream_to_s3(art_id: str, art_url: str):
     file = download(art_url)
 
     s3_bucket = 'sudocoins-art-bucket'
-    s3_file_path = art_id + extension(file['mimeType'])
-    s3_client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=file['mimeType'])
+    s3_extension, s3_mime_type = guess_extension(file['mimeType'], file['bytes'])
+    s3_file_path = art_id + s3_extension
+    log.info(f'upload to sudocoins-art-bucket {s3_mime_type} {s3_file_path}')
+    s3_client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=s3_mime_type)
     log.info('upload to sudocoins-art-bucket finished')
 
     art_table = dynamodb.Table('art')
@@ -82,10 +86,24 @@ def stream_to_s3(art_id: str, art_url: str):
     log.info(f'{art_id} published process status: {process_status}')
 
 
-def extension(mime_type: str):
+def guess_extension(mime_type: str, content):
     key = mime_type.split(';')[0]
-    ext = mimetypes.guess_extension(key)
-    return ext if ext else ''
+    mime_ext = mimetypes.guess_extension(key)
+    signature = file_signatures.type_from_sig(content)
+    sig_ext = '.' + signature.get('file_extension') if signature else None
+    sig_type, _ = mimetypes.guess_type('x' + sig_ext if sig_ext else '')
+
+    if sig_ext and mime_ext:
+        if sig_ext != mime_ext:
+            return sig_ext, sig_type
+        else:
+            return mime_ext, mime_type
+    elif sig_ext and sig_type:
+        return sig_ext, sig_type
+    elif mime_ext:
+        return mime_ext, mime_ext
+    else:
+        return ''
 
 
 def get_request(url):
