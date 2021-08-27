@@ -6,9 +6,19 @@ from util import sudocoins_logger
 log = sudocoins_logger.get()
 
 s3 = boto3.resource('s3')
-sitemap_bucket_name = 'sudocoins-sitemap-bucket'
+sitemap_bucket_name = 'sitemaps.sudocoins.com'
 sitemap_bucket = s3.Bucket(sitemap_bucket_name)
 sitemap_max_size = 50000
+
+
+def upload_file_to_s3(key, body):
+    response = s3.meta.client.put_object(
+        Bucket=sitemap_bucket_name,
+        Key=key,
+        Body=body,
+        ContentType='application/xml'
+    )
+    log.debug(f'put_object response: {response}')
 
 
 class Sitemap(object):
@@ -79,7 +89,7 @@ class Sitemap(object):
         return Xml.tostring(self._root, encoding='unicode', method='xml')
 
     def get_s3_url(self):
-        return f'https://{sitemap_bucket_name}.s3.us-west-2.amazonaws.com/{self._name}'
+        return f'http://{sitemap_bucket_name}/{self._name}'
 
     def is_new(self):
         return self._last_modified is None
@@ -103,13 +113,7 @@ class Sitemap(object):
 
     def write_to_s3(self):
         log.info(f'uploading sitemap to s3: {self}')
-        response = s3.meta.client.put_object(
-            Bucket=sitemap_bucket_name,
-            Body=self.get_xml_string(),
-            Key=self.get_name(),
-            ContentType='application/xml'
-        )
-        log.debug(f'put_object response: {response}')
+        upload_file_to_s3(self.get_name(), self.get_xml_string())
 
     def add(self, arts):
         if not arts:
@@ -194,10 +198,4 @@ class Sitemaps(object):
 
         xml_string = Xml.tostring(root, encoding='unicode', method='xml')
         log.info(f'uploading sitemap-index to s3')
-        response = s3.meta.client.put_object(
-            Bucket=sitemap_bucket_name,
-            Body=xml_string,
-            Key=self._sitemap_index_name,
-            ContentType='application/xml'
-        )
-        log.debug(f'put_object response: {response}')
+        upload_file_to_s3(self._sitemap_index_name, xml_string)
