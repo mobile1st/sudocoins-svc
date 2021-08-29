@@ -138,6 +138,9 @@ class Sitemaps(object):
         self._sitemaps = [Sitemap.from_header(obj.key, obj.last_modified)
                           for obj in sorted(sitemaps, key=Sitemaps.get_idx)]
 
+    def __iter__(self):
+        return iter(self._sitemaps)
+
     def __str__(self) -> str:
         return 'Sitemaps: [\n' + ',\n'.join(map(str, self._sitemaps)) + '\n]'
 
@@ -145,8 +148,11 @@ class Sitemaps(object):
     def get_idx(s3_obj):
         return int(s3_obj.key.replace(Sitemaps._sitemap_name_prefix, '').replace(Sitemaps._sitemap_extension, ''))
 
-    def get_next_sitemap_name(self):
+    def __get_next_sitemap_name(self):
         return f'{self._sitemap_name_prefix}{len(self._sitemaps)}{self._sitemap_extension}'
+
+    def get_s3_url(self):
+        return f'http://{sitemap_bucket_name}/{self._sitemap_index_name}'
 
     def add(self, arts):
         if not self._sitemaps:
@@ -177,7 +183,7 @@ class Sitemaps(object):
 
     def __write_in_batches(self, arts):
         for batch in [arts[i:i + sitemap_max_size] for i in range(0, len(arts), sitemap_max_size)]:
-            self._sitemaps.append(Sitemap.from_art_ids(self.get_next_sitemap_name(), batch))
+            self._sitemaps.append(Sitemap.from_art_ids(self.__get_next_sitemap_name(), batch))
 
     def write_sitemaps_to_s3(self):
         uploaded = False
@@ -186,10 +192,10 @@ class Sitemaps(object):
                 sitemap.write_to_s3()
                 uploaded = True
         if uploaded:
-            self._write_sitemap_index_to_s3()
+            self.__write_sitemap_index_to_s3()
         return uploaded
 
-    def _write_sitemap_index_to_s3(self):
+    def __write_sitemap_index_to_s3(self):
         root = Xml.Element('sitemapindex')
         root.attrib['xmlns'] = 'http://www.sitemaps.org/schemas/sitemap/0.9'
         for sitemap in self._sitemaps:
