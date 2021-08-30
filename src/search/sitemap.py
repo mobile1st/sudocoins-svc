@@ -51,7 +51,7 @@ class Sitemap(object):
     @staticmethod
     def from_art_ids(name, arts):
         if len(arts) > sitemap_max_size:
-            raise Exception('Sitemap cannot contain more than 50,000 URLs. Break into multiple sitemaps.')
+            raise Exception(f'Sitemap cannot contain more than {sitemap_max_size} URLs. Break into multiple sitemaps.')
 
         return Sitemap(name, None, Sitemap.generate(arts))
 
@@ -121,7 +121,7 @@ class Sitemap(object):
         actual_size = self.__len__()
         input_size = len(arts)
         if actual_size + input_size > sitemap_max_size:
-            raise Exception('Sitemap cannot contain more than 50,000 URLs. Break into multiple sitemaps.')
+            raise Exception(f'Sitemap cannot contain more than {sitemap_max_size} URLs. Break into multiple sitemaps.')
         log.info(f'adding {input_size} elements to the existing {actual_size} elements')
         self._modified = True
         for art_id in arts:
