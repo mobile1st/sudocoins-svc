@@ -3,7 +3,7 @@ from util import sudocoins_logger
 import http.client
 import json
 from boto3.dynamodb.conditions import Key
-from datetime import datetime
+from datetime import datetime, timedelta
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -74,7 +74,8 @@ def lambda_handler(event, context):
 
 
 def call_open_sea(created):
-    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=30&occurred_after=" + created
+    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&occurred_after="\
+           + created + "&occurred_before=" + str((created + timedelta(minutes=1)).isoformat())
     log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
     conn.request("GET", path)
