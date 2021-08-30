@@ -186,4 +186,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=set_ipfs_integration
         )
+        # GET MINT REQUEST
+        get_mint_request_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_mint_function
+        )
+        art_api_v3.add_routes(
+            path='/get-mint',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_mint_request_integration
+        )
 

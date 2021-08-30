@@ -353,6 +353,15 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_bucket.grant_read_write(self.set_ipfs_function)
+        # GET MINT REQUEST
+        self.get_mint_function = _lambda.Function(
+            scope,
+            'GetMintRequestV2',
+            function_name='GetMintRequestV2',
+            handler='art.minting.get_mint_request.lambda_handler',
+            **lambda_default_kwargs
+        )
+
 
 
 
