@@ -8,16 +8,17 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    body = json.loads(event['body'])
+    # body = json.loads(event['body'])
+    body = event
 
     art_id = body['art_id']
 
     name = body['name']
     description = body['description']
-    ipfs_image = body['ifps']
+    ipfs_image = body['ipfs']
 
     creator = body['creator']
-    royalty = body['royalty']
+    royalty = body['royalty'] * 100
 
     #  sale_price = body['sale_price']
 
@@ -26,6 +27,8 @@ def lambda_handler(event, context):
     ipfs_meta = generate_meta_data(name, description, ipfs_image, art_id)
 
     mint_request = get_mint_request(token_id, ipfs_meta, royalty, creator)
+
+    # . log.info(mint_request)
 
     return mint_request
 
@@ -54,6 +57,8 @@ def generate_meta_data(name, description, image, art_id):
 
     ipfs_meta_hash = json.loads(response.text)
 
+    log.info(f'ipfs response {ipfs_meta_hash}')
+
     return ipfs_meta_hash['Hash']
 
 
@@ -64,6 +69,8 @@ def get_token_id(creator):
     response = requests.get(request_url)
     response_parsed = json.loads(response.text)
     token_id = response_parsed['tokenId']
+
+    log.info(f'tokenId {token_id}')
 
     return token_id
 
@@ -90,14 +97,14 @@ def get_mint_request(tokenId, ipfs_hash, royalty, creator):
                 }
             ],
             "Mint721": [
-                {"name": "tokenId", type: "uint256"},
-                {"name": "tokenURI", type: "string"},
-                {"name": "creators", type: "Part[]"},
-                {"name": "royalties", type: "Part[]"}
+                {"name": "tokenId", "type": "uint256"},
+                {"name": "tokenURI", "type": "string"},
+                {"name": "creators", "type": "Part[]"},
+                {"name": "royalties", "type": "Part[]"}
             ],
             "Part": [
-                {"name": "account", type: "address"},
-                {"name": "value", type: "uint96"}
+                {"name": "account", "type": "address"},
+                {"name": "value", "type": "uint96"}
             ]
         },
         "domain": {
@@ -115,7 +122,7 @@ def get_mint_request(tokenId, ipfs_hash, royalty, creator):
             "creators": [
                 {
                     "account": creator,
-                    "value": "10000"}
+                    "value": 10000}
             ],
             "royalties": [
                 {
