@@ -49,11 +49,12 @@ def generate_meta_data(name, description, image, art_id):
     with open('/tmp/metadata.json', 'w') as outfile:
         json.dump(data, outfile)
 
-    files = {
-        'file': '/tmp/metadata.json'
-    }
-    response = requests.post('https://ipfs.infura.io:5001/api/v0/add', files=files,
-                             auth=('1xBSq6KuqrbDmhs2ASr722Cs8JF', '3c98ebb9f76fabc45d519718e41dd4f0'))
+    with open('/tmp/metadata.json', 'rb') as meta_json:
+        files = {
+            'file': meta_json
+        }
+        response = requests.post('https://ipfs.infura.io:5001/api/v0/add', files=files,
+                                 auth=('1xBSq6KuqrbDmhs2ASr722Cs8JF', '3c98ebb9f76fabc45d519718e41dd4f0'))
 
     ipfs_meta_hash = json.loads(response.text)
 
