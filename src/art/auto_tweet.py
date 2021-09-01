@@ -41,23 +41,55 @@ def get_art():
         Key={'configKey': 'HomePage'}
     )['Item']['ethRate']
 
+    count = 0
+    art_list = []
     for i in trending_art:
         log.info(i)
         art = dynamodb.Table('art').get_item(
             Key={'art_id': i})['Item']
         log.info(art)
         try:
-            if 'name' is not None and art['collection_data']['name'] is not None:
+            while count < 15:
+                if 'name' in art['collection_data'] and art['collection_data']['name'] is not None:
+                    if art['collection_data']['name'] in ['Mutant Ape Yacht Club', 'Bored Ape Yacht Club']:
+                        name = art['collection_data']['name']
+                        name_split = name.split()
+                        hashtag = "#" + (name.replace(" ", ""))
+                        message = "Another " + name_split[0] + " " + name_split[1] + " sells for "
+                        usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
+                        tweet = message + usd_price + " " + url + art[
+                            'art_id'] + hashtag + " #NFT #Ethereum #cryptoart #digitalart #NFTs"
+                        msg = {
+                            "art_id": i,
+                            "message": tweet,
+                            "timestamp": str(datetime.utcnow().isoformat()),
+                            "platform": "twitter"
+                        }
+                        dynamodb.Table('auto_tweet').put_item(Item=msg)
+                        log.info(f"msg:  {msg}")
+
+                        return tweet
+                count += 1
+                art_list.append(art)
+
+        except Exception as e:
+            log.info(e)
+            continue
+
+    for i in art_list:
+        log.info(i)
+        try:
+            if i['name'] is not None and i['collection_data']['name'] is not None:
                 resp = dynamodb.Table('auto_tweet').get_item(
-                    Key={'art_id': i})
+                    Key={'art_id': i['art_id']})
                 if 'Item' in resp:
                     continue
-                message = art['name'] + " sells for "
+                message = i['name'] + " sells for "
                 #  of the " + art['collection_data']['name'] + " collection
-                usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10**18)) / eth_rate), 2))
-                tweet = message + usd_price + " " + url + art['art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs"
+                usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10**18)) / eth_rate), 2))
+                tweet = message + usd_price + " " + url + i['art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs"
                 msg = {
-                    "art_id": i,
+                    "art_id": i['art_id'],
                     "message": tweet,
                     "timestamp": str(datetime.utcnow().isoformat()),
                     "platform": "twitter"
