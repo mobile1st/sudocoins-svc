@@ -51,7 +51,8 @@ def get_art():
             log.info(art)
             try:
                 if 'name' in art['collection_data'] and art['collection_data']['name'] is not None:
-                    if art['collection_data']['name'] in ['Mutant Ape Yacht Club', 'Bored Ape Yacht Club']:
+                    if art['collection_data']['name'] in ['Mutant Ape Yacht Club',
+                                                          'Bored Ape Yacht Club, Bored Ape Kennel Club']:
                         name = art['collection_data']['name']
                         token_id = art['contractId#tokenId'].split('#')[1]
                         name_split = name.split()
