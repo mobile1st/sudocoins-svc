@@ -28,10 +28,11 @@ def lambda_handler(event, context):
         return {'statusCode': 404}
 
     url = get_preview_url(art)
+    title = art['name'] if art.get('name') else art['alt'][:160]
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': get_preview_html(art['name'], url)
+        'body': get_preview_html(title, url)
     }
 
 
@@ -78,21 +79,6 @@ def get_by_share_id(share_id):
 
 
 def get_preview_html(title, url):
-    if not title:
-        return f"""<!DOCTYPE html>
-                <html lang="en" prefix="og: https://ogp.me/ns#">
-                    <head>
-                        <meta charset="utf-8" />
-                        <title>Sudocoins</title>
-                        <link rel="icon" href="/favicon.ico" />
-                        <meta name="twitter:card" content="summary_large_image" />
-                        <meta name="twitter:site" content="@sudocoins" />
-                        <meta property="og:description" content="Sign up and earn by sharing art." />
-                        <meta property="og:image" content="{url}" />
-                    </head>
-                    <body></body>
-                </html>"""
-
     title = html.escape(title)
     return f"""<!DOCTYPE html>
     <html lang="en" prefix="og: https://ogp.me/ns#">
