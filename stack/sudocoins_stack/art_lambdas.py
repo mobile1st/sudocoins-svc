@@ -209,7 +209,7 @@ class SudocoinsArtLambdas:
             scope,
             'ArtSearch',
             function_name='ArtSearch',
-            handler='art.art_search.lambda_handler',
+            handler='search.art_search.lambda_handler',
             **lambda_default_kwargs
         )
         # UPDATE ART TAGS
