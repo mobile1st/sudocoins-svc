@@ -28,7 +28,7 @@ def lambda_handler(event, context):
     log.info(f"response:  {resp}")
     log.info(f"content:  {content}")
 
-    return
+    return tweet
 
 
 def get_art():
@@ -43,22 +43,24 @@ def get_art():
 
     count = 0
     art_list = []
-    for i in trending_art:
-        log.info(i)
-        art = dynamodb.Table('art').get_item(
-            Key={'art_id': i})['Item']
-        log.info(art)
-        try:
-            while count < 15:
+    while count < 10:
+        for i in trending_art:
+            log.info(i)
+            art = dynamodb.Table('art').get_item(
+                Key={'art_id': i})['Item']
+            log.info(art)
+            try:
                 if 'name' in art['collection_data'] and art['collection_data']['name'] is not None:
                     if art['collection_data']['name'] in ['Mutant Ape Yacht Club', 'Bored Ape Yacht Club']:
                         name = art['collection_data']['name']
+                        token_id = art['contractId#tokenId'].split('#')[1]
                         name_split = name.split()
                         hashtag = "#" + (name.replace(" ", ""))
-                        message = "Another " + name_split[0] + " " + name_split[1] + " sells for "
-                        usd_price = "${:,.2f}".format(round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
+                        message = name_split[0] + " " + name_split[1] + " " + token_id + " sells for "
+                        usd_price = "${:,.2f}".format(
+                            round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                         tweet = message + usd_price + " " + url + art[
-                            'art_id'] + hashtag + " #NFT #Ethereum #cryptoart #digitalart #NFTs"
+                            'art_id'] + " " + hashtag + " #NFT #Ethereum #cryptoart #digitalart #NFTs"
                         msg = {
                             "art_id": i,
                             "message": tweet,
@@ -72,9 +74,9 @@ def get_art():
                 count += 1
                 art_list.append(art)
 
-        except Exception as e:
-            log.info(e)
-            continue
+            except Exception as e:
+                log.info(e)
+                continue
 
     for i in art_list:
         log.info(i)
@@ -86,8 +88,9 @@ def get_art():
                     continue
                 message = i['name'] + " sells for "
                 #  of the " + art['collection_data']['name'] + " collection
-                usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10**18)) / eth_rate), 2))
-                tweet = message + usd_price + " " + url + i['art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs"
+                usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
+                tweet = message + usd_price + " " + url + i[
+                    'art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs"
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
