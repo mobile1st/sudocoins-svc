@@ -26,7 +26,7 @@ def lambda_handler(event, context):
         response2 = json.loads(response.text)
 
         return {
-            "ipfs": response2['Hash']
+            "ipfs_image": response2['Hash']
         }
 
 
