@@ -43,7 +43,7 @@ def get_art():
 
     count = 0
     art_list = []
-    while count < 10:
+    while count < 2:
         for i in trending_art:
             log.info(i)
             art = dynamodb.Table('art').get_item(
