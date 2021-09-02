@@ -80,6 +80,7 @@ def get_art():
                 count += 1
                 log.info(e)
                 continue
+        break
 
     for i in art_list:
         log.info(i)
