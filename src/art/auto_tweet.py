@@ -45,7 +45,7 @@ def get_art():
     art_list = []
 
     for i in trending_art:
-        if count < 3:
+        if count < 1:
             art = dynamodb.Table('art').get_item(
                 Key={'art_id': i})['Item']
             try:
