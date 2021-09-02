@@ -43,8 +43,9 @@ def get_art():
 
     count = 0
     art_list = []
-    while count < 2:
-        for i in trending_art:
+
+    for i in trending_art:
+        while count < 1:
             log.info(i)
             art = dynamodb.Table('art').get_item(
                 Key={'art_id': i})['Item']
@@ -76,6 +77,7 @@ def get_art():
                 art_list.append(art)
 
             except Exception as e:
+                count += 1
                 log.info(e)
                 continue
 
