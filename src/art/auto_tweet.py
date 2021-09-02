@@ -82,16 +82,17 @@ def get_art():
     for i in art_list:
         log.info(i)
         try:
-            if i['name'] is not None and i['collection_data']['name'] is not None:
+            if i['name'] is not None or i['collection_data']['name'] is not None:
                 resp = dynamodb.Table('auto_tweet').get_item(
                     Key={'art_id': i['art_id']})
                 if 'Item' in resp:
                     continue
-                message = i['name'] + " sells for "
+                name = i['name'] if i['name'] is not None else i['collection_data']['name']
+                message = name + " sells for "
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                 tweet = message + usd_price + " " + url + i[
-                    'art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs"
+                    'art_id'] + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs #BSC"
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
