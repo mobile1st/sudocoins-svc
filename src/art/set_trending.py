@@ -67,7 +67,9 @@ def get_trending():
     for i in sorted_arts:
         day.append(i['art_id'])
         if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
-            hour.append(i['art_id'])
+            collection_name = i.get("collection_data", {}).get("name")
+            if collection_name not in ['Loot (for Adventurers)']:
+                hour.append(i['art_id'])
         if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
             half_day.append(i['art_id'])
 
