@@ -45,11 +45,9 @@ def get_art():
     art_list = []
 
     for i in trending_art:
-        while count < 1:
-            log.info(i)
+        if count < 3:
             art = dynamodb.Table('art').get_item(
                 Key={'art_id': i})['Item']
-            log.info(art)
             try:
                 if 'name' in art['collection_data'] and art['collection_data']['name'] is not None:
                     if art['collection_data']['name'] in ['Mutant Ape Yacht Club',
@@ -80,7 +78,6 @@ def get_art():
                 count += 1
                 log.info(e)
                 continue
-        break
 
     for i in art_list:
         log.info(i)
