@@ -105,22 +105,22 @@ class SudocoinsImportedResources:
             record_name=sitemaps_bucket_name,
             target=route53.RecordTarget.from_alias(route53_targets.BucketWebsiteTarget(self.sitemaps_bucket))
         )
-        # self.test_bucket = s3.Bucket(
-        #     scope,
-        #     'TestBucket',
-        #     bucket_name='sudocoins-test-bucket',
-        #     #public_read_access=True,
-        #     cors=[s3.CorsRule(
-        #         allowed_methods=[
-        #             s3.HttpMethods.HEAD,
-        #             s3.HttpMethods.GET,
-        #             s3.HttpMethods.POST,
-        #             s3.HttpMethods.PUT
-        #         ],
-        #         allowed_origins=['*'],
-        #         allowed_headers=['*']
-        #     )]
-        # )
+        self.test_bucket = s3.Bucket(
+            scope,
+            'TestBucket',
+            bucket_name='sudocoins-test-bucket',
+            public_read_access=True,
+            cors=[s3.CorsRule(
+                allowed_methods=[
+                    s3.HttpMethods.HEAD,
+                    s3.HttpMethods.GET,
+                    s3.HttpMethods.POST,
+                    s3.HttpMethods.PUT
+                ],
+                allowed_origins=['*'],
+                allowed_headers=['*']
+            )]
+        )
 
     def construct_tables(self, scope):
         self.creators_table = dynamodb.Table(
