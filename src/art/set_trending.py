@@ -17,13 +17,19 @@ def lambda_handler(event, context):
 
 def set_config(hour, half_day, day, artists):
     config_table = dynamodb.Table('Config')
+
+    if len(hour) is 0:
+        trending = day
+    else:
+        trending = hour
+
     config_table.update_item(
         Key={
             'configKey': 'TrendingArt'
         },
         UpdateExpression="set art=:art, trending_hour=:hour, trending_half_day=:hday, trending_day=:day",
         ExpressionAttributeValues={
-            ":art": day,
+            ":art": trending,
             ":hour": hour,
             ":hday": half_day,
             ":day": day
