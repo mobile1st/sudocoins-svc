@@ -128,6 +128,13 @@ class SudocoinsImportedResources:
             partition_key=dynamodb.Attribute(name='art_id', type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
+        self.binance_events_table = dynamodb.Table(
+            scope,
+            'BinanceEventsTable',
+            table_name='binance_events',
+            partition_key=dynamodb.Attribute(name='tx_hash', type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+        )
 
     def import_tables(self, scope):
         self.traffic_reports_table = self.import_table(scope, 'TrafficReports')
@@ -143,6 +150,7 @@ class SudocoinsImportedResources:
         self.verifications_table = self.import_table(scope, 'Verifications')
         self.art_votes_table = self.import_table(scope, 'art_votes')
         self.ether_events_table = self.import_table(scope, 'ether_events')
+        self.binance_events_table = self.import_table(scope, 'binance_events')
 
     def import_table(self, scope, table_name):
         return dynamodb.Table.from_table_arn(
