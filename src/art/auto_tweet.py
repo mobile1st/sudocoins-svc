@@ -21,6 +21,9 @@ def lambda_handler(event, context):
 
     tweet = get_art()
 
+    if tweet is None:
+        return
+
     data = {'status': tweet}
     request_uri = 'https://api.twitter.com/1.1/statuses/update.json'
     resp, content = client.request(request_uri, 'POST', urllib.parse.urlencode(data))
