@@ -23,7 +23,7 @@ def set_config(hour, half_day, day, artists):
         },
         UpdateExpression="set art=:art, trending_hour=:hour, trending_half_day=:hday, trending_day=:day",
         ExpressionAttributeValues={
-            ":art": hour,
+            ":art": day,
             ":hour": hour,
             ":hday": half_day,
             ":day": day
