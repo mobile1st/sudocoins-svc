@@ -66,7 +66,7 @@ def save_event(event):
             "tx_hash": web3.toHex(event['transactionHash']),
             "blockNumber": event['blockNumber'],
             "blockHash": web3.toHex(event['blockHash']),
-            "tokenId": event['args']['tokenId']
+            "value": event['args']['value']
         }
         try:
             binance_events_table.put_item(
