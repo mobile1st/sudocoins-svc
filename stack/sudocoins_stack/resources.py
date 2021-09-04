@@ -105,21 +105,6 @@ class SudocoinsImportedResources:
             record_name=sitemaps_bucket_name,
             target=route53.RecordTarget.from_alias(route53_targets.BucketWebsiteTarget(self.sitemaps_bucket))
         )
-        self.test_bucket = s3.Bucket(
-            scope,
-            'TestBucket',
-            bucket_name='sudocoins-test-bucket',
-            cors=[s3.CorsRule(
-                allowed_methods=[
-                    s3.HttpMethods.HEAD,
-                    s3.HttpMethods.GET,
-                    s3.HttpMethods.POST,
-                    s3.HttpMethods.PUT
-                ],
-                allowed_origins=['*'],
-                allowed_headers=['*']
-            )]
-        )
 
     def construct_tables(self, scope):
         self.creators_table = dynamodb.Table(
@@ -228,7 +213,16 @@ class SudocoinsImportedResources:
             scope,
             'ArtBucket',
             bucket_name='sudocoins-art-bucket',
-            block_public_access=s3.BlockPublicAccess.BLOCK_ALL
+            cors=[s3.CorsRule(
+                allowed_methods=[
+                    s3.HttpMethods.HEAD,
+                    s3.HttpMethods.GET,
+                    s3.HttpMethods.POST,
+                    s3.HttpMethods.PUT
+                ],
+                allowed_origins=['*'],
+                allowed_headers=['*']
+            )]
         )
         certificate = acm.Certificate.from_certificate_arn(
             scope,
