@@ -109,7 +109,6 @@ class SudocoinsImportedResources:
             scope,
             'TestBucket',
             bucket_name='sudocoins-test-bucket',
-            public_read_access=True,
             cors=[s3.CorsRule(
                 allowed_methods=[
                     s3.HttpMethods.HEAD,
