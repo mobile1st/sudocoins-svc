@@ -343,6 +343,8 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_bucket.grant_read_write(self.start_mint_function)
+        resources.art_bucket.grant_put(self.start_mint_function)
+        resources.art_bucket.grant_put_acl(self.start_mint_function)
         resources.art_table.grant_read_write_data(self.start_mint_function)
         # SET IPFS
         self.set_ipfs_function = _lambda.Function(
