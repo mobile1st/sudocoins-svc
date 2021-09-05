@@ -1,5 +1,6 @@
 import json
 import http.client
+import urllib.parse
 from util import sudocoins_logger
 
 log = sudocoins_logger.get()
@@ -20,21 +21,14 @@ def lambda_handler(event, context):
         }
 
     search_response = call_google_search(query, size, start)
-    log.info(f'search response: {json.dumps(search_response, indent=4)}')
+    log.info(f'search response: {search_response}')
     queries = search_response['queries']
-    request = queries['request'][0]
     next_page_list = queries.get('nextPage')
     next_page = next_page_list[0] if next_page_list else {}
-    arts = filter_results(search_response['items'])
+    arts = filter_results(search_response.get('items'))
     return {
-        'total': request.get('totalResults', 0),
         'arts': arts,
-        'filteredCount': len(arts),
-        'unfilteredCount': request.get('count', 0),
-        'nextPage': {
-            'unfilteredCount': next_page.get('count', 0),
-            'startIndex': next_page.get('startIndex', None)
-        }
+        'nextOffset': next_page.get('startIndex', None)
     }
 
 
@@ -47,13 +41,16 @@ def extract_parameters(query_params):
 
 def call_google_search(query, size, start):
     conn = http.client.HTTPSConnection(google_search_host)
-    conn.request('GET', f'/customsearch/v1?cx={search_engine_id}&key={api_key}&q={query}&num={size}&start={start}')
+    q = urllib.parse.quote(query)
+    conn.request('GET', f'/customsearch/v1?cx={search_engine_id}&key={api_key}&q={q}&num={size}&start={start}')
     response = conn.getresponse().read()
     log.debug(f'raw search response: {response}')
     return json.loads(response)
 
 
 def filter_results(items):
+    if not items:
+        return []
     return [item['link'].replace(art_page_prefix, '') for item in items if item['link'].startswith(art_page_prefix)]
 
 
