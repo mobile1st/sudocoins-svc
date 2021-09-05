@@ -31,7 +31,7 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': get_preview_html(art.get('name'), art.get('alt'), url)
+        'body': get_preview_html(art, url)
     }
 
 
@@ -79,8 +79,10 @@ def get_by_share_id(share_id):
     return arts.get(share_id)
 
 
-def get_preview_html(title, alt, url):
-    title = title if title else alt[:160]
+def get_preview_html(art, url):
+    art_id = art['art_id']
+    alt = art.get('alt', '')
+    title = art['title'] if art.get('title') else alt[:160]
     title = html.escape(title)
     pretty = f"""
     <!DOCTYPE html>
@@ -89,6 +91,7 @@ def get_preview_html(title, alt, url):
             <meta charset="utf-8" />
             <title>{title}</title>
             <link rel="icon" href="/favicon.ico" />
+            <link rel="alternate" href="https://www.sudocoins.com/art/{art_id}" />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@sudocoins" />
             <meta property="og:title" content="{title}" />

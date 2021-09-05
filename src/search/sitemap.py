@@ -22,7 +22,7 @@ def upload_file_to_s3(key, body):
 
 
 class Sitemap(object):
-    _url = 'https://www.sudocoins.com/art/'
+    _url = 'https://app.sudocoins.com/art/social/'
     _now = datetime.now().strftime('%Y-%m-%d')
     _name = None
     _last_modified = None
