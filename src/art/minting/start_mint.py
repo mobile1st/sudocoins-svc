@@ -19,6 +19,7 @@ def lambda_handler(event, context):
 
     return {
         'file_name': file_name,
+        'cdn_url': f'https://cdn.sudocoins.com/{file_name}',
         'presigned_url': response,
         'headers': {'content-type': mime_type}
     }
