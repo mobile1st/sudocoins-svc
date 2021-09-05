@@ -212,6 +212,26 @@ class SudocoinsArtLambdas:
             handler='search.art_search.lambda_handler',
             **lambda_default_kwargs
         )
+        # SITEMAP UPLOADER
+        sitemap_uploader_function = _lambda.Function(
+            scope,
+            'ArtSitemapUploader',
+            function_name='ArtSitemapUploader',
+            handler='search.sitemap_uploader.lambda_handler',
+            timeout=cdk.Duration.minutes(15),
+            **lambda_default_kwargs
+        )
+        events.Rule(
+            scope,
+            'ArtSitemapUploaderRule',
+            rule_name='ArtSitemapUploaderRule',
+            enabled=True,
+            schedule=events.Schedule.cron(minute='0', hour='4', day='*', month='*', year='*'),
+            targets=[events_targets.LambdaFunction(handler=sitemap_uploader_function)]
+        )
+        resources.art_table.grant_read_write_data(sitemap_uploader_function)
+        resources.grant_read_index_data(sitemap_uploader_function, [resources.art_table])
+        resources.sitemaps_bucket.grant_read_write(sitemap_uploader_function)
         # UPDATE ART TAGS
         self.update_tags_function = _lambda.Function(
             scope,
@@ -363,16 +383,3 @@ class SudocoinsArtLambdas:
             handler='art.minting.get_mint_request.lambda_handler',
             **lambda_default_kwargs
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
