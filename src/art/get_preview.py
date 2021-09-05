@@ -28,11 +28,10 @@ def lambda_handler(event, context):
         return {'statusCode': 404}
 
     url = get_preview_url(art)
-    title = art['name'] if art.get('name') else art['alt'][:160]
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': get_preview_html(title, url)
+        'body': get_preview_html(art.get('name'), art.get('alt'), url)
     }
 
 
@@ -42,7 +41,9 @@ def set_log_context(event):
 
 
 def is_browser(user_agent):
-    return 'Twitterbot' not in user_agent and 'facebookexternalhit' not in user_agent
+    return 'Twitterbot' not in user_agent \
+           and 'facebookexternalhit' not in user_agent \
+           and 'Googlebot' not in user_agent
 
 
 def get_preview_url(art):
@@ -78,13 +79,15 @@ def get_by_share_id(share_id):
     return arts.get(share_id)
 
 
-def get_preview_html(title, url):
+def get_preview_html(title, alt, url):
+    title = title if title else alt[:160]
     title = html.escape(title)
-    return f"""<!DOCTYPE html>
+    pretty = f"""
+    <!DOCTYPE html>
     <html lang="en" prefix="og: https://ogp.me/ns#">
         <head>
             <meta charset="utf-8" />
-            <title>Sudocoins</title>
+            <title>{title}</title>
             <link rel="icon" href="/favicon.ico" />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@sudocoins" />
@@ -92,5 +95,11 @@ def get_preview_html(title, url):
             <meta property="og:description" content="Sign up and earn by sharing art." />
             <meta property="og:image" content="{url}" />
         </head>
-        <body></body>
-    </html>"""
+        <body>
+            <img src="{url}" alt="{alt}"/>
+        </body>
+    </html>
+    """
+
+    # compact: remove line breaks, empty lines, leading and trailing spaces
+    return ''.join(filter(lambda l: l != '', [x.strip() for x in pretty.split('\n')]))
