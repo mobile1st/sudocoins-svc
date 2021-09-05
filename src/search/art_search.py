@@ -15,10 +15,7 @@ def lambda_handler(event, context):
     query, size, start = extract_parameters(event['queryStringParameters'])
     # google search limitations
     if size > 10 or size + start > 100:
-        return {
-            'total': 0,
-            'arts': []
-        }
+        return {'arts': []}
 
     search_response = call_google_search(query, size, start)
     log.info(f'search response: {search_response}')
