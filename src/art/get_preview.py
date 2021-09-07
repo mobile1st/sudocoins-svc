@@ -70,7 +70,7 @@ def get_by_share_id(share_id):
     """ returns the art urls based on shareId: {name, art_url, preview_url} """
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
-        ProjectionExpression="art_url, preview_url, #n",
+        ProjectionExpression="art_id, art_url, preview_url, #n",
         ExpressionAttributeNames={'#n': 'name'}
     )
     if 'Item' in art_uploads_record:
