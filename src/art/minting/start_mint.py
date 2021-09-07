@@ -12,6 +12,13 @@ def lambda_handler(event, context):
     art_id = str(uuid.uuid1())
     body = json.loads(event['body'])
     file_ext = body['file_ext']
+
+    if file_ext not in ['gif', 'png', 'jpeg', 'jpg']:
+        log.info('unsupported file type')
+        return {
+            "error": 'unsupported file type'
+        }
+
     file_name = art_id + "." + file_ext
     mime_type = mimetypes.guess_type(file_name)[0]
     response = create_presigned_url('sudocoins-art-bucket', file_name, mime_type, expiration=360)
