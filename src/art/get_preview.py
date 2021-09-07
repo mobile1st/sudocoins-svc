@@ -84,6 +84,7 @@ def get_preview_html(art, url):
     art_id = art['art_id']
     alt = art.get('alt', '')
     title = art['title'] if art.get('title') else alt[:160]
+    title = art['name'] if not title else title
     title = html.escape(title)
     pretty = f"""
     <!DOCTYPE html>
