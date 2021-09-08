@@ -55,6 +55,7 @@ class Art:
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea}")
         creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
+        short_code = str(uuid.uuid4())[:8]
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -75,7 +76,8 @@ class Art:
             "event_type": "manually added",
             "blockchain": "Ethereum",
             "last_sale_price": 0,
-            "process_to_google_search": "TO_BE_INDEXED"
+            "process_to_google_search": "TO_BE_INDEXED",
+            "short_code": short_code
         }
 
 
@@ -203,6 +205,7 @@ class Art:
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea} {art_object}")
         creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
+        short_code = str(uuid.uuid4())[:8]
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -228,7 +231,8 @@ class Art:
                 "name": art_object.get('asset', {}).get('collection', {}).get('name'),
                 "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url')
             },
-            "process_to_google_search": "TO_BE_INDEXED"
+            "process_to_google_search": "TO_BE_INDEXED",
+            "short_code": short_code
         }
 
         self.art_table.put_item(Item=art_record)
