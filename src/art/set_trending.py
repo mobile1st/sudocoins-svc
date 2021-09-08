@@ -51,14 +51,14 @@ def get_trending():
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
-        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data"
+        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address"
     )
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data",
+            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
@@ -71,34 +71,34 @@ def get_trending():
     artists = {}
 
     for i in sorted_arts:
-        day.append(i['art_id'])
-        if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
-            hour.append(i['art_id'])
-        if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
-            half_day.append(i['art_id'])
+        try:
+            day.append(i['art_id'])
+            if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
+                hour.append(i['art_id'])
+            if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
+                half_day.append(i['art_id'])
 
-        if i['creator'] in artists:
-            artists[i['creator']]['score'] += i.get('last_sale_price')
-        else:
-            artists[i['creator']] = {}
-            artists[i['creator']]['score'] = i.get('last_sale_price')
-            artists[i['creator']]['avatar'] = i.get('preview_url')
+            if i['collection_data']['name'] in artists:
+                artists[i['collection_data']['name']]['score'] += i.get('last_sale_price')
+            else:
+                artists[i['collection_data']['name']] = {}
+                artists[i['collection_data']['name']]['score'] = i.get('last_sale_price')
+                artists[i['collection_data']['name']]['avatar'] = i.get('preview_url')
 
-            artists[i['creator']]['data'] = {}
-            artists[i['creator']]['data']['address'] = i.get('creator')
-            artists[i['creator']]['data']['profile_img_url'] = i.get('preview_url')
-            artists[i['creator']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
+                artists[i['collection_data']['name']]['data'] = {}
+                artists[i['collection_data']['name']]['data']['address'] = i.get('creator')
+                artists[i['collection_data']['name']]['data']['profile_img_url'] = i.get('preview_url')
+                artists[i['collection_data']['name']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
-            artists[i['creator']]['art1'] = i.get('art_id')
+                artists[i['collection_data']['name']]['art1'] = i.get('art_id')
+                artists[i['collection_data']['name']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
+                artists[i['collection_data']['name']]['collection_address'] = i.get('collection_address')
 
-            if artists[i['creator']]['data']['user'] is not None and 'user' in artists[i['creator']]['data']['user']:
-                if artists[i['creator']]['data']['user']['user'] is not None and 'username' in \
-                        artists[i['creator']]['data']['user']['user']:
-                    if artists[i['creator']]['data']['user']['user']['username'] is not None:
-                        artists[i['creator']]['name'] = artists[i['creator']]['data']['user']['user']['username']
 
-            if 'name' not in artists[i['creator']]:
-                artists[i['creator']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
+        except Exception as e:
+            log.info(e)
+            continue
+
 
     leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:250]
 
