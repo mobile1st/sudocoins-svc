@@ -61,7 +61,7 @@ def lambda_handler(event, context):
 
     dynamodb.Table('art').put_item(Item=art_record)
 
-    return art_record
+    return
 
 
 def set_log_context(event):
