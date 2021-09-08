@@ -196,12 +196,12 @@ class SudocoinsArtApi:
             integration=get_mint_request_integration
         )
         # END MINT REQUEST
-        end_mint_request_integration = api_integrations.LambdaProxyIntegration(
+        end_mint_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.end_mint_function
         )
         art_api_v3.add_routes(
             path='/end-mint',
             methods=[apigwv2.HttpMethod.POST],
-            integration=end_mint_request_integration
+            integration=end_mint_integration
         )
 

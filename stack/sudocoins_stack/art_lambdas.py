@@ -386,9 +386,9 @@ class SudocoinsArtLambdas:
         # END MINT REQUEST
         self.end_mint_function = _lambda.Function(
             scope,
-            'EndMintRequestV2',
-            function_name='EndMintRequestV2',
-            handler='art.minting.end_mint_request.lambda_handler',
+            'EndMintV2',
+            function_name='EndMintV2',
+            handler='art.minting.end_mint.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.end_mint_function)
