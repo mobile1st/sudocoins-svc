@@ -129,8 +129,9 @@ class Sitemap(object):
 
 
 class Sitemaps(object):
+    _version = 'v1'
     _sitemap_index_name = 'sitemaps.xml'
-    _sitemap_name_prefix = 'sitemap-'
+    _sitemap_name_prefix = f'sitemap-{_version}-'
     _sitemap_extension = '.xml'
 
     def __init__(self):
