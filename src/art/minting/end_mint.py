@@ -11,6 +11,7 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     body = json.loads(event['body'])
+    #. body = event
     time_now = str(datetime.utcnow().isoformat())
 
     url = "https://rarible.com/token/"
@@ -43,7 +44,6 @@ def lambda_handler(event, context):
         "sort_idx": 'true',
         "creator": creator,
         "process_status": "STREAM_TO_S3",
-        "tags": [],
         "event_date": time_now,
         "event_type": "mint",
         "blockchain": "Ethereum",
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
 
     dynamodb.Table('art').put_item(Item=art_record)
 
-    return
+    return art_record
 
 
 def set_log_context(event):
