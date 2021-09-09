@@ -11,9 +11,9 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     # returns the art shared by the user
     set_log_context(event)
-    user_id = event['pathParameters']['userId']
+    sub = event['pathParameters']['userId']
     return {
-        'art': get_uploads(user_id)
+        'art': get_uploads(sub)
     }
 
 
@@ -22,12 +22,13 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_uploads(user_id):
+def get_uploads(sub):
     # returns the user's uploaded art sorted by timestamp
-    uploads = dynamodb.Table('art_uploads').query(
-        KeyConditionExpression=Key('user_id').eq(user_id),
+
+    uploads = dynamodb.Table('art').query(
+        KeyConditionExpression=Key('creator').eq(sub),
         ScanIndexForward=False,
-        IndexName='User_uploaded_art_view_idx',
+        IndexName='creators-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags'
     )['Items']
