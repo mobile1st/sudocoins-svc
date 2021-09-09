@@ -17,7 +17,7 @@ class SudocoinsRootApi:
                  cors_preflight: typing.Optional[apigwv2.CorsPreflightOptions]):
         root_api_v1 = apigwv2.HttpApi(
             scope,
-            'RootApiV3',
+            'RootApiV1',
             default_domain_mapping=apigwv2.DomainMappingOptions(
                 domain_name=resources.sudocoins_domain_name
             ),
@@ -28,7 +28,7 @@ class SudocoinsRootApi:
             handler=lambdas.social_share_function
         )
         root_api_v1.add_routes(
-            path='/{shareId}',
+            path='/a/{shareId}',
             methods=[apigwv2.HttpMethod.GET],
             integration=social_share_integration
         )
