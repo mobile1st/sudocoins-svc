@@ -10,6 +10,7 @@ def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
     input_json = json.loads(event.get('body', '{}'))
+    # input_json=event
 
     if input_json['msg'] == "update":
         return update_colors(input_json['user_id'], input_json['bg_color'],
@@ -44,7 +45,7 @@ def update_colors(user_id, bg_color, tile_color, text_color):
 
 
 def get_colors(sub):
-    user_id = dynamodb.Table('sub').get_item(Key={'sub': sub})['Item']['user_id']
+    user_id = dynamodb.Table('sub').get_item(Key={'sub': sub})['Item']['userId']
 
     return dynamodb.Table('Profile').get_item(Key={'userId': user_id},
                                               ProjectionExpression='userId, bg_color, text_color, tile_color, email,'
