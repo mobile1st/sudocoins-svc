@@ -150,6 +150,7 @@ class SudocoinsUserLambdas:
             **lambda_default_kwargs
         )
         resources.profile_table.grant_read_write_data(self.update_colors_function)
+        resources.sub_table.grant_read_write_data(self.update_colors_function)
         self.update_colors_function.role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
