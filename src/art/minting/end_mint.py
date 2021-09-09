@@ -3,6 +3,7 @@ from util import sudocoins_logger
 from datetime import datetime
 import uuid
 import json
+from decimal import Decimal, getcontext
 
 
 log = sudocoins_logger.get()
@@ -56,7 +57,8 @@ def lambda_handler(event, context):
         "process_to_google_search": "TO_BE_INDEXED",
         "metadata": body.get("mint_response", {}).get('uri'),
         "royalty": body.get("mint_response", {}).get('royalties'),
-        "short_code": short_code
+        "short_code": short_code,
+        "list_price": float(body.get("form_data", {}).get("price", 0)) * (10**18)
     }
 
     dynamodb.Table('art').put_item(Item=art_record)
