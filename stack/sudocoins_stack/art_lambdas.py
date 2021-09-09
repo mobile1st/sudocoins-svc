@@ -392,3 +392,19 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.end_mint_function)
+        # ADD SEARCH
+        add_search_function = _lambda.Function(
+            scope,
+            'AddSearchV2',
+            function_name='AddSearchV2',
+            handler='art.add_search.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.add_search_topic.add_subscription(
+            subs.LambdaSubscription(
+                add_search_function
+            )
+        )
+        resources.search_table.grant_read_write_data(add_search_function)
+
+

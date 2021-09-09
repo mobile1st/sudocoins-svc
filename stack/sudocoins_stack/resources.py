@@ -88,6 +88,12 @@ class SudocoinsImportedResources:
             display_name='IngestOpenSeaTopic',
             topic_name='IngestOpenSeaTopic'
         )
+        self.add_search_topic = sns.Topic(
+            scope,
+            'AddSearchTopic',
+            display_name='AddSearchTopic',
+            topic_name='AddSearchTopic'
+        )
 
     def construct_s3_buckets(self, scope):
         sitemaps_bucket_name = 'sitemaps.sudocoins.com'
@@ -135,6 +141,13 @@ class SudocoinsImportedResources:
             partition_key=dynamodb.Attribute(name='tx_hash', type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
+        self.search_table = dynamodb.Table(
+            scope,
+            'SearchTable',
+            table_name='search',
+            partition_key=dynamodb.Attribute(name='search_key', type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+        )
 
     def import_tables(self, scope):
         self.traffic_reports_table = self.import_table(scope, 'TrafficReports')
@@ -151,6 +164,7 @@ class SudocoinsImportedResources:
         self.art_votes_table = self.import_table(scope, 'art_votes')
         self.ether_events_table = self.import_table(scope, 'ether_events')
         self.binance_events_table = self.import_table(scope, 'binance_events')
+        self.search_table = self.import_table(scope, 'search')
 
     def import_table(self, scope, table_name):
         return dynamodb.Table.from_table_arn(

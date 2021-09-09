@@ -12,9 +12,6 @@ from decimal import Decimal, getcontext
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
-
-log = sudocoins_logger.get()
-dynamodb = boto3.resource('dynamodb')
 ledger = Ledger(dynamodb)
 art = Art(dynamodb)
 
