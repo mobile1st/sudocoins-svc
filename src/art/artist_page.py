@@ -23,12 +23,12 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_uploads(artist):
+def get_uploads(collection):
     # returns the artists uploaded art sorted by timestamp
     uploads = dynamodb.Table('art').query(
-        KeyConditionExpression=Key('creator').eq(artist),
+        KeyConditionExpression=Key('collection_address').eq(collection),
         ScanIndexForward=False,
-        IndexName='creators-index',
+        IndexName='collection_address-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price'
     )['Items']
