@@ -16,7 +16,7 @@ def lambda_handler(event, context):
                              input_json['tile_color'], input_json['text_color'])
 
     elif input_json['msg'] == "get":
-        return get_colors(input_json['user_id'])
+        return get_colors(input_json['public_address'])
 
     return
 
@@ -43,7 +43,9 @@ def update_colors(user_id, bg_color, tile_color, text_color):
     )['Attributes']
 
 
-def get_colors(user_id):
+def get_colors(sub):
+    user_id = dynamodb.Table('sub').get_item(Key={'sub': sub})['Item']['user_id']
+
     return dynamodb.Table('Profile').get_item(Key={'userId': user_id},
                                               ProjectionExpression='userId, bg_color, text_color, tile_color, email,'
                                                                    'user_name, twitter_handle')['Item']
