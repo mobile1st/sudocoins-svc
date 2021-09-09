@@ -29,7 +29,7 @@ class Art:
         art = self.art_table.get_item(
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
-                                 "tags, last_sale_price, open_sea_data",
+                                 "tags, last_sale_price, open_sea_data, list_price",
             ExpressionAttributeNames={'#n': 'name'})
         try:
             if 'Item' in art:
