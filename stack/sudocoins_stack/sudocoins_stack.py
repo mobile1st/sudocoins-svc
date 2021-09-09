@@ -4,10 +4,12 @@ from art_lambdas import SudocoinsArtLambdas
 from art_processor_lambdas import SudocoinsArtProcessorLambdas
 from user_lambdas import SudocoinsUserLambdas
 from ether_lambdas import SudocoinsEtherLambdas
+from root_lambdas import SudocoinsRootLambdas
 from admin_api import SudocoinsAdminApi
 from art_api import SudocoinsArtApi
 from user_api import SudocoinsUserApi
 from ether_api import SudocoinsEtherApi
+from root_api import SudocoinsRootApi
 from aws_cdk import (
     core as cdk,
     aws_apigatewayv2 as apigwv2,
@@ -34,3 +36,5 @@ class SudocoinsStack(cdk.Stack):
         user_lambdas = SudocoinsUserLambdas(self, resources)
         user_api = SudocoinsUserApi(self, resources, user_lambdas, default_cors_preflight)
         ether_lambdas = SudocoinsEtherLambdas(self, resources)
+        root_lambdas = SudocoinsRootLambdas(self, resources)
+        root_api = SudocoinsRootApi(self, resources, root_lambdas, default_cors_preflight)
