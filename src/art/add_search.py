@@ -1,8 +1,5 @@
 import boto3
 from util import sudocoins_logger
-import json
-from boto3.dynamodb.conditions import Key
-from util import sudocoins_logger
 import string
 
 log = sudocoins_logger.get()
@@ -22,7 +19,10 @@ stop = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'you
 
 
 def lambda_handler(event, context):
-    art_object = json.loads(event['Records'][0]['Sns']['Message'])
+    # art_object = json.loads(event['Records'][0]['Sns']['Message'])
+    art_object = event['Records'][0]['Sns']['Message']
+    print(art_object)
+
     log.info(f'payload: {art_object}')
     art_id = art_object['art_id']
 
@@ -33,14 +33,17 @@ def lambda_handler(event, context):
     d = [w for w in c if not w in stop]
 
     for i in d:
-        dynamodb.Table('search').update_item(
+        print(i)
+        result = dynamodb.Table('search').update_item(
             Key={
                 'search_key': i
             },
-            UpdateExpression="SET arts = list_append(arts, :i)",
+            UpdateExpression="SET arts = list_append(if_not_exists(arts, :empty_list), :i)",
             ExpressionAttributeValues={
                 ':i': [art_id],
+                ':empty_list': []
             },
             ReturnValues="UPDATED_NEW"
         )
+        print(result)
 
