@@ -18,7 +18,7 @@ def lambda_handler(event, context):
 def set_config(hour, half_day, day, artists):
     config_table = dynamodb.Table('Config')
 
-    if len(hour) is 0:
+    if len(hour) == 0:
         trending = day
     else:
         trending = hour

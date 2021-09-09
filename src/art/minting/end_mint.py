@@ -12,7 +12,7 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     body = json.loads(event['body'])
-    #. body = event
+    # body = event
     time_now = str(datetime.utcnow().isoformat())
 
     url = "https://rarible.com/token/"
@@ -58,12 +58,12 @@ def lambda_handler(event, context):
         "metadata": body.get("mint_response", {}).get('uri'),
         "royalty": body.get("mint_response", {}).get('royalties'),
         "short_code": short_code,
-        "list_price": float(body.get("form_data", {}).get("price", 0)) * (10**18)
+        "list_price": Decimal(body.get("form_data", {}).get("price", 0)) * (10**18)
     }
 
     dynamodb.Table('art').put_item(Item=art_record)
 
-    return
+    return art_record
 
 
 def set_log_context(event):
