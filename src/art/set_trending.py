@@ -86,7 +86,7 @@ def get_trending():
                 artists[i['collection_data']['name']]['avatar'] = i.get('preview_url')
 
                 artists[i['collection_data']['name']]['data'] = {}
-                artists[i['collection_data']['name']]['data']['address'] = i.get('creator')
+                artists[i['collection_data']['name']]['data']['address'] = i.get('collection_address')
                 artists[i['collection_data']['name']]['data']['profile_img_url'] = i.get('preview_url')
                 artists[i['collection_data']['name']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
