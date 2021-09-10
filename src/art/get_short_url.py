@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     art_id = event['pathParameters']['shareId']
     short_id = encode_uid(art_id)
     return {
-        'shortUrl': f'https://sudo.art/{short_id}'
+        'shortUrl': f'http://sudo.art/{short_id}'
     }
 
 
