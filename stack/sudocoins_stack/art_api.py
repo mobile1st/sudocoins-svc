@@ -132,6 +132,15 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_preview_integration
         )
+        # GET SHORT URL
+        get_short_url_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_short_url_function
+        )
+        art_api_v3.add_routes(
+            path='/{shareId}/short',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_short_url_integration
+        )
         # ART SEARCH
         art_search_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.art_search_function

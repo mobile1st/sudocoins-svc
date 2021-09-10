@@ -204,6 +204,15 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.get_preview_function)
         resources.art_uploads_table.grant_read_write_data(self.get_preview_function)
         resources.grant_read_index_data(self.get_preview_function, [resources.art_table, resources.art_uploads_table])
+        # GET SHORT URL
+        self.get_short_url_function = _lambda.Function(
+            scope,
+            'ArtGetShortUrlV1',
+            function_name='ArtGetShortUrlV1',
+            handler='art.get_short_url.lambda_handler',
+            timeout=cdk.Duration.seconds(5),
+            **lambda_default_kwargs
+        )
         # ART SEARCH
         self.art_search_function = _lambda.Function(
             scope,

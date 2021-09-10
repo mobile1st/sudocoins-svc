@@ -1,6 +1,8 @@
 import boto3
 import html
 import http.client
+import uuid
+import base64
 from urllib.parse import urlparse
 from util import sudocoins_logger
 from art.art import Art
@@ -13,7 +15,8 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     user_agent = event['headers']['user-agent']
-    art_id = event['pathParameters']['shareId']
+    share_id = event['pathParameters']['shareId']
+    art_id = share_id if is_art_id(share_id) else decode_uid(share_id)
     log.info(f'user_agent {user_agent} art_id: {art_id}')
 
     if is_browser(user_agent):
@@ -33,6 +36,20 @@ def lambda_handler(event, context):
         'headers': {'Content-Type': 'text/html'},
         'body': get_preview_html(art, url)
     }
+
+
+def is_art_id(share_id):
+    try:
+        uuid.UUID(share_id)
+        return True
+    except ValueError:
+        return False
+
+
+def decode_uid(b64: str):
+    padded = b64 + "=" * (-len(b64) % 4)
+    dec = base64.urlsafe_b64decode(padded)
+    return str(uuid.UUID(bytes=dec))
 
 
 def set_log_context(event):
