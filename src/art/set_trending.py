@@ -48,17 +48,29 @@ def set_config(hour, half_day, day, artists):
 
 def get_trending():
     period = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    time_now = datetime.utcnow().isoformat()
+    log.info(time_now)
+
+    created = dynamodb.Table('art').query(
+        KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").lt(time_now),
+        ScanIndexForward=False,
+        Limit=1,
+        IndexName='sort_idx-event_date-index',
+        ProjectionExpression="event_date"
+    )['Items'][0]['event_date']
+    log.info(created)
+
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
-        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address"
+        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain"
     )
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address",
+            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
@@ -72,10 +84,12 @@ def get_trending():
 
     for i in sorted_arts:
         try:
+            if i['blockchain'] != 'Ethereum':
+                continue
             day.append(i['art_id'])
-            if i['event_date'] > (datetime.utcnow() - timedelta(hours=1)).isoformat():
+            if i['event_date'] > (datetime.fromisoformat(created) - timedelta(hours=1)).isoformat():
                 hour.append(i['art_id'])
-            if i['event_date'] > (datetime.utcnow() - timedelta(hours=12)).isoformat():
+            if i['event_date'] > (datetime.fromisoformat(created) - timedelta(hours=12)).isoformat():
                 half_day.append(i['art_id'])
 
             if i['collection_data']['name'] in artists:
@@ -97,9 +111,11 @@ def get_trending():
 
         except Exception as e:
             log.info(e)
+            log.info(i['art_id'])
             continue
-
 
     leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)[:250]
 
     return hour[0:250], half_day[0:250], day[0:250], leaders
+
+

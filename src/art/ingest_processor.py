@@ -64,7 +64,6 @@ def parse_url(url):
         return contract_id, token_id
 
 
-
 def set_log_context(event):
     global log
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
@@ -83,8 +82,8 @@ def call_open_sea(contract_id, token_id):
 
 
 def add(art_object):
-
     if art_object['blockchain'] == "Ethereum":
+        log.info('88')
         contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea_response = call_open_sea(contract_id, token_id)
         open_sea = {
@@ -103,6 +102,7 @@ def add(art_object):
             "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
     else:
+        log.info('107')
         contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea = {
             'redirect': art_object.get('open_sea_url'),
@@ -124,43 +124,18 @@ def add(art_object):
     if art_url == "" and preview_url is None:
         log.info("missing art_url and preview_url")
         return
-
+    log.info('129')
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     eth_sale_price = eth_price(art_object)
 
     get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
-
-    try:
-        if art_object['blockchain'] == "Ethereum":
-            dynamodb.Table('creators').put_item(
-                Item={
-                    'address': open_sea_response['creator']['address'],
-                    'open_sea_data': open_sea_response['creator'],
-                    'timestamp': str(datetime.utcnow().isoformat()),
-                    'last_update': str(datetime.utcnow().isoformat())
-                },
-                ConditionExpression='attribute_not_exists(address)'
-            )
-        else:
-            dynamodb.Table('creators').put_item(
-                Item={
-                    'address': open_sea['creator']['address'],
-                    'open_sea_data': open_sea['creator'],
-                    'timestamp': str(datetime.utcnow().isoformat()),
-                    'last_update': str(datetime.utcnow().isoformat())
-                },
-                ConditionExpression='attribute_not_exists(address)'
-            )
-
-    except Exception as e:
-        log.info(e)
 
     return
 
 
 def get_urls(open_sea):
     if open_sea.get('animation_original_url'):
-        return open_sea["image_preview_url"],  open_sea["animation_original_url"]
+        return open_sea["image_preview_url"], open_sea["animation_original_url"]
 
     if open_sea.get('image_original_url'):
         return open_sea["image_preview_url"], open_sea['image_original_url']
@@ -201,7 +176,12 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
 def eth_price(art_object):
     getcontext().prec = 18
-    symbol = art_object.get("payment_token", {}).get("symbol", "ETH")
+    symbol = art_object.get("payment_token", {})
+    if symbol is None:
+        symbol = "ETH"
+    else:
+        symbol = symbol.get("symbol", "ETH")
+
     log.info(f'symbol: {symbol}')
     if symbol != 'ETH':
         total_price = Decimal(art_object.get("sale_price", 0))
