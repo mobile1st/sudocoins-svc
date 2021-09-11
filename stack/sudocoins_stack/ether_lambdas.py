@@ -31,6 +31,7 @@ class SudocoinsEtherLambdas:
             **lambda_default_kwargs
         )
         resources.ether_events_table.grant_read_write_data(ether_events_scan_cronjob)
+        """
         set_event_scan_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_event_scan_target = events_targets.LambdaFunction(handler=ether_events_scan_cronjob)
         events.Rule(
@@ -41,6 +42,7 @@ class SudocoinsEtherLambdas:
             schedule=set_event_scan_schedule,
             targets=[set_event_scan_target]
         )
+        """
         binance_events_scan_cronjob = _lambda.Function(
             scope,
             'BinanceEventScanJob',
@@ -50,6 +52,7 @@ class SudocoinsEtherLambdas:
             **lambda_default_kwargs
         )
         resources.binance_events_table.grant_read_write_data(binance_events_scan_cronjob)
+        """
         set_event_scan_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         set_event_scan_target = events_targets.LambdaFunction(handler=binance_events_scan_cronjob)
         events.Rule(
@@ -60,4 +63,4 @@ class SudocoinsEtherLambdas:
             schedule=set_event_scan_schedule,
             targets=[set_event_scan_target]
         )
-        
+        """
