@@ -69,7 +69,7 @@ def lambda_handler(event, context):
 
 
 def call_open_sea(created):
-    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=150&occurred_after=" \
+    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=300&occurred_after=" \
            + created + "&occurred_before=" + (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat()
     log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
