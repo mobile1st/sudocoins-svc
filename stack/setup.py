@@ -38,7 +38,8 @@ setuptools.setup(
         "aws-cdk.aws-certificatemanager==1.120.0",
         "aws-cdk.aws-s3==1.120.0",
         "aws-cdk.aws-cloudfront==1.120.0",
-        "aws-cdk.aws-cloudfront_origins==1.120.0"
+        "aws-cdk.aws-cloudfront_origins==1.120.0",
+        "aws-cdk.aws-lambda-python==1.120.0"
     ],
 
     python_requires=">=3.6",
