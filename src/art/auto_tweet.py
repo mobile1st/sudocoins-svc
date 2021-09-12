@@ -63,7 +63,7 @@ def get_art():
                         usd_price = "${:,.2f}".format(
                             round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                         tweet = message + usd_price + " " + url + art[
-                            'art_id'] + " " + hashtag + " #NFT #Ethereum #cryptoart #digitalart #NFTs"
+                            'art_id'] + " " + hashtag + " #NFT #Bitcoin #Ethereum #cryptoart #NFTs #NFTCommunity"
                         msg = {
                             "art_id": i,
                             "message": tweet,
@@ -91,11 +91,13 @@ def get_art():
                 if 'Item' in resp:
                     continue
                 name = i['name'] if i['name'] is not None else i['collection_data']['name']
+                collection_name = i['collection_data']['name']
+                hashtag = "#" + (collection_name.replace(" ", ""))
                 message = name + " sells for "
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                 tweet = message + usd_price + " " + url + i[
-                    'art_id'] + " #NFT #Ethereum #ETH #cryptoart #digitalart #NFTs "
+                    'art_id'] + hashtag + " #NFTs #NFTCommunity #Bitcoin #cryptoart #opensea #NFTartists  "
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
