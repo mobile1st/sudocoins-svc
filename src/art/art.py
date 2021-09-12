@@ -258,6 +258,7 @@ class Art:
                 Message=json.dumps(art_record)
             )
         except Exception as e:
+            log.info(f"open_sea {open_sea}")
             print(e)
 
         return art_record
