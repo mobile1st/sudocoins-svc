@@ -28,35 +28,20 @@ def lambda_handler(event, context):
     count = 0
     for i in open_sea_response:
         try:
+
             open_sea_url = i.get('asset', {}).get('permalink', "")
             if open_sea_url.find('matic') != -1:
+                # log.info('matic')
                 count += 1
                 continue
-                msg = {
-                    "blockchain": "Polygon",
-                    "payment_token": i.get("payment_token"),
-                    "event_type": i.get('event_type'),
-                    "open_sea_url": i.get('asset', {}).get('permalink'),
-                    "sale_price": i.get('total_price'),
-                    "created_date": i.get('created_date', ""),
-                    "asset": i.get('asset')
-                }
-
-
 
             elif open_sea_url.find('klaytn') != -1:
+                # log.info('klaytn')
                 count += 1
                 continue
-                msg = {
-                    "blockchain": "Klaytn",
-                    "payment_token": i.get("payment_token"),
-                    "event_type": i.get('event_type'),
-                    "open_sea_url": i.get('asset', {}).get('permalink'),
-                    "sale_price": i.get('total_price'),
-                    "created_date": i.get('created_date', ""),
-                    "asset": i.get('asset')
-                }
+
             else:
+                # log.info('ethereum')
                 msg = {
                     "blockchain": "Ethereum",
                     "payment_token": i.get('payment_token'),
@@ -71,14 +56,12 @@ def lambda_handler(event, context):
                 MessageStructure='string',
                 Message=json.dumps(msg)
             )
-            # . log.info(f'art event published: {msg}')
+
             count += 1
-            # log.info(count)
         except Exception as e:
             log.info(f'art error: {e}')
             log.info(f'art event: {i}')
             count += 1
-            # log.info(count)
 
     log.info(f'final count: {count}')
 
@@ -86,16 +69,14 @@ def lambda_handler(event, context):
 
 
 def call_open_sea(created):
-    # created = (datetime.fromisoformat(created) + timedelta(minutes=1)).isoformat()
-    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=100&occurred_after=" \
-           + created + "&occurred_before=" + (datetime.fromisoformat(created) + timedelta(minutes=1)).isoformat()
+    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=150&occurred_after=" \
+           + created + "&occurred_before=" + (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat()
     log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
     conn.request("GET", path)
     response = conn.getresponse()
     response2 = response.read().decode('utf-8')
     open_sea_response = json.loads(response2)
-    # log.info(f'open_sea_response: {open_sea_response}')
 
     return open_sea_response['asset_events']
 
