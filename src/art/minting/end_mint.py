@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         "sort_idx": 'true',
         "creator": creator,
         "process_status": "STREAM_TO_S3",
-        "event_date": time_now,
+        "event_date": "0",
         "event_type": "mint",
         "blockchain": "Ethereum",
         "last_sale_price": 0,
