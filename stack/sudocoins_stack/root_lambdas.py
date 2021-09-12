@@ -37,7 +37,7 @@ class SudocoinsRootLambdas:
         resources.grant_read_index_data(self.social_share_function, [resources.art_table, resources.art_uploads_table])
         # TEST
         lambda_python.PythonFunction(
-            self,
+            scope,
             'TestDependency',
             entry='../src',
             index='test_dependency.py',
