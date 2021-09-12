@@ -270,7 +270,7 @@ class SudocoinsArtLambdas:
             scope,
             'IngestOpenSeaV2',
             function_name='IngestOpenSeaV2',
-            timeout=cdk.Duration.seconds(5),
+            timeout=cdk.Duration.seconds(15),
             handler='art.ingest_opensea.lambda_handler',
             **lambda_default_kwargs
         )
