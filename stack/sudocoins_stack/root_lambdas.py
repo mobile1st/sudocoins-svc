@@ -41,7 +41,7 @@ class SudocoinsRootLambdas:
             'TestDependency',
             function_name='TestDependency',
             entry='../src',
-            index='search.test_dependency.py',
+            index='search/test_dependency.py',
             handler='lambda_handler',
             runtime=_lambda.Runtime.PYTHON_3_8
         )
