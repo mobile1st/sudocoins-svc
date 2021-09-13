@@ -6,12 +6,10 @@ from util import sudocoins_logger
 import mimetypes
 import http.client
 from urllib.parse import urlparse, quote, unquote_plus, parse_qsl, urlencode
-from util.sudocoins_encoder import SudocoinsEncoder
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
-sns_client = boto3.client('sns')
 art_table = dynamodb.Table('art')
 
 
@@ -51,39 +49,15 @@ def stream_to_s3(art_id: str, art_url: str):
     s3_client.put_object(Bucket=s3_bucket, Body=file['bytes'], Key=s3_file_path, ContentType=s3_mime_type)
     log.info('upload to sudocoins-art-bucket finished')
 
-    art_table = dynamodb.Table('art')
-    process_status = 'REKOGNITION_START'
-    art_item = art_table.update_item(
+    art_table.update_item(
         Key={'art_id': art_id},
-        UpdateExpression="SET mime_type=:mt, cdn_url=:cdn_url, process_status=:ps",
+        UpdateExpression="SET mime_type=:mt, cdn_url=:cdn_url REMOVE process_status",
         ExpressionAttributeValues={
             ':mt': s3_mime_type,
-            ':cdn_url': f'https://cdn.sudocoins.com/{s3_file_path}',
-            ':ps': process_status
-        },
-        ReturnValues='ALL_NEW'
-    )['Attributes']
-    log.info(f"art table updated artId: {art_id}")
-    sns_client.publish(
-        TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
-        MessageStructure='string',
-        MessageAttributes={
-            'art_id': {
-                'DataType': 'String',
-                'StringValue': art_id
-            },
-            'art_url': {
-                'DataType': 'String',
-                'StringValue': art_url
-            },
-            'process': {
-                'DataType': 'String',
-                'StringValue': process_status
-            }
-        },
-        Message=json.dumps(art_item, cls=SudocoinsEncoder)
+            ':cdn_url': f'https://cdn.sudocoins.com/{s3_file_path}'
+        }
     )
-    log.info(f'{art_id} published process status: {process_status}')
+    log.info(f"art table updated artId: {art_id}")
 
 
 def guess_extension(url: str, mime_type: str, content):
