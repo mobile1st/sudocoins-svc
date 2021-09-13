@@ -24,6 +24,11 @@ def lambda_handler(event, context):
 
     log.info(f'created: {created}')
 
+    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).seconds / 60
+    log.info(f'difference: {difference}')
+    if difference < 12:
+        return
+
     open_sea_response = call_open_sea(created)
     count = 0
     for i in open_sea_response:
