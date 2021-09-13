@@ -12,16 +12,21 @@ dynamodb = boto3.resource('dynamodb')
 def lambda_handler(event, context):
     log.debug(f'event: {event}')
     query = extract_parameters(event['queryStringParameters'])
-
+    log.info(query)
     arts = []
     for i in query:
+        log.info(i)
         tmp = dynamodb.Table('search').get_item(
             Key={'search_key': i},
-            ProjectionExpression="art_id, last_sale_price")['Item']
+            ProjectionExpression="arts")
+        log.info(tmp)
 
-        for k in tmp:
-            if k not in arts:
-                arts.append(k)
+        if 'Item' in tmp:
+            tmp = tmp['Item']['arts']
+
+            for k in tmp:
+                if k not in arts:
+                    arts.append(k)
 
     return {
         'arts': arts
