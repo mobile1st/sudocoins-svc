@@ -33,6 +33,10 @@ def lambda_handler(event, context):
 
 
 def process_arts(art_id, name, description):
+    if name is None:
+        name = ""
+    if description is None:
+        description = ""
     text = name + " " + description
     a = text.translate(str.maketrans('', '', string.punctuation))
     b = a.split()
