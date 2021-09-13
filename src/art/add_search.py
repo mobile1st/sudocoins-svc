@@ -1,6 +1,7 @@
 import boto3
 from util import sudocoins_logger
 import string
+import json
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -19,8 +20,8 @@ stop = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'you
 
 
 def lambda_handler(event, context):
-    # art = json.loads(event['Records'][0]['Sns']['Message'])
-    art = event['Records'][0]['Sns']['Message']
+    art = json.loads(event['Records'][0]['Sns']['Message'])
+    # art = event['Records'][0]['Sns']['Message']
 
     log.info(f'payload: {art}')
     art_id = art.get('art_id')
