@@ -259,6 +259,21 @@ class Art:
             )
         except Exception as e:
             log.info(f"open_sea {open_sea}")
-            print(e)
+            log.info(e)
+
+        try:
+            msg = {
+                "art_id": art_record.get("art_id", ""),
+                "name": art_record.get("name", ""),
+                "description": art_record.get("description", "")
+            }
+            self.sns.publish(
+                TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
+                MessageStructure='string',
+                Message=json.dumps(msg)
+            )
+        except Exception as e:
+            log.info(e)
+
 
         return art_record

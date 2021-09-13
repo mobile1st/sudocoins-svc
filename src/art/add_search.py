@@ -19,22 +19,31 @@ stop = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'you
 
 
 def lambda_handler(event, context):
-    # art_object = json.loads(event['Records'][0]['Sns']['Message'])
-    art_object = event['Records'][0]['Sns']['Message']
-    print(art_object)
+    # art = json.loads(event['Records'][0]['Sns']['Message'])
+    art = event['Records'][0]['Sns']['Message']
 
-    log.info(f'payload: {art_object}')
-    art_id = art_object['art_id']
+    log.info(f'payload: {art}')
+    art_id = art.get('art_id')
 
-    text = art_object.get("name", None)
+    process_arts(art_id, art.get('name', ""), art.get('description', ""))
+    # process_collections(art_id, art.get('name', ""), art.get('description', ""))
+
+    log.info(f'success')
+
+
+def process_arts(art_id, name, description):
+    text = name + " " + description
     a = text.translate(str.maketrans('', '', string.punctuation))
     b = a.split()
     c = [word.lower() for word in b]
     d = [w for w in c if not w in stop]
-
+    e = []
     for i in d:
-        print(i)
-        result = dynamodb.Table('search').update_item(
+        if i not in e:
+            e.append(i)
+
+    for i in e:
+        dynamodb.Table('search').update_item(
             Key={
                 'search_key': i
             },
@@ -45,5 +54,29 @@ def lambda_handler(event, context):
             },
             ReturnValues="UPDATED_NEW"
         )
-        print(result)
+
+
+def process_collections(art_id, name, description):
+    text = name + " " + description
+    a = text.translate(str.maketrans('', '', string.punctuation))
+    b = a.split()
+    c = [word.lower() for word in b]
+    d = [w for w in c if not w in stop]
+    e = []
+    for i in d:
+        if i not in e:
+            e.append(i)
+
+    for i in e:
+        dynamodb.Table('search').update_item(
+            Key={
+                'search_key': i
+            },
+            UpdateExpression="SET collections = list_append(if_not_exists(collections, :empty_list), :i)",
+            ExpressionAttributeValues={
+                ':i': [art_id],
+                ':empty_list': []
+            },
+            ReturnValues="UPDATED_NEW"
+        )
 
