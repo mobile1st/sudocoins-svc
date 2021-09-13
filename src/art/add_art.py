@@ -27,9 +27,9 @@ def lambda_handler(event, context):
         log.debug(f'event: {event}')
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
-        user_id = body['userId']
+        user_id = "twitter"
         tags = body.get("tags", [])
-        log.info(f'user_id: {user_id} url: {input_url} tags: {tags}')
+        log.info(f'url: {input_url} tags: {tags}')
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)
@@ -163,18 +163,6 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
     )
     # END register_art_upload(art, user_id) -> art_upload
 
-    # CALL profile.add_sudo(user_id, 5) -> sudo (integer, the new balance in sudo)
-    new_sudo = dynamodb.Table('Profile').update_item(
-        Key={'userId': user_id},
-        UpdateExpression="SET sudocoins = if_not_exists(sudocoins, :start) + :inc",
-        ExpressionAttributeValues={
-            ':inc': 5,
-            ':start': 0
-        },
-        ReturnValues="UPDATED_NEW"
-    )
-    ledger.add(5, user_id, 'Add Art')
-
     try:
         dynamodb.Table('creators').put_item(
             Item={
@@ -191,7 +179,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
     return {
         'status': 'success',
         'shareId': art_uploads_record['shareId'],
-        'balance': new_sudo['Attributes']['sudocoins']
+        'balance': 0
     }
 
 
