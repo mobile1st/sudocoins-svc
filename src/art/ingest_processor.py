@@ -38,7 +38,6 @@ def parse_url(url):
         start = sub1 + 6
         rest = url[start:]
         variables = rest.split('/')
-        log.debug(f'variables {variables}')
         contract_id = variables[0]
         token_id = variables[1]
 
@@ -57,7 +56,6 @@ def parse_url(url):
         start = sub1 + 7
         rest = url[start:]
         variables = rest.split('/')
-        log.debug(f'variables {variables}')
         contract_id = variables[0]
         token_id = variables[1]
 
@@ -77,13 +75,11 @@ def call_open_sea(contract_id, token_id):
     response = conn.getresponse()
     response2 = response.read().decode('utf-8')
     open_sea_response = json.loads(response2)
-    log.info(f'open_sea_response: {open_sea_response}')
     return open_sea_response
 
 
 def add(art_object):
     if art_object['blockchain'] == "Ethereum":
-        log.info('88')
         contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea_response = call_open_sea(contract_id, token_id)
         open_sea = {
@@ -102,7 +98,6 @@ def add(art_object):
             "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
     else:
-        log.info('107')
         contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea = {
             'redirect': art_object.get('open_sea_url'),
@@ -124,7 +119,6 @@ def add(art_object):
     if art_url == "" and preview_url is None:
         log.info("missing art_url and preview_url")
         return
-    log.info('129')
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     eth_sale_price = eth_price(art_object)
 
@@ -187,12 +181,9 @@ def eth_price(art_object):
         total_price = Decimal(art_object.get("sale_price", 0))
         eth_price = Decimal(art_object.get("payment_token", {}).get("eth_price", "1"))
         eth_sale_price = int(total_price * eth_price)
-        log.info(f'total_price: {total_price}')
-        log.info(f'eth_price: {eth_price}')
-        log.info(f'eth_sale_price: {eth_sale_price}')
+
     else:
         eth_sale_price = int(art_object.get("sale_price", 0))
-        log.info(f'eth_sale_price: {eth_sale_price}')
 
     return eth_sale_price
 
