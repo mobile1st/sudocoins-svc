@@ -25,13 +25,26 @@ def set_log_context(event):
 
 def get_uploads(collection):
     # returns the artists uploaded art sorted by timestamp
-    uploads = dynamodb.Table('art').query(
+    data = dynamodb.Table('art').query(
         KeyConditionExpression=Key('collection_address').eq(collection),
         ScanIndexForward=False,
         IndexName='collection_address-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price'
-    )['Items']
+    )
+
+    uploads = data['Items']
+
+    while 'LastEvaluatedKey' in data and len(uploads) < 1500:
+        record = dynamodb.Table('art').query(
+            KeyConditionExpression=Key('collection_address').eq(collection),
+            ScanIndexForward=False,
+            IndexName='collection_address-recent_sk-index',
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address',
+            ExclusiveStartKey=data['LastEvaluatedKey']
+        )
+        uploads.extend(record['Items'])
 
     art_ids = [i['art_id'] for i in uploads]
     art_list = arts.get_arts(art_ids)
@@ -52,6 +65,6 @@ def get_uploads(collection):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+    # newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
 
-    return newlist
+    return sanitized

@@ -257,7 +257,7 @@ class SudocoinsArtLambdas:
             'ArtistPageV2',
             function_name='ArtistPageV2',
             handler='art.artist_page.lambda_handler',
-            timeout=cdk.Duration.seconds(5),
+            timeout=cdk.Duration.seconds(15),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.artist_page_function)
