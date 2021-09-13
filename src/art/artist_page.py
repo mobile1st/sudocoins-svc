@@ -35,7 +35,7 @@ def get_uploads(collection):
 
     uploads = data['Items']
 
-    while 'LastEvaluatedKey' in data and len(uploads) < 1500:
+    while 'LastEvaluatedKey' in data and len(uploads) < 500:
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key('collection_address').eq(collection),
             ScanIndexForward=False,
