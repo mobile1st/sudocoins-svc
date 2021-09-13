@@ -274,16 +274,16 @@ class SudocoinsArtLambdas:
             handler='art.ingest_opensea.lambda_handler',
             **lambda_default_kwargs
         )
-        # ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(1.5))
-        # ingest_opensea_target = events_targets.LambdaFunction(handler=ingest_opensea_function)
-        # events.Rule(
-        #     scope,
-        #     "IngestOpenseaRule",
-        #     description="Periodically refreshes trending arts sorted by click counts",
-        #     enabled=True,
-        #     schedule=ingest_opensea_schedule,
-        #     targets=[ingest_opensea_target]
-        # )
+        ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(1.5))
+        ingest_opensea_target = events_targets.LambdaFunction(handler=ingest_opensea_function)
+        events.Rule(
+             scope,
+             "IngestOpenseaRule",
+             description="Periodically refreshes trending arts sorted by click counts",
+             enabled=True,
+             schedule=ingest_opensea_schedule,
+             targets=[ingest_opensea_target]
+         )
         resources.ingest_opensea_topic.grant_publish(ingest_opensea_function)
         resources.art_table.grant_read_write_data(ingest_opensea_function)
         resources.grant_read_index_data(
