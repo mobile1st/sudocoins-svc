@@ -268,10 +268,11 @@ class Art:
                 "description": art_record.get("description", "")
             }
             self.sns.publish(
-                TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
+                TopicArn='arn:aws:sns:us-west-2:977566059069:AddSearchTopic',
                 MessageStructure='string',
                 Message=json.dumps(msg)
             )
+            log.info(f"add search message published")
         except Exception as e:
             log.info(e)
 
