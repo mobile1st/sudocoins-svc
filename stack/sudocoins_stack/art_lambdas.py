@@ -221,6 +221,7 @@ class SudocoinsArtLambdas:
             handler='search.art_search.lambda_handler',
             **lambda_default_kwargs
         )
+        resources.search_table.grant_read_write_data(self.art_search_function)
         # SITEMAP UPLOADER
         sitemap_uploader_function = _lambda.Function(
             scope,
