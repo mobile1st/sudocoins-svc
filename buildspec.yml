@@ -5,6 +5,7 @@ phases:
    python: 3.8
  build: 
   commands:
+   - ls
    - cd stack
    - npm install aws-cdk
    - python -m pip install -r requirements.txt
