@@ -26,18 +26,20 @@ def lambda_handler(event, context):
     log.info(f'payload: {art}')
     art_id = art.get('art_id')
 
-    process_arts(art_id, art.get('name', ""), art.get('description', ""))
+    process_arts(art_id, art.get('name', ""), art.get('description', ""), art.get('collection_name', ""))
     # process_collections(art_id, art.get('name', ""), art.get('description', ""))
 
     log.info(f'success')
 
 
-def process_arts(art_id, name, description):
+def process_arts(art_id, name, description, collection_name):
     if name is None:
         name = ""
     if description is None:
         description = ""
-    text = name + " " + description
+    if collection_name is None:
+        collection_name = ""
+    text = name + " " + description + " " + collection_name
     a = text.translate(str.maketrans('', '', string.punctuation))
     b = a.split()
     c = [word.lower() for word in b]

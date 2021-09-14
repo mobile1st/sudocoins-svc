@@ -233,8 +233,7 @@ class Art:
             "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
             "collection_data": {
                 "name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url')
-            },
+                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url')},
             "process_to_google_search": "TO_BE_INDEXED",
             "short_code": short_code
         }
@@ -269,7 +268,8 @@ class Art:
             msg = {
                 "art_id": art_record.get("art_id", ""),
                 "name": art_record.get("name", ""),
-                "description": art_record.get('open_sea_data', {}).get("description", "")
+                "description": art_record.get('open_sea_data', {}).get("description", ""),
+                "collection_name": art_record.get('collection_data', {}).get('name', 'add')
             }
             self.sns.publish(
                 TopicArn='arn:aws:sns:us-west-2:977566059069:AddSearchTopic',
