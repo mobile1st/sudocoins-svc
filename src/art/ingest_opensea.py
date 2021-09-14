@@ -77,7 +77,9 @@ def process_open_sea(open_sea_response):
 
                 created_date = i.get('transaction')
                 if created_date is not None:
-                    created_date = created_date.get('timestemp', "")
+                    created_date = created_date.get('timestamp')
+                    if created_date is None:
+                        created_date = i.get('created_date', "")
                 else:
                     created_date = i.get('created_date', "")
 
