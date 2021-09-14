@@ -269,7 +269,7 @@ class Art:
             msg = {
                 "art_id": art_record.get("art_id", ""),
                 "name": art_record.get("name", ""),
-                "description": art_record.get("description", "")
+                "description": art_record.get('open_sea_data', {}).get("description", "")
             }
             self.sns.publish(
                 TopicArn='arn:aws:sns:us-west-2:977566059069:AddSearchTopic',
