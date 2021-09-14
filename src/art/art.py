@@ -188,8 +188,10 @@ class Art:
             response = self.dynamodb.batch_get_item(RequestItems={'art': query})
             for art in response['Responses']['art']:
                 self.__use_cdn_url(art)
-                if art['name'].find('Fragments of an Infinite Field') != -1:
-                    art['art_url'] = art['preview_url']
+                if 'name' in art and art['name'] is not None:
+                    if art['name'].find('Fragments of an Infinite Field') != -1:
+                         art['art_url'] = art['preview_url']
+
                 art_index[art['art_id']] = art
 
         # preserve query art_id order
