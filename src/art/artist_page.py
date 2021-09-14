@@ -36,7 +36,7 @@ def get_uploads(collection):
     uploads = data['Items']
 
     while 'LastEvaluatedKey' in data and len(uploads) < 500:
-        record = dynamodb.Table('art').query(
+        data = dynamodb.Table('art').query(
             KeyConditionExpression=Key('collection_address').eq(collection),
             ScanIndexForward=False,
             IndexName='collection_address-recent_sk-index',
@@ -44,9 +44,10 @@ def get_uploads(collection):
             ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
-        uploads.extend(record['Items'])
+        uploads.extend(data['Items'])
 
     art_ids = [i['art_id'] for i in uploads]
+
     art_list = arts.get_arts(art_ids)
 
     art_index = {}
