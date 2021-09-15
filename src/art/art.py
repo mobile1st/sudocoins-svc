@@ -182,7 +182,7 @@ class Art:
         for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
             query = {
                 'Keys': i,
-                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price',
+                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price, contractId#tokenId',
                 'ExpressionAttributeNames': {'#N': 'name'}
             }
             response = self.dynamodb.batch_get_item(RequestItems={'art': query})
@@ -191,6 +191,12 @@ class Art:
                 if 'name' in art and art['name'] is not None:
                     if art['name'].find('Fragments of an Infinite Field') != -1:
                          art['art_url'] = art['preview_url']
+                if 'name' in art and art['name'] is None:
+                    name = art.get('collection_data', {}).get('name', "")
+                    number = art.get("contractId#tokenId", "")
+                    number = number.split('#')[1]
+                    art['name'] = name + " " + str(number)
+                    del art['contractId#tokenId']
 
                 art_index[art['art_id']] = art
 
@@ -237,6 +243,9 @@ class Art:
             "process_to_google_search": "TO_BE_INDEXED",
             "short_code": short_code
         }
+
+        if art_record['preview_url'] is None:
+            art_record['preview_url'] = art_record['art_url']
 
         self.art_table.put_item(Item=art_record)
 
