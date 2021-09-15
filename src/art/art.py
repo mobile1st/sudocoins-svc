@@ -240,7 +240,9 @@ class Art:
             "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
             "collection_data": {
                 "name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url')},
+                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
+                "description": art_object.get('asset', {}).get('collection', {}).get('description', "")
+            },
             "process_to_google_search": "TO_BE_INDEXED",
             "short_code": short_code
         }
