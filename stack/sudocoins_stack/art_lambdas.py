@@ -111,7 +111,9 @@ class SudocoinsArtLambdas:
             handler='art.set_trending.lambda_handler',
             timeout=cdk.Duration.seconds(300),
             memory_size=1024,
-            **lambda_default_kwargs
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset('../src'),
+            log_retention=logs.RetentionDays.THREE_MONTHS
         )
         resources.art_table.grant_read_data(set_trending_function)
         resources.config_table.grant_read_write_data(set_trending_function)
