@@ -213,4 +213,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=end_mint_integration
         )
+        # COLLECTION NAME
+        collection_name_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.collection_name_function
+        )
+        art_api_v3.add_routes(
+            path='/collection-name',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=collection_name_integration
+        )
 

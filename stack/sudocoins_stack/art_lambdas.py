@@ -420,5 +420,19 @@ class SudocoinsArtLambdas:
             )
         )
         resources.search_table.grant_read_write_data(add_search_function)
+        # COLLECTION NAME
+        self.collection_name_function = _lambda.Function(
+            scope,
+            'CollectionNameV2',
+            function_name='CollectionNameV2',
+            handler='art.get_collection_name.lambda_handler',
+            timeout=cdk.Duration.seconds(15),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.collection_name_function)
+        resources.grant_read_index_data(
+            self.collection_name_function,
+            [resources.art_table]
+        )
 
 
