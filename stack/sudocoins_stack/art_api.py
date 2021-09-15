@@ -222,4 +222,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=collection_name_integration
         )
+        # DELETE ART
+        delete_art_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.delete_art_function
+        )
+        art_api_v3.add_routes(
+            path='/delete-art',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=delete_art_integration
+        )
 

@@ -426,7 +426,6 @@ class SudocoinsArtLambdas:
             'CollectionNameV2',
             function_name='CollectionNameV2',
             handler='art.get_collection_name.lambda_handler',
-            timeout=cdk.Duration.seconds(15),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.collection_name_function)
@@ -434,5 +433,20 @@ class SudocoinsArtLambdas:
             self.collection_name_function,
             [resources.art_table]
         )
+        # DELETE ART
+        self.delete_art_function = _lambda.Function(
+            scope,
+            'DeleteArtV2',
+            function_name='DeleteArtV2',
+            handler='art.delete_art.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.delete_art_function)
+        resources.grant_read_index_data(
+            self.delete_art_function,
+            [resources.art_table]
+        )
+
+
 
 
