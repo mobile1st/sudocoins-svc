@@ -36,12 +36,18 @@ class SudocoinsRootLambdas:
         resources.art_uploads_table.grant_read_write_data(self.social_share_function)
         resources.grant_read_index_data(self.social_share_function, [resources.art_table, resources.art_uploads_table])
         # TEST
+        pyvips_layer = _lambda.LayerVersion.from_layer_version_arn(
+            scope,
+            'PyVipsLayer',
+            layer_version_arn='arn:aws:lambda:us-west-2:977566059069:layer:test-pyvips:1'
+        )
         lambda_python.PythonFunction(
             scope,
             'TestDependency',
             function_name='TestDependency',
             entry='../src',
             index='search/test_dependency.py',
+            layers=[pyvips_layer],
             handler='lambda_handler',
             runtime=_lambda.Runtime.PYTHON_3_8
         )

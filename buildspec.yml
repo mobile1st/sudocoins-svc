@@ -12,9 +12,7 @@ phases:
    - mkdir -p dependencies/python
    - pip install pyvips -t ./dependencies/python
    - cd ./dependencies && zip -r ../pyvips.zip .
-   - ls
    - cd ..
-   - ls
    - aws lambda publish-layer-version --layer-name test-pyvips --zip-file fileb://pyvips.zip --compatible-runtimes python3.8
    - cd stack
    - npm install aws-cdk
