@@ -248,6 +248,13 @@ class Art:
         if art_record['preview_url'] is None:
             art_record['preview_url'] = art_record['art_url']
 
+        if 'name' in art_record and art_record['name'] is None:
+            name = art_record.get('collection_data', {}).get('name', "")
+            number = art_record.get("contractId#tokenId", "")
+            number = number.split('#')[1]
+            art_record['name'] = name + " #" + str(number)
+
+
         self.art_table.put_item(Item=art_record)
 
         try:
