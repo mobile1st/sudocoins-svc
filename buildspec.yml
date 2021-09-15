@@ -6,8 +6,8 @@ phases:
  build: 
   commands:
    - apt list --installed
-   - sudo apt-get update -y
-   - sudo apt-get install -y libvips
+   - apt-get update -y
+   - apt-get install -y libvips
    - vips --version
    - ls
    - cd stack
