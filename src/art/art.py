@@ -245,6 +245,7 @@ class Art:
             "short_code": short_code
         }
 
+        log.info(f"art.add {art_record}")
         if art_record['preview_url'] is None:
             art_record['preview_url'] = art_record['art_url']
 
