@@ -182,8 +182,8 @@ class Art:
         for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
             query = {
                 'Keys': i,
-                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price, contractId#tokenId',
-                'ExpressionAttributeNames': {'#N': 'name'}
+                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price, #T, collection_data',
+                'ExpressionAttributeNames': {'#N': 'name', '#T': 'contractId#tokenId'}
             }
             response = self.dynamodb.batch_get_item(RequestItems={'art': query})
             for art in response['Responses']['art']:
@@ -195,8 +195,9 @@ class Art:
                     name = art.get('collection_data', {}).get('name', "")
                     number = art.get("contractId#tokenId", "")
                     number = number.split('#')[1]
-                    art['name'] = name + " " + str(number)
+                    art['name'] = name + " #" + str(number)
                     del art['contractId#tokenId']
+                    del art['collection_data']
 
                 art_index[art['art_id']] = art
 
