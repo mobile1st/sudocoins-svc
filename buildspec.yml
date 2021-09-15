@@ -9,7 +9,13 @@ phases:
    - apt-get update -y
    - apt-get install -y libvips libvips-dev libvips-doc libvips-tools
    - vips --version
+   - mkdir -p dependencies/python
+   - pip install pyvips -t ./dependencies/python
+   - cd ./dependencies && zip -r ../pyvips.zip .
    - ls
+   - cd ..
+   - ls
+   - lambda publish-layer-version --layer-name test-pyvips --zip-file fileb://pyvips.zip --compatible-runtimes python3.8
    - cd stack
    - npm install aws-cdk
    - python -m pip install -r requirements.txt
