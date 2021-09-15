@@ -12,10 +12,11 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     body = json.loads(event['body'])
+    #body = event
     collection = body['collectionId']
 
     return {
-        'collection_data': get_collection(collection)
+        'collection_data': get_collection(collection)['collection_data']
     }
 
 
