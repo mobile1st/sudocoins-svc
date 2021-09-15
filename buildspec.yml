@@ -15,7 +15,7 @@ phases:
    - ls
    - cd ..
    - ls
-   - lambda publish-layer-version --layer-name test-pyvips --zip-file fileb://pyvips.zip --compatible-runtimes python3.8
+   - aws lambda publish-layer-version --layer-name test-pyvips --zip-file fileb://pyvips.zip --compatible-runtimes python3.8
    - cd stack
    - npm install aws-cdk
    - python -m pip install -r requirements.txt
