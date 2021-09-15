@@ -5,8 +5,10 @@ phases:
    python: 3.8
  build: 
   commands:
+   - apt list --installed
+   - sudo apt-get update -y
+   - sudo apt-get install -y libvips
    - vips --version
-   - yum list installed
    - ls
    - cd stack
    - npm install aws-cdk
