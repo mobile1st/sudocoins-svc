@@ -5,6 +5,7 @@ phases:
    python: 3.8
  build: 
   commands:
+   - yum list installed
    - ls
    - cd stack
    - npm install aws-cdk
