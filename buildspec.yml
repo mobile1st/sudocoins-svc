@@ -7,7 +7,7 @@ phases:
   commands:
    - apt list --installed
    - apt-get update -y
-   - apt-get install -y libvips
+   - apt-get install -y libvips libvips-dev libvips-doc libvips-tools
    - vips --version
    - ls
    - cd stack
