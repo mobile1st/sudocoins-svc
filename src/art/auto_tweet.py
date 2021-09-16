@@ -63,7 +63,7 @@ def get_art():
                         usd_price = "${:,.2f}".format(
                             round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                         tweet = message + usd_price + " " + url + art[
-                            'art_id'] + " " + hashtag + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs #BSC"
+                            'art_id'] + " " + hashtag + " #NFT #Ethereum #ETH #cryptoart #digitalart #NFTs #BSC"
                         msg = {
                             "art_id": i,
                             "message": tweet,
@@ -97,7 +97,7 @@ def get_art():
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                 tweet = message + " " + usd_price + " " + url + i[
-                    'art_id'] + " " + hashtag + " #NFT #Ethereum #Bitcoin #cryptoart #digitalart #NFTs #BSC"
+                    'art_id'] + " " + hashtag + " #NFT #Ethereum #ETH #cryptoart #digitalart #NFTs #Polygon"
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
