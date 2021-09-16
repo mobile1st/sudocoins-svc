@@ -5,9 +5,8 @@ phases:
    python: 3.8
  build: 
   commands:
-   - apt list --installed
-   - apt-get update -y
-   - apt-get install -y libvips libvips-dev libvips-doc libvips-tools
+   - chmod +x install-vips.sh
+   - ./install-vips.sh
    - vips --version
    - mkdir -p dependencies/python
    - pip install pyvips -t ./dependencies/python
