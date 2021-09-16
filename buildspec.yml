@@ -7,7 +7,6 @@ phases:
   commands:
    - chmod +x install-vips.sh
    - ./install-vips.sh
-   - vips --version
    - mkdir -p dependencies/python
    - pip install pyvips -t ./dependencies/python
    - cd ./dependencies && zip -r ../pyvips.zip .
