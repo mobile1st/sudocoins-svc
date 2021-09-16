@@ -5,11 +5,7 @@ phases:
    python: 3.8
  build: 
   commands:
-   - mkdir -p dependencies/python
-   - pip install pyvips -t ./dependencies/python
-   - cd ./dependencies && zip -r ../pyvips.zip .
-   - cd ..
-   - aws lambda publish-layer-version --layer-name test-pyvips --zip-file fileb://pyvips.zip --compatible-runtimes python3.8
+   - chmod +x install-vips.sh && ./install-vips.sh
    - cd stack
    - npm install aws-cdk
    - python -m pip install -r requirements.txt
