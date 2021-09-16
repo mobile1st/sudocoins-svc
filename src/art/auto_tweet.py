@@ -93,7 +93,7 @@ def get_art():
                 name = i['name'] if i['name'] is not None else i['collection_data']['name']
                 collection_name = i['collection_data']['name']
                 hashtag = "#" + (collection_name.replace(" ", ""))
-                message = name + " sells for "
+                message = name + " sells for"
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
                 tweet = message + " " + usd_price + " " + url + i[
