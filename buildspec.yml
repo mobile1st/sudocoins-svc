@@ -5,8 +5,6 @@ phases:
    python: 3.8
  build: 
   commands:
-   - chmod +x install-vips.sh
-   - ./install-vips.sh
    - mkdir -p dependencies/python
    - pip install pyvips -t ./dependencies/python
    - cd ./dependencies && zip -r ../pyvips.zip .

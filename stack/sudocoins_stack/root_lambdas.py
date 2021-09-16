@@ -39,7 +39,7 @@ class SudocoinsRootLambdas:
         pyvips_layer = _lambda.LayerVersion.from_layer_version_arn(
             scope,
             'PyVipsLayer',
-            layer_version_arn='arn:aws:lambda:us-west-2:977566059069:layer:test-pyvips:1'
+            layer_version_arn='arn:aws:lambda:us-west-2:977566059069:layer:test-pyvips:8'
         )
         lambda_python.PythonFunction(
             scope,
