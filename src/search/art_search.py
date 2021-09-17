@@ -1,5 +1,6 @@
 import boto3
 from util import sudocoins_logger
+import string
 
 log = sudocoins_logger.get()
 google_search_host = 'customsearch.googleapis.com'
@@ -15,9 +16,9 @@ def lambda_handler(event, context):
     log.info(query)
     arts = []
     for i in query:
-        log.info(i)
+        log.info(i.lower())
         tmp = dynamodb.Table('search').get_item(
-            Key={'search_key': i},
+            Key={'search_key': i.lower()},
             ProjectionExpression="arts")
         log.info(tmp)
 
