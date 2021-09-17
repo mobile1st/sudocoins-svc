@@ -35,7 +35,7 @@ def lambda_handler(event, context):
 
     while count_eth == 0:
         log.info("try again ")
-        open_sea_response = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat())
+        open_sea_response = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat())
         count_eth = process_open_sea(open_sea_response)
         log.info(count_eth)
 
@@ -43,7 +43,7 @@ def lambda_handler(event, context):
 
 
 def call_open_sea(created):
-    end_time = (datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat()
+    end_time = (datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat()
     path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=300&occurred_after=" \
            + created + "&occurred_before=" + end_time
     log.info(f'path: {path}')
