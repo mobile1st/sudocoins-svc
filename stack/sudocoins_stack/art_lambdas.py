@@ -274,11 +274,11 @@ class SudocoinsArtLambdas:
             scope,
             'IngestOpenSeaV2',
             function_name='IngestOpenSeaV2',
-            timeout=cdk.Duration.seconds(20),
+            timeout=cdk.Duration.seconds(30),
             handler='art.ingest_opensea.lambda_handler',
             **lambda_default_kwargs
         )
-        ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
+        ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(3))
         ingest_opensea_target = events_targets.LambdaFunction(handler=ingest_opensea_function)
         events.Rule(
              scope,
