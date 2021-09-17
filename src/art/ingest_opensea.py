@@ -29,21 +29,31 @@ def lambda_handler(event, context):
     if difference < 20:
         return
 
-    open_sea_response = call_open_sea(created)
+    open_sea_response = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat())
+
+    length_response = len(open_sea_response)
+    if length_response == 300:
+        open_sea_response1 = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat())
+        open_sea_response2 = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat(), (datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat())
+        open_sea_response = open_sea_response1 + open_sea_response2
+
     count_eth = process_open_sea(open_sea_response)
     log.info(count_eth)
 
-    while count_eth == 0:
+    if count_eth == 0:
         log.info("try again ")
-        open_sea_response = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=3.2)).isoformat())
+        count1, count2 = 4, 6
+        open_sea_response = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=count1)).isoformat(), (datetime.fromisoformat(created) + timedelta(minutes=count2)).isoformat())
         count_eth = process_open_sea(open_sea_response)
+        count1 += 2
+        count2 += 2
         log.info(count_eth)
 
     return
 
 
-def call_open_sea(created):
-    end_time = (datetime.fromisoformat(created) + timedelta(minutes=3.2)).isoformat()
+def call_open_sea(created, end_time):
+    #end_time = (datetime.fromisoformat(created) + timedelta(minutes=3.2)).isoformat()
     path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=300&occurred_after=" \
            + created + "&occurred_before=" + end_time
     log.info(f'path: {path}')
