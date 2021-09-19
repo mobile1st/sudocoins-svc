@@ -35,7 +35,7 @@ def get_uploads(collection):
 
     uploads = data['Items']
 
-    while 'LastEvaluatedKey' in data and len(uploads) < 500:
+    while 'LastEvaluatedKey' in data and len(uploads) < 250:
         data = dynamodb.Table('art').query(
             KeyConditionExpression=Key('collection_address').eq(collection),
             ScanIndexForward=False,
@@ -66,6 +66,6 @@ def get_uploads(collection):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    # newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+    newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
 
-    return sanitized
+    return newlist
