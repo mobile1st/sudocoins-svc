@@ -107,6 +107,8 @@ def get_trending():
                 artists[i['collection_data']['name']]['art1'] = i.get('art_id')
                 artists[i['collection_data']['name']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
                 artists[i['collection_data']['name']]['collection_address'] = i.get('collection_address')
+                if artists[i['collection_data']['name']]['collection_address'] == 'unknown':
+                    artists[i['collection_data']['name']]['collection_address'] = i['open_sea_data']['asset']['asset_contract']['address']
 
 
         except Exception as e:
