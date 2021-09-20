@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     set_log_context(event)
     log.debug(f'event: {event}')
     jsonInput = json.loads(event.get('body', '{}'))
-    sub, email, facebook, signupMethod, ip, shareId, publicAddress, signature, hash_message = parseJson(jsonInput)
+    publicAddress, signature, hash_message = parseJson(jsonInput)
 
     global profile
 
@@ -27,16 +27,6 @@ def lambda_handler(event, context):
         try:
             profile = loadProfileByMetaAddress(publicAddress, 'MetaMask', signature, hash_message, context)
             log.debug(f'profile: {profile}')
-        except Exception as e:
-            log.exception(e)
-            profile = {}
-    else:
-        try:
-            if sub != "":
-                profile = loadProfile(sub, email, facebook, signupMethod, context, ip, shareId)
-                log.debug(f'profile: {profile}')
-            else:
-                profile = {}
         except Exception as e:
             log.exception(e)
             profile = {}
@@ -115,139 +105,6 @@ def loadProfileByMetaAddress(publicAddress, signupMethod, signature, hash_messag
             'status': 404,
             'message': 'User not found.'
         }
-
-def loadProfile(sub, email, facebook, signupMethod, context, ip, shareId):
-    profileTable = dynamodb.Table('Profile')
-    subTable = dynamodb.Table('sub')
-    subResponse = subTable.get_item(Key={'sub': sub})
-    log.info(f'subResponse: {subResponse}')
-    log.info(f'email: {email}')
-
-    if 'Item' in subResponse:
-        log.debug("found userId matching sub")
-        userId = subResponse['Item']['userId']
-        log.info(f'userId: {userId}')
-        profileObject = profileTable.get_item(
-            Key={'userId': userId},
-            ProjectionExpression="active , email, signupDate, userId,"
-                                 "gravatarEmail, facebookUrl, history, "
-                                 "verificationState, fraud_score, sudocoins,"
-                                 "user_name, twitter_handle"
-        )
-        log.info(f'profileObject: {profileObject}')
-
-        if 'Item' not in profileObject:
-            profile = createProfile(email, profileTable, userId, facebook, signupMethod, context, shareId)
-            return profile
-
-        if 'verificationState' not in profileObject['Item']:
-            profileObject['Item']['verificationState'] = 'None'
-            profileTable.update_item(
-                Key={
-                    "userId": userId
-                },
-                UpdateExpression="set verificationState=:vs",
-                ExpressionAttributeValues={
-                    ":vs": 'None'
-                },
-                ReturnValues="ALL_NEW"
-            )
-
-        if 'facebookUrl' in profileObject['Item']:
-            if facebook == profileObject['Item']['facebookUrl']:
-                pass
-            else:
-                profileObject = profileTable.update_item(
-                    Key={
-                        "userId": userId
-                    },
-                    UpdateExpression="set facebookUrl=:fb",
-                    ExpressionAttributeValues={
-                        ":fb": facebook
-                    },
-                    ReturnValues="ALL_NEW"
-                )
-
-                if 'sudocoins' not in profileObject['Attributes']:
-                    profileObject['Attributes']['sudocoins'] = '0'
-
-                return profileObject['Attributes']
-
-        return profileObject['Item']
-
-    elif email != "":
-        log.info("sub not found in sub table: seeing if user email matches any existing userId")
-        profileQuery = profileTable.query(
-            IndexName='email-index',
-            KeyConditionExpression='email = :email',
-            ExpressionAttributeValues={
-                ':email': email
-            },
-            ProjectionExpression="active , email, signupDate, userId, "
-                                 "gravatarEmail, facebookUrl, history,"
-                                 "verificationState, fraud_score, sudocoins,"
-                                 "user_name, twitter_handle"
-        )
-        log.info(f'profileQuery: {profileQuery}')
-        if profileQuery['Count'] > 0:
-            log.info("found email in database")
-            userId = profileQuery['Items'][0]['userId']
-            subTable.put_item(
-                Item={
-                    "sub": sub,
-                    "userId": userId
-                }
-            )
-
-
-            if 'verificationState' not in profileQuery['Items'][0]:
-                profileQuery['Items'][0]['verificationState'] = "None"
-                profileTable.update_item(
-                    Key={
-                        "userId": userId
-                    },
-                    UpdateExpression="set verificationState=:vs",
-                    ExpressionAttributeValues={
-                        ":vs": 'None'
-                    },
-                    ReturnValues="ALL_NEW"
-                )
-            if 'facebookUrl' in profileQuery['Items']:
-                if facebook == profileQuery['Items']['facebookUrl']:
-                    pass
-                else:
-                    profileResponse = profileTable.update_item(
-                        Key={
-                            "userId": userId
-                        },
-                        UpdateExpression="set facebookUrl=:fb",
-                        ExpressionAttributeValues={
-                            ":fb": facebook
-                        },
-                        ReturnValues="ALL_NEW"
-                    )
-
-                    return profileResponse['Attributes']
-
-            return profileQuery['Items'][0]
-
-    log.info("no sub or email found in database. New user.")
-    userId = str(uuid.uuid1())
-
-    if email == "":
-        log.info("completely new user with no email in cognito")
-        email = userId + "@sudocoins.com"
-
-        subTable.put_item(
-            Item={
-                "sub": sub,
-                "userId": userId
-            }
-        )
-    profile = createProfile(email, profileTable, userId, facebook, signupMethod, context, shareId)
-
-    return profile
-
 
 def getConfig():
     configTable = dynamodb.Table('Config')
@@ -343,30 +200,10 @@ def createProfile(email, profileTable, userId, facebook, signupMethod, context, 
 
 def parseJson(jsonInput):
 
-    if 'sub' in jsonInput:
-        sub = jsonInput['sub']
-    else:
-        sub = ""
-    if 'email' in jsonInput:
-        email = jsonInput['email']
-    else:
-        email = ""
-    if 'facebookUrl' in jsonInput:
-        facebook = jsonInput['facebookUrl']
-    else:
-        facebook = ""
     if 'signupMethod' in jsonInput:
         signupMethod = jsonInput['signupMethod']
     else:
         signupMethod = ""
-    if 'ip' in jsonInput:
-        ip = jsonInput['ip']
-    else:
-        ip = ""
-    if 'shareId' in jsonInput:
-        shareId = jsonInput['shareId']
-    else:
-        shareId = 'organic'
     if 'publicAddress' in jsonInput:
         publicAddress = jsonInput['publicAddress']
     else:
@@ -381,5 +218,5 @@ def parseJson(jsonInput):
         hash_message = ''
 
 
-    return sub, email, facebook, signupMethod, ip, shareId, publicAddress, signature, hash_message
+    return signupMethod, publicAddress, signature, hash_message
 
