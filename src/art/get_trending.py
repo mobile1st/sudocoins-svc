@@ -7,7 +7,9 @@ def lambda_handler(event, context):
     trending_art = get_config()
 
     return {
-        'trending': trending_art
+        'trending': trending_art['art'],
+        "half_day": trending_art['trending_half_day'],
+        "day": trending_art['trending_day']
     }
 
 
