@@ -197,7 +197,8 @@ class Art:
                     number = number.split('#')[1]
                     art['name'] = name + " #" + str(number)
                     del art['contractId#tokenId']
-                    del art['collection_data']
+                    if 'collection_data' in art:
+                        del art['collection_data']
 
                 art_index[art['art_id']] = art
 
