@@ -32,9 +32,9 @@ def lambda_handler(event, context):
         except Exception as e:
             log.exception(e)
 
-    return {
-        "arts": get_uploads(sub)
-    }
+    # return {
+    #     "arts": get_uploads(sub)
+    # }
 
 
 def set_log_context(event):
@@ -63,7 +63,9 @@ def verify_delete(sub, art_id, publicAddress, signature, hash_message):
     if publicAddress == encode_hex(sha3(pubkey)[-20:]):
 
         artTable.delete_item(Key={'art_id': art_id})
-        return
+        return {
+            "arts": get_uploads(sub)
+        }
     else:
         return {
             'status': 404,
