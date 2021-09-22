@@ -27,8 +27,8 @@ def lambda_handler(event, context):
 
     if publicAddress != "":
         try:
+            log.debug(f'has public address ====>: {publicAddress}');
             return verify_delete(sub, art_id, publicAddress, signature, hash_message)
-
         except Exception as e:
             log.exception(e)
 
@@ -62,9 +62,10 @@ def verify_delete(sub, art_id, publicAddress, signature, hash_message):
 
     if publicAddress == encode_hex(sha3(pubkey)[-20:]):
 
+        log.debug(f'signature valid===========>: {publicAddress}')
         artTable.delete_item(Key={'art_id': art_id})
-        arts = get_uploads(sub)
-        log.info(f'arts: {arts}')
+        arts = get_uploads(publicAddress)
+        log.debug(f'arts===========>: {arts}')
         return {
             "arts": arts
         }
