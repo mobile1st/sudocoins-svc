@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     set_log_context(event)
     log.debug(f'event: {event}')
     jsonInput = json.loads(event.get('body', '{}'))
-    publicAddress, signature, hash_message = parseJson(jsonInput)
+    signupMethod, publicAddress, signature, hash_message = parseJson(jsonInput)
 
     global profile
 
