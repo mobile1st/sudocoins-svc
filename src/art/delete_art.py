@@ -63,8 +63,10 @@ def verify_delete(sub, art_id, publicAddress, signature, hash_message):
     if publicAddress == encode_hex(sha3(pubkey)[-20:]):
 
         artTable.delete_item(Key={'art_id': art_id})
+        arts = get_uploads(sub)
+        log.info(f'arts: {arts}')
         return {
-            "arts": get_uploads(sub)
+            "arts": arts
         }
     else:
         return {
