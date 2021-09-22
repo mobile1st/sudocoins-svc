@@ -45,6 +45,7 @@ def set_log_context(event):
 def verify_delete(sub, art_id, publicAddress, signature, hash_message):
 
     subTable = dynamodb.Table('sub')
+    artTable = dynamodb.Table('art')
     subResponse = subTable.get_item(Key={'sub': publicAddress})
     log.info(f'subResponse: {subResponse}')
 
@@ -61,7 +62,7 @@ def verify_delete(sub, art_id, publicAddress, signature, hash_message):
 
     if publicAddress == encode_hex(sha3(pubkey)[-20:]):
 
-        dynamodb.Table('art').delete_item(Key={'art_id': art_id})
+        artTable.delete_item(Key={'art_id': art_id})
         return
     else:
         return {
