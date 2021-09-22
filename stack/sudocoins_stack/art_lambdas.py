@@ -445,6 +445,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.delete_art_function)
+        resources.sub_table.grant_read_data(self.delete_art_function)
         resources.grant_read_index_data(
             self.delete_art_function,
             [resources.art_table]
