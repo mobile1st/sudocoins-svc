@@ -16,4 +16,4 @@ def lambda_handler(event, context):
 def get_config():
     return dynamodb.Table('Config').get_item(
         Key={'configKey': 'TrendingArt'}
-    )['Item']['art']
+    )['Item']
