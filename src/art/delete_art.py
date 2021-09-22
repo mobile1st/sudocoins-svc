@@ -27,7 +27,7 @@ def lambda_handler(event, context):
 
     if publicAddress != "":
         try:
-            verify_delete(sub, art_id, publicAddress, signature, hash_message)
+            return verify_delete(sub, art_id, publicAddress, signature, hash_message)
 
         except Exception as e:
             log.exception(e)
