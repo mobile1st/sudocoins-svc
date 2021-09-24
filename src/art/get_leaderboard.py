@@ -13,11 +13,9 @@ def lambda_handler(event, context):
         'influencers': leaderboard['leaders'],
         'artists': leaderboard['creators'],
         'trending': leaderboard['trending'],
-        "artists_hour": leaderboard['creators_hours'],
-        "artists_half": leaderboard['creators_half'],
-
+        "artists_hour": leaderboard['creators_hour'],
+        "artists_half": leaderboard['creators_half']
     }
-
 
 def set_log_context(event):
     global log
