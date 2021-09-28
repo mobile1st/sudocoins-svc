@@ -13,8 +13,12 @@ def lambda_handler(event, context):
     query_params = event['queryStringParameters']
     artist = query_params['address']
 
+    last_sale_price = get_lsp(artist)
+    recent = get_recent(artist)
+
     return {
-        'art': get_uploads(artist)
+        'art': last_sale_price,
+        'recent': recent
     }
 
 
@@ -23,7 +27,7 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_uploads(collection):
+def get_recent(collection):
     # returns the artists uploaded art sorted by timestamp
     data = dynamodb.Table('art').query(
         KeyConditionExpression=Key('collection_address').eq(collection),
@@ -66,6 +70,54 @@ def get_uploads(collection):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+    #newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
 
-    return newlist
+    return sanitized
+
+
+def get_lsp(collection):
+    # returns the artists uploaded art sorted by timestamp
+    data = dynamodb.Table('art').query(
+        KeyConditionExpression=Key('collection_address').eq(collection),
+        ScanIndexForward=False,
+        IndexName='collection_address-last_sale_price-index',
+        ExpressionAttributeNames={'#n': 'name'},
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price'
+    )
+
+    uploads = data['Items']
+
+    while 'LastEvaluatedKey' in data and len(uploads) < 250:
+        data = dynamodb.Table('art').query(
+            KeyConditionExpression=Key('collection_address').eq(collection),
+            ScanIndexForward=False,
+            IndexName='collection_address-recent_sk-index',
+            ExpressionAttributeNames={'#n': 'name'},
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address',
+            ExclusiveStartKey=data['LastEvaluatedKey']
+        )
+        uploads.extend(data['Items'])
+
+    art_ids = [i['art_id'] for i in uploads]
+
+    art_list = arts.get_arts(art_ids)
+
+    art_index = {}
+    for art in art_list:
+        art_index[art['art_id']] = art
+
+    sanitized = []  # remove art that is no longer present in the art table
+    for a in uploads:
+        idx = art_index.get(a['art_id'])
+        if not idx:
+            log.info(f'Could not find art_id {a["art_id"]} in art table, hiding from user arts too')
+            continue
+
+        a['art_url'] = idx['art_url']  # this maybe a cdn url
+        if idx.get('mime_type'):
+            a['mime_type'] = idx.get('mime_type')
+        sanitized.append(a)
+
+    #newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+
+    return sanitized
