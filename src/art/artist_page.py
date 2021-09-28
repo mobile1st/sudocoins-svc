@@ -91,7 +91,7 @@ def get_lsp(collection):
         data = dynamodb.Table('art').query(
             KeyConditionExpression=Key('collection_address').eq(collection),
             ScanIndexForward=False,
-            IndexName='collection_address-recent_sk-index',
+            IndexName='collection_address-last_sale_price-index',
             ExpressionAttributeNames={'#n': 'name'},
             ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address',
             ExclusiveStartKey=data['LastEvaluatedKey']
