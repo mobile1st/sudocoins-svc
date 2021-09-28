@@ -303,3 +303,21 @@ class Art:
 
 
         return art_record
+
+    def get_minted(self, count, timestamp):
+        log.info(f"art.get_minted {count} {timestamp}")
+        res = self.art_table.query(
+            KeyConditionExpression=Key("event_type").eq('mint') & Key("recent_sk").lt(timestamp),
+            ScanIndexForward=False,
+            Limit=count,
+            IndexName='event_type-recent_sk-index',
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price",
+            ExpressionAttributeNames={'#n': 'name'}
+        )
+        if not res.get('Items'):
+            return None
+
+        for art in res['Items']:
+            self.__use_cdn_url(art)
+
+        return res['Items']

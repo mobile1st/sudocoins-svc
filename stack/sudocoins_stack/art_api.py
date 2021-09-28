@@ -231,4 +231,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=delete_art_integration
         )
+        # GET MINTED
+        get_minted_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_minted_function
+        )
+        art_api_v3.add_routes(
+            path='/get-minted',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_minted_integration
+        )
 

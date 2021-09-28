@@ -450,6 +450,19 @@ class SudocoinsArtLambdas:
             self.delete_art_function,
             [resources.art_table]
         )
+        # GET MINTED
+        self.get_minted_function = _lambda.Function(
+            scope,
+            'GetMintedV2',
+            function_name='GetMintedV2',
+            handler='art.get_minted.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.get_minted_function)
+        resources.grant_read_index_data(
+            self.get_minted_function,
+            [resources.art_table]
+        )
 
 
 
