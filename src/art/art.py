@@ -311,7 +311,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='event_type-recent_sk-index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, list_price",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
