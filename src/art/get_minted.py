@@ -10,11 +10,10 @@ arts = Art(dynamodb)
 
 def lambda_handler(event, context):
     set_log_context(event)
-    #  query_params = event['queryStringParameters']
-    count = 100
-    timestamp = str(datetime.utcnow().isoformat())
+    query_params = event['queryStringParameters']
+    count = int(query_params['count'])
     return {
-        'art': arts.get_minted(count, timestamp)
+        'art': arts.get_minted(count, query_params['timestamp'])
     }
 
 
