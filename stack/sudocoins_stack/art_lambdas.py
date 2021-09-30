@@ -315,6 +315,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_processor_topic.grant_publish(ingest_processor_function)
         resources.add_search_topic.grant_publish(ingest_processor_function)
+        resources.add_time_series_topic.grant_publish(ingest_processor_function)
         resources.creators_table.grant_read_write_data(ingest_processor_function)
         # GET HEARTS
         self.get_hearts_function = _lambda.Function(
@@ -462,6 +463,24 @@ class SudocoinsArtLambdas:
         resources.grant_read_index_data(
             self.get_minted_function,
             [resources.art_table]
+        )
+        # ADD TIME SERIES
+        self.add_time_series_function = _lambda.Function(
+            scope,
+            'AddTimeSeriesV2',
+            function_name='AddTimeSeriesV2',
+            handler='art.add_time_series.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.get_minted_function)
+        resources.grant_read_index_data(
+            self.get_minted_function,
+            [resources.art_table]
+        )
+        resources.add_time_series_topic.add_subscription(
+            subs.LambdaSubscription(
+                self.add_time_series_function
+            )
         )
 
 

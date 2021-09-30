@@ -300,6 +300,24 @@ class Art:
         except Exception as e:
             log.info(e)
 
+        try:
+            msg = {
+                "event_date": art_object.get('created_date'),
+                "last_sale_price": eth_sale_price,
+                "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
+                "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+                'art_id': art_id,
+                'contractId#tokenId': contract_token_id
+            }
+            self.sns.publish(
+                TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeriesTopic',
+                MessageStructure='string',
+                Message=json.dumps(msg)
+            )
+            log.info(f"add time series published")
+        except Exception as e:
+            log.info(e)
+
 
         return art_record
 

@@ -94,6 +94,12 @@ class SudocoinsImportedResources:
             display_name='AddSearchTopic',
             topic_name='AddSearchTopic'
         )
+        self.add_time_series_topic = sns.Topic(
+            scope,
+            'AddTimeSeriesTopic',
+            display_name='AddTimeSeriesTopic',
+            topic_name='AddTimeSeriesTopic'
+        )
 
     def construct_s3_buckets(self, scope):
         sitemaps_bucket_name = 'sitemaps.sudocoins.com'
