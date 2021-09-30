@@ -28,8 +28,6 @@ def lambda_handler(event, context):
 
     creator = body.get("mint_response", {}).get("creators")[0]['account']
 
-    short_code = str(uuid.uuid4())[:8]
-
     art_record = {
         'art_id': art_id,
         "name": body.get("form_data", {}).get('name'),
@@ -54,10 +52,10 @@ def lambda_handler(event, context):
             "name": "Rarible",
             "image_url": "https://lh3.googleusercontent.com/FG0QJ00fN3c_FWuPeUr9-T__iQl63j9hn5d6svW8UqOmia5zp3lKHPkJuHcvhZ0f_Pd6P2COo9tt9zVUvdPxG_9BBw=s60"
         },
+        "collection_name": "Rarible",
         "process_to_google_search": "TO_BE_INDEXED",
         "metadata": body.get("mint_response", {}).get('uri'),
         "royalty": body.get("mint_response", {}).get('royalties'),
-        "short_code": short_code,
         "list_price": Decimal(body.get("form_data", {}).get("price", 0)) * (10**18)
     }
 
