@@ -82,7 +82,7 @@ def get_lsp(collection):
         ScanIndexForward=False,
         IndexName='collection_address-last_sale_price-index',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price'
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address'
     )
 
     uploads = data['Items']
@@ -93,7 +93,7 @@ def get_lsp(collection):
             ScanIndexForward=False,
             IndexName='collection_address-last_sale_price-index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
