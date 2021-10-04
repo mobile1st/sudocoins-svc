@@ -28,13 +28,12 @@ def lambda_handler(event, context):
         body = json.loads(event.get('body', '{}'))
         input_url = body['url']
         user_id = "twitter"
-        tags = body.get("tags", [])
-        log.info(f'url: {input_url} tags: {tags}')
+        log.info(f'url: {input_url} ')
 
         contract_id, token_id = parse_url(input_url)
         open_sea_response = call_open_sea(contract_id, token_id)
 
-        return add(contract_id, token_id, open_sea_response, input_url, user_id, tags)
+        return add(contract_id, token_id, open_sea_response, input_url, user_id)
     except Exception as e:
         log.exception(e)
         return {
@@ -110,7 +109,7 @@ def call_open_sea(contract_id, token_id):
     return open_sea_response
 
 
-def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
+def add(contract_id, token_id, open_sea_response, input_url, user_id):
     open_sea = {
         'redirect': input_url,
         'name': open_sea_response['name'],
@@ -127,7 +126,7 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
 
     preview_url, art_url = get_urls(open_sea)
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else input_url
-    art_id = get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags)
+    art_id = get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id)
 
     # BEGIN register_art_upload(art, user_id) -> art_upload
     # check to see if art_uploads record already exists
@@ -183,13 +182,13 @@ def add(contract_id, token_id, open_sea_response, input_url, user_id, tags):
     }
 
 
-def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id, tags):
+def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, user_id):
     contract_token_id = str(contract_id) + "#" + str(token_id)
     art_id = art.get_id(contract_token_id)
     if art_id:
         return art_id
 
-    return art.add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags)['art_id']
+    return art.add(contract_token_id, art_url, preview_url, buy_url, open_sea, user_id)['art_id']
 
 
 def get_urls(open_sea):

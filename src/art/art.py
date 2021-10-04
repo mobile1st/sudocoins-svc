@@ -29,7 +29,7 @@ class Art:
         art = self.art_table.get_item(
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
-                                 "tags, last_sale_price, open_sea_data, list_price, description",
+                                 "last_sale_price, open_sea_data, list_price, description",
             ExpressionAttributeNames={'#n': 'name'})
         try:
             if 'Item' in art:
@@ -51,7 +51,7 @@ class Art:
 
         return self.__use_cdn_url(art['Item'] if art.get('Item') else None)
 
-    def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id, tags):
+    def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id):
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea}")
@@ -72,7 +72,6 @@ class Art:
             "sort_idx": 'true',
             "creator": creator_address,
             "process_status": "STREAM_TO_S3",
-            "tags": tags,
             "event_date": "0",
             "event_type": "manually added",
             "blockchain": "Ethereum",
@@ -111,7 +110,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, collection_data, collection_address, open_sea_data.description, description",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
@@ -183,7 +182,7 @@ class Art:
         for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
             query = {
                 'Keys': i,
-                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price, #T, collection_data, collection_address, open_sea_data.description, description',
+                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, last_sale_price, #T, collection_data, collection_address, open_sea_data.description, description',
                 'ExpressionAttributeNames': {'#N': 'name', '#T': 'contractId#tokenId'}
             }
             response = self.dynamodb.batch_get_item(RequestItems={'art': query})
@@ -233,7 +232,6 @@ class Art:
             "sort_idx": 'true',
             "creator": creator_address,
             "process_status": "STREAM_TO_S3",
-            "tags": [],
             "event_date": art_object.get('created_date'),
             "event_type": art_object.get('event_type'),
             "blockchain": art_object.get('blockchain'),
@@ -247,6 +245,12 @@ class Art:
             "process_to_google_search": "TO_BE_INDEXED",
             "collection_name": art_object.get('asset', {}).get('collection', {}).get('name')
         }
+
+        if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
+            art_record['collection_id'] = art_record['collection_address'] + "#" + art_record['name']
+        else:
+            art_record['collection_id'] = art_record['collection_address']
+
 
         log.info(f"art.add {art_record}")
         if art_record['preview_url'] is None:
@@ -329,7 +333,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='event_type-recent_sk-index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, list_price, description",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, list_price, description",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
