@@ -469,7 +469,7 @@ class SudocoinsArtLambdas:
             scope,
             'AddTimeSeriesV2',
             function_name='AddTimeSeriesV2',
-            handler='art.add_time_series.lambda_handler',
+            handler='art.artprocessor.add_time_series.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.get_minted_function)
