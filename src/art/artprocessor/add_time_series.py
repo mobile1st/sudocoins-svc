@@ -11,6 +11,7 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     art = json.loads(event['Records'][0]['Sns']['Message'])
     # art = event['Records'][0]['Sns']['Message']
+    log.info(f'art: {art}')
 
     timestamp = art['event_date'].split('T')[0]
     collection_id = art['collection_id']
@@ -20,30 +21,36 @@ def lambda_handler(event, context):
     if 'Item' in record:
         trades = record['Item']['trades']
         trades.append(lsp)
-        floor = min(trades)
-        median = statistics.median(trades)
+
+        values = {
+            ":tr": trades,
+            ":me": statistics.median(trades),
+            ":fl": min(trades),
+            ":tc": len(trades),
+            ":ce": max(trades)
+        }
 
         dynamodb.Table('time_series').update_item(
             Key={'date': timestamp, 'collection_id': collection_id},
-            UpdateExpression="set trades=:tr, median=:me, floor=:fl ",
-            ExpressionAttributeValues={
-                ":tr": trades,
-                ":me": median,
-                "fl": floor
-            },
+            UpdateExpression="set trades=:tr, median=:me, floor=:fl, trade_count=:tc, ceiling=:ce ",
+            ExpressionAttributeValues=values,
             ReturnValues="ALL_NEW"
         )
         log.info(f'record updated')
+        # . log.info(values)
+
     else:
         new_record = {
             "date": timestamp,
             "collection_id": collection_id,
             "median": lsp,
             "trades": [lsp],
-            "floor": lsp
+            "floor": lsp,
+            "trade_count": 1,
+            "celing": lsp
         }
         dynamodb.Table('time_series').put_item(Item=new_record)
         log.info(f'record created')
-
+        # . log.info(new_record)
 
     return
