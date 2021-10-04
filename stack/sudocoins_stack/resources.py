@@ -159,6 +159,7 @@ class SudocoinsImportedResources:
             'TimeSeriesTable',
             table_name='time_series',
             partition_key=dynamodb.Attribute(name='date', type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name='collection_id', type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
 
