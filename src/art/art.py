@@ -243,7 +243,8 @@ class Art:
                 "description": art_object.get('asset', {}).get('collection', {}).get('description', "")
             },
             "process_to_google_search": "TO_BE_INDEXED",
-            "collection_name": art_object.get('asset', {}).get('collection', {}).get('name')
+            "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
+            "owner": art_object.get('asset', {}).get("owner", {}).get('address', "")
         }
 
         if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
