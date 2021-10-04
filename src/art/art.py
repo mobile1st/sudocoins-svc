@@ -43,6 +43,7 @@ class Art:
                     log.info(desc)
                     if desc is None:
                         desc = ""
+                art['Item']['description'] = desc
                 art['Item']['alt'] = name + " " + desc
                 del art['Item']['open_sea_data']
         except Exception as e:
