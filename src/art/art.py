@@ -247,7 +247,7 @@ class Art:
         }
 
         if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
-            art_record['collection_id'] = art_record['collection_address'] + "#" + art_record['name']
+            art_record['collection_id'] = art_record['collection_address'] + "#" + art_record['collection_name']
         else:
             art_record['collection_id'] = art_record['collection_address']
 
