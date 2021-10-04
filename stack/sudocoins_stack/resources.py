@@ -154,6 +154,13 @@ class SudocoinsImportedResources:
             partition_key=dynamodb.Attribute(name='search_key', type=dynamodb.AttributeType.STRING),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
+        self.time_series_table = dynamodb.Table(
+            scope,
+            'TimeSeriesTable',
+            table_name='time_series',
+            partition_key=dynamodb.Attribute(name='date', type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+        )
 
     def import_tables(self, scope):
         self.traffic_reports_table = self.import_table(scope, 'TrafficReports')
@@ -171,6 +178,7 @@ class SudocoinsImportedResources:
         self.ether_events_table = self.import_table(scope, 'ether_events')
         self.binance_events_table = self.import_table(scope, 'binance_events')
         self.search_table = self.import_table(scope, 'search')
+        self.time_series_table = self.import_table(scope, 'time_series')
 
     def import_table(self, scope, table_name):
         return dynamodb.Table.from_table_arn(

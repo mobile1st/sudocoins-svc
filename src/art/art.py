@@ -309,8 +309,7 @@ class Art:
             msg = {
                 "event_date": art_object.get('created_date'),
                 "last_sale_price": eth_sale_price,
-                "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+                "collection_id": art_record['collection_id'],
                 'art_id': art_id,
                 'contractId#tokenId': contract_token_id
             }
