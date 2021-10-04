@@ -482,7 +482,7 @@ class SudocoinsArtLambdas:
                 self.add_time_series_function
             )
         )
-        resources.time_series_table.grant_read_write_data(self.get_minted_function)
+        resources.time_series_table.grant_read_write_data(self.add_time_series_function)
 
 
 
