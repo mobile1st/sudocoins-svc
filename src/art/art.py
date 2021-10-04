@@ -29,7 +29,7 @@ class Art:
         art = self.art_table.get_item(
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
-                                 "tags, last_sale_price, open_sea_data, list_price",
+                                 "tags, last_sale_price, open_sea_data, list_price, description",
             ExpressionAttributeNames={'#n': 'name'})
         try:
             if 'Item' in art:
@@ -43,9 +43,9 @@ class Art:
                     log.info(desc)
                     if desc is None:
                         desc = ""
-                art['Item']['description'] = desc
                 art['Item']['alt'] = name + " " + desc
                 del art['Item']['open_sea_data']
+                art['Item']['open_sea_data']['description'] = desc
         except Exception as e:
             log.info(e)
 
@@ -111,7 +111,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, collection_data, collection_address",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
@@ -183,7 +183,7 @@ class Art:
         for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
             query = {
                 'Keys': i,
-                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price, #T, collection_data, collection_address, open_sea_data.description',
+                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, tags, last_sale_price, #T, collection_data, collection_address, open_sea_data.description, description',
                 'ExpressionAttributeNames': {'#N': 'name', '#T': 'contractId#tokenId'}
             }
             response = self.dynamodb.batch_get_item(RequestItems={'art': query})
@@ -329,7 +329,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='event_type-recent_sk-index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, list_price",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, tags, last_sale_price, list_price, description",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):

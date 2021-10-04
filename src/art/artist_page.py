@@ -45,7 +45,7 @@ def get_recent(collection):
             ScanIndexForward=False,
             IndexName='collection_address-recent_sk-index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, open_sea_data.description, description',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
