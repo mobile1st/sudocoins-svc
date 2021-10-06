@@ -497,6 +497,18 @@ class SudocoinsArtLambdas:
             self.collection_page_function,
             [resources.art_table]
         )
+        # SET COLLECTION TIME SERIES
+        self.set_coll_ts_function = _lambda.Function(
+            scope,
+            'SetCollectionTSV2',
+            function_name='SetCollectionTS',
+            handler='art.set_collection_ts.lambda_handler',
+            timeout=cdk.Duration.seconds(60),
+            **lambda_default_kwargs
+        )
+        resources.time_series_table.grant_read_write_data(self.set_coll_ts_function)
+        resources.config_table.grant_read_write_data(self.set_coll_ts_function)
+
 
 
 

@@ -1,7 +1,7 @@
 import boto3
 from util import sudocoins_logger
 import json
-import statistics
+
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
