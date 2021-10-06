@@ -215,4 +215,4 @@ def get_trending():
     buyers_hour = sorted(owners2.values(), key=lambda x: x['score'], reverse=True)
     buyers_half = sorted(owners3.values(), key=lambda x: x['score'], reverse=True)
 
-    return hour[0:250], half_day[0:250], day[0:250], leaders[0:175], leaders_hour[0:175], leaders_half[0:175], buyers[0:125], buyers_half[0:125], buyers_hour[0:125]
+    return hour[0:250], half_day[0:250], day[0:250], leaders[0:150], leaders_hour[0:150], leaders_half[0:150], buyers[0:100], buyers_half[0:100], buyers_hour[0:100]
