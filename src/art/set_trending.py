@@ -76,7 +76,7 @@ def get_trending():
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
-        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o",
+        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o, collection_id",
         ExpressionAttributeNames={'#o': 'owner'}
     )
     data = record['Items']
@@ -84,7 +84,7 @@ def get_trending():
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o",
+            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o, collection_id",
             ExpressionAttributeNames={'#o': 'owner'},
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
@@ -118,25 +118,27 @@ def get_trending():
                     owners2[i['owner']] = {}
                     owners2[i['owner']]['score'] = i.get('last_sale_price')
                     owners2[i['owner']]['preview_url'] = i.get('preview_url')
+                    owners2[i['owner']]['owner_address'] = i.get('owner')
 
-                if i['collection_data']['name'] in artists2:
-                    artists2[i['collection_data']['name']]['score'] += i.get('last_sale_price')
+                if i['collection_id'] in artists2:
+                    artists2[i['collection_id']]['score'] += i.get('last_sale_price')
                 else:
-                    artists2[i['collection_data']['name']] = {}
-                    artists2[i['collection_data']['name']]['score'] = i.get('last_sale_price')
-                    artists2[i['collection_data']['name']]['avatar'] = i.get('preview_url')
+                    artists2[i['collection_id']] = {}
+                    artists2[i['collection_id']]['score'] = i.get('last_sale_price')
+                    artists2[i['collection_id']]['avatar'] = i.get('preview_url')
+                    artists2[i['collection_id']]['collection_id'] = i.get('collection_id')
 
-                    artists2[i['collection_data']['name']]['data'] = {}
-                    artists2[i['collection_data']['name']]['data']['address'] = i.get('collection_address')
-                    artists2[i['collection_data']['name']]['data']['profile_img_url'] = i.get('preview_url')
-                    artists2[i['collection_data']['name']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
+                    artists2[i['collection_id']]['data'] = {}
+                    artists2[i['collection_id']]['data']['address'] = i.get('collection_address')
+                    artists2[i['collection_id']]['data']['profile_img_url'] = i.get('preview_url')
+                    artists2[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
-                    artists2[i['collection_data']['name']]['art1'] = i.get('art_id')
-                    artists2[i['collection_data']['name']]['name'] = i.get('collection_data', {}).get('name',
+                    artists2[i['collection_id']]['art1'] = i.get('art_id')
+                    artists2[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
                                                                                                       i['creator'])
-                    artists2[i['collection_data']['name']]['collection_address'] = i.get('collection_address')
-                    if artists2[i['collection_data']['name']]['collection_address'] == 'unknown':
-                        artists2[i['collection_data']['name']]['collection_address'] = \
+                    artists2[i['collection_id']]['collection_address'] = i.get('collection_address')
+                    if artists2[i['collection_id']]['collection_address'] == 'unknown':
+                        artists2[i['collection_id']]['collection_address'] = \
                             i['open_sea_data']['asset']['asset_contract']['address']
 
             if i['event_date'] > (datetime.fromisoformat(created) - timedelta(hours=12)).isoformat():
@@ -148,54 +150,57 @@ def get_trending():
                     owners3[i['owner']] = {}
                     owners3[i['owner']]['score'] = i.get('last_sale_price')
                     owners3[i['owner']]['preview_url'] = i.get('preview_url')
+                    owners3[i['owner']]['owner_address'] = i.get('owner')
 
                 if i['collection_data']['name'] in artists3:
-                    artists3[i['collection_data']['name']]['score'] += i.get('last_sale_price')
+                    artists3[i['collection_id']]['score'] += i.get('last_sale_price')
                 else:
-                    artists3[i['collection_data']['name']] = {}
-                    artists3[i['collection_data']['name']]['score'] = i.get('last_sale_price')
-                    artists3[i['collection_data']['name']]['avatar'] = i.get('preview_url')
+                    artists3[i['collection_id']] = {}
+                    artists3[i['collection_id']]['score'] = i.get('last_sale_price')
+                    artists3[i['collection_id']]['avatar'] = i.get('preview_url')
+                    artists3[i['collection_id']]['collection_id'] = i.get('collection_id')
 
-                    artists3[i['collection_data']['name']]['data'] = {}
-                    artists3[i['collection_data']['name']]['data']['address'] = i.get('collection_address')
-                    artists3[i['collection_data']['name']]['data']['profile_img_url'] = i.get('preview_url')
-                    artists3[i['collection_data']['name']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
+                    artists3[i['collection_id']]['data'] = {}
+                    artists3[i['collection_id']]['data']['address'] = i.get('collection_address')
+                    artists3[i['collection_id']]['data']['profile_img_url'] = i.get('preview_url')
+                    artists3[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
-                    artists3[i['collection_data']['name']]['art1'] = i.get('art_id')
-                    artists3[i['collection_data']['name']]['name'] = i.get('collection_data', {}).get('name',
+                    artists3[i['collection_id']]['art1'] = i.get('art_id')
+                    artists3[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
                                                                                                       i['creator'])
-                    artists3[i['collection_data']['name']]['collection_address'] = i.get('collection_address')
-                    if artists3[i['collection_data']['name']]['collection_address'] == 'unknown':
-                        artists3[i['collection_data']['name']]['collection_address'] = \
+                    artists3[i['collection_id']]['collection_address'] = i.get('collection_address')
+                    if artists3[i['collection_id']]['collection_address'] == 'unknown':
+                        artists3[i['collection_id']]['collection_address'] = \
                             i['open_sea_data']['asset']['asset_contract']['address']
 
             day.append(i['art_id'])
 
             if i['owner'] in owners:
-                    owners[i['owner']]['score'] += i.get('last_sale_price')
+                owners[i['owner']]['score'] += i.get('last_sale_price')
             else:
                 owners[i['owner']] = {}
                 owners[i['owner']]['score'] = i.get('last_sale_price')
                 owners[i['owner']]['preview_url'] = i.get('preview_url')
+                owners[i['owner']]['owner_address'] = i.get('owner')
 
             if i['collection_data']['name'] in artists:
-                artists[i['collection_data']['name']]['score'] += i.get('last_sale_price')
+                artists[i['collection_id']]['score'] += i.get('last_sale_price')
             else:
-                artists[i['collection_data']['name']] = {}
-                artists[i['collection_data']['name']]['score'] = i.get('last_sale_price')
-                artists[i['collection_data']['name']]['avatar'] = i.get('preview_url')
+                artists[i['collection_id']] = {}
+                artists[i['collection_id']]['score'] = i.get('last_sale_price')
+                artists[i['collection_id']]['avatar'] = i.get('preview_url')
+                artists[i['collection_id']]['collection_id'] = i.get('collection_id')
 
-                artists[i['collection_data']['name']]['data'] = {}
-                artists[i['collection_data']['name']]['data']['address'] = i.get('collection_address')
-                artists[i['collection_data']['name']]['data']['profile_img_url'] = i.get('preview_url')
-                artists[i['collection_data']['name']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
+                artists[i['collection_id']]['data'] = {}
+                artists[i['collection_id']]['data']['address'] = i.get('collection_address')
+                artists[i['collection_id']]['data']['profile_img_url'] = i.get('preview_url')
+                artists[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
-                artists[i['collection_data']['name']]['art1'] = i.get('art_id')
-                artists[i['collection_data']['name']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
-                artists[i['collection_data']['name']]['collection_address'] = i.get('collection_address')
-                if artists[i['collection_data']['name']]['collection_address'] == 'unknown':
-                    artists[i['collection_data']['name']]['collection_address'] = \
-                    i['open_sea_data']['asset']['asset_contract']['address']
+                artists[i['collection_id']]['art1'] = i.get('art_id')
+                artists[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
+                artists[i['collection_id']]['collection_address'] = i.get('collection_address')
+                if artists[i['collection_id']]['collection_address'] == 'unknown':
+                    artists[i['collection_id']]["collection_address"] = i['open_sea_data']['asset']['asset_contract']['address']
 
 
 
