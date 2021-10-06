@@ -483,6 +483,20 @@ class SudocoinsArtLambdas:
             )
         )
         resources.time_series_table.grant_read_write_data(self.add_time_series_function)
+        # COLLECTION PAGE
+        self.collection_page_function = _lambda.Function(
+            scope,
+            'CollectionPageV2',
+            function_name='CollectionPageV2',
+            handler='art.collection_page.lambda_handler',
+            timeout=cdk.Duration.seconds(15),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.collection_page_function)
+        resources.grant_read_index_data(
+            self.collection_page_function,
+            [resources.art_table]
+        )
 
 
 

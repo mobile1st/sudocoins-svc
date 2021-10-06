@@ -12,7 +12,12 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     body = json.loads(event['body'])
-    #body = event
+
+    if 'collection_id' in body:
+        return {
+            'collection_data': get_collection2(body['collection_id'])['collection_data']
+        }
+
     collection = body['collectionId']
 
     return {
@@ -32,6 +37,21 @@ def get_collection(collection):
         ScanIndexForward=False,
         Limit=1,
         IndexName='collection_address-recent_sk-index',
+        ProjectionExpression='collection_data'
+    )
+
+    collection_data = data['Items'][0]
+
+    return collection_data
+
+
+def get_collection2(collection_id):
+
+    data = dynamodb.Table('art').query(
+        KeyConditionExpression=Key('collection_id').eq(collection_id),
+        ScanIndexForward=False,
+        Limit=1,
+        IndexName='collection_id-recent_sk-index',
         ProjectionExpression='collection_data'
     )
 

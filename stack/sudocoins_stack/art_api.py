@@ -240,4 +240,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_minted_integration
         )
+        # COLLECTION PAGE
+        collection_page_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.collection_page_function
+        )
+        art_api_v3.add_routes(
+            path='/collection-page',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=collection_page_integration
+        )
 
