@@ -173,6 +173,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     )
 
     log.info("art record updated")
+    log.info(f"art_id: {art_id}")
 
     return
 
