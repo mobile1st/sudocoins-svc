@@ -147,11 +147,17 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
 
 
 def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price):
+
+    collection_address = art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown")
+    collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
+    c_name = ("-".join(collection_name.split())).lower()
+    collection_id = collection_address + ":" + c_name
+
     dynamodb.Table('art').update_item(
         Key={'art_id': art_id},
         UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
                          "last_sale_price=:lsp, event_date=:ed, #n=:na, collection_address=:ca, collection_data=:cd,"
-                         "collection_name=:cn, #o=:ow",
+                         "collection_name=:cn, #o=:ow, collection_id=:cid",
         ExpressionAttributeValues={
             ':art': art_url,
             ':buy': buy_url,
@@ -167,7 +173,8 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 "description": art_object.get('asset', {}).get('collection', {}).get('description', "")
             },
             ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
-            ":ow": art_object.get('asset', {}).get("owner", {}).get('address', "")
+            ":ow": art_object.get('asset', {}).get("owner", {}).get('address', ""),
+            ":cid": collection_id
         },
         ExpressionAttributeNames={'#n': 'name', '#o': 'owner'}
     )
