@@ -59,6 +59,9 @@ def lambda_handler(event, context):
         "list_price": Decimal(body.get("form_data", {}).get("price", 0)) * (10**18)
     }
 
+    c_name = ("-".join(art_record['collection_name'].split())).lower()
+    art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
+
     dynamodb.Table('art').put_item(Item=art_record)
 
     return art_record
