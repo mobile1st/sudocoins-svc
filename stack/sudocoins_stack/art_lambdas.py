@@ -522,6 +522,15 @@ class SudocoinsArtLambdas:
             self.top_buyers_page_function,
             [resources.art_table]
         )
+        # GET BUYERS
+        self.get_buyers_function = _lambda.Function(
+            scope,
+            'GetBuyersV2',
+            function_name='GetBuyersV2',
+            handler='art.get_buyers.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_data(self.get_buyers_function)
 
 
 

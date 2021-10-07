@@ -258,4 +258,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=top_buyers_page_integration
         )
+        # GET TOP BUYERS
+        get_buyers_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_buyers_function
+        )
+        art_api_v3.add_routes(
+            path='/get-buyers',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_buyers_integration
+        )
 
