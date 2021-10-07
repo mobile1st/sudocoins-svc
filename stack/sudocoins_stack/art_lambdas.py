@@ -531,6 +531,15 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_buyers_function)
+        # GET CHART DATA
+        self.get_chart_data_function = _lambda.Function(
+            scope,
+            'GetChartDataV2',
+            function_name='GetChartDataV2',
+            handler='art.get_chart_data.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_data(self.get_chart_data_function)
 
 
 

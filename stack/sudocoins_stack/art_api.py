@@ -267,4 +267,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_buyers_integration
         )
+        # GET CHART DATA
+        get_chart_data_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_chart_data_function
+        )
+        art_api_v3.add_routes(
+            path='/chart-data',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_chart_data_integration
+        )
 
