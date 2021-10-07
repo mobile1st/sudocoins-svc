@@ -508,6 +508,20 @@ class SudocoinsArtLambdas:
         )
         resources.time_series_table.grant_read_write_data(self.set_coll_ts_function)
         resources.config_table.grant_read_write_data(self.set_coll_ts_function)
+        # TOP BUYERS PAGE
+        self.top_buyers_page_function = _lambda.Function(
+            scope,
+            'TopBuyersPageV2',
+            function_name='TopBuyersPageV2',
+            handler='art.top_buyers_page.lambda_handler',
+            timeout=cdk.Duration.seconds(15),
+            **lambda_default_kwargs
+        )
+        resources.art_table.grant_read_write_data(self.top_buyers_page_function)
+        resources.grant_read_index_data(
+            self.top_buyers_page_function,
+            [resources.art_table]
+        )
 
 
 

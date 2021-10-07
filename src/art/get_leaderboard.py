@@ -10,11 +10,9 @@ def lambda_handler(event, context):
     leaderboard = get_config()
 
     return {
-        'influencers': leaderboard['leaders'],
-        'artists': leaderboard['creators'],
-        'trending': leaderboard['trending'],
-        "artists_hour": leaderboard['creators_hour'],
-        "artists_half": leaderboard['creators_half']
+        'artists': leaderboard['collections'],
+        "artists_hour": leaderboard['collections_hour'],
+        "artists_half": leaderboard['collections_half']
     }
 
 def set_log_context(event):

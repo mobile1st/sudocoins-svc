@@ -38,7 +38,7 @@ def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_
     )
     config_table.update_item(
         Key={'configKey': 'Leaderboard'},
-        UpdateExpression="set creators=:create, creators_hour=:create2, creators_half=:create3",
+        UpdateExpression="set collections=:create, collections_hour=:create2, collections_half=:create3",
         ExpressionAttributeValues={
             ":create": collections_day,
             ":create2": collections_hour,
@@ -215,4 +215,4 @@ def get_trending():
     buyers_hour = sorted(owners2.values(), key=lambda x: x['score'], reverse=True)
     buyers_half = sorted(owners3.values(), key=lambda x: x['score'], reverse=True)
 
-    return hour[0:250], half_day[0:250], day[0:250], collections_day[0:200], collections_hour[0:200], collections_half[0:200], buyers_day[0:200], buyers_half[0:200], buyers_hour[0:200]
+    return hour[0:250], half_day[0:250], day[0:250], collections_day[0:175], collections_hour[0:175], collections_half[0:175], buyers_day[0:200], buyers_half[0:200], buyers_hour[0:200]
