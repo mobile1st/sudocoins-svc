@@ -152,7 +152,7 @@ def get_trending():
                     owners3[i['owner']]['preview_url'] = i.get('preview_url')
                     owners3[i['owner']]['owner_address'] = i.get('owner')
 
-                if i['collection_data']['name'] in artists3:
+                if i['collection_id'] in artists3:
                     artists3[i['collection_id']]['score'] += i.get('last_sale_price')
                 else:
                     artists3[i['collection_id']] = {}
@@ -183,8 +183,8 @@ def get_trending():
                 owners[i['owner']]['preview_url'] = i.get('preview_url')
                 owners[i['owner']]['owner_address'] = i.get('owner')
 
-            if i['collection_data']['name'] in artists:
-                artists[i['collection_data']['name']]['score'] += i.get('last_sale_price')
+            if i['collection_id'] in artists:
+                artists[i['collection_id']]['score'] += i.get('last_sale_price')
             else:
                 artists[i['collection_id']] = {}
                 artists[i['collection_id']]['score'] = i.get('last_sale_price')
