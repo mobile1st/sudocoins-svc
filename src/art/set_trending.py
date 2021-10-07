@@ -8,20 +8,20 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    hour, half_day, day, leaders, leaders_hour, leaders_half, buyers, buyers_half, buyers_hour = get_trending()
+    arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour = get_trending()
 
-    set_config(hour, half_day, day, leaders, leaders_hour, leaders_half, buyers, buyers_half, buyers_hour)
+    set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour)
 
     return
 
 
-def set_config(hour, half_day, day, artists, artists_hour, artists_half, buyers, buyers_half, buyers_hour):
+def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour):
     config_table = dynamodb.Table('Config')
 
-    if len(hour) == 0:
-        trending = day
+    if len(arts_hour) == 0:
+        trending_arts = arts_day
     else:
-        trending = hour
+        trending_arts = arts_hour
 
     config_table.update_item(
         Key={
@@ -29,10 +29,10 @@ def set_config(hour, half_day, day, artists, artists_hour, artists_half, buyers,
         },
         UpdateExpression="set art=:art, trending_hour=:hour, trending_half_day=:hday, trending_day=:day",
         ExpressionAttributeValues={
-            ":art": trending,
-            ":hour": hour,
-            ":hday": half_day,
-            ":day": day
+            ":art": trending_arts,
+            ":hour": arts_hour,
+            ":hday": arts_half_day,
+            ":day": arts_day
         },
         ReturnValues="ALL_NEW"
     )
@@ -40,16 +40,16 @@ def set_config(hour, half_day, day, artists, artists_hour, artists_half, buyers,
         Key={'configKey': 'Leaderboard'},
         UpdateExpression="set creators=:create, creators_hour=:create2, creators_half=:create3",
         ExpressionAttributeValues={
-            ":create": artists,
-            ":create2": artists_hour,
-            ":create3": artists_half
+            ":create": collections_day,
+            ":create2": collections_hour,
+            ":create3": collections_half
         }
     )
     config_table.update_item(
-        Key={'configKey': 'Leaderboard'},
-        UpdateExpression="set buyers=:buy, buyers_hour=:buy2, buyers_half=:buy3",
+        Key={'configKey': 'TopBuyers'},
+        UpdateExpression="set buyers_day=:buy, buyers_hour=:buy2, buyers_half=:buy3",
         ExpressionAttributeValues={
-            ":buy": buyers,
+            ":buy": buyers_day,
             ":buy2": buyers_hour,
             ":buy3": buyers_half
         }
@@ -207,12 +207,12 @@ def get_trending():
             log.info(i['art_id'])
             continue
 
-    leaders = sorted(artists.values(), key=lambda x: x['score'], reverse=True)
-    leaders_hour = sorted(artists2.values(), key=lambda x: x['score'], reverse=True)
-    leaders_half = sorted(artists3.values(), key=lambda x: x['score'], reverse=True)
+    collections_day = sorted(artists.values(), key=lambda x: x['score'], reverse=True)
+    collections_hour = sorted(artists2.values(), key=lambda x: x['score'], reverse=True)
+    collections_half = sorted(artists3.values(), key=lambda x: x['score'], reverse=True)
 
-    buyers = sorted(owners.values(), key=lambda x: x['score'], reverse=True)
+    buyers_day = sorted(owners.values(), key=lambda x: x['score'], reverse=True)
     buyers_hour = sorted(owners2.values(), key=lambda x: x['score'], reverse=True)
     buyers_half = sorted(owners3.values(), key=lambda x: x['score'], reverse=True)
 
-    return hour[0:250], half_day[0:250], day[0:250], leaders[0:150], leaders_hour[0:150], leaders_half[0:150], buyers[0:100], buyers_half[0:100], buyers_hour[0:100]
+    return hour[0:250], half_day[0:250], day[0:250], collections_day[0:200], collections_hour[0:200], collections_half[0:200], buyers_day[0:200], buyers_half[0:200], buyers_hour[0:200]
