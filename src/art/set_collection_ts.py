@@ -2,6 +2,7 @@ import boto3
 from util import sudocoins_logger
 import statistics
 from datetime import datetime, timedelta
+from decimal import Decimal, getcontext
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -45,21 +46,26 @@ def lambda_handler(event, context):
         final_series[collection_id]['floor'] = []
         final_series[collection_id]['median'] = []
 
+        getcontext().prec = 18
+
         for row in response['Responses']['time_series']:
-            final_series[collection_id]['floor'].insert(0, [row['date'], min(row['trades'])])
-            final_series[collection_id]['median'].insert(0, [row['date'], statistics.median(row['trades'])])
+            final_series[collection_id]['floor'].insert(0, {"x": row['date'],
+                                                            "y": Decimal(min(row['trades'])) / (10 ** 18)})
+            final_series[collection_id]['median'].insert(0, {"x": row['date'],
+                                                             "y": Decimal(statistics.median(row['trades'])) / (
+                                                                         10 ** 18)})
 
     set_config(final_series)
 
     log.info("config updated")
 
-    return
+    return final_series
 
 
 def get_config():
     return dynamodb.Table('Config').get_item(
         Key={'configKey': 'Leaderboard'}
-    )['Item']['creators']
+    )['Item']['collections']
 
 
 def set_config(final_series):
