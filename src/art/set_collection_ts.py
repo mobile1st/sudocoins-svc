@@ -1,6 +1,5 @@
 import boto3
 from util import sudocoins_logger
-import json
 import statistics
 from datetime import datetime, timedelta
 
@@ -14,12 +13,14 @@ def lambda_handler(event, context):
     log.info("got config")
 
     time_series = str(datetime.utcnow().isoformat()).split('T')[0]
-    time_list = [time_series]
+    time_list = []
     count = 6
     while count > 0:
         new_time = (datetime.utcnow() - timedelta(days=count)).isoformat().split('T')[0]
         time_list.append(new_time)
         count -= 1
+    time_list.append(time_series)
+    print(time_list)
 
     final_series = {}
     for i in collections:
@@ -34,19 +35,23 @@ def lambda_handler(event, context):
 
         query = {
             'Keys': keys_list,
-            'ProjectionExpression': 'date, trades'
+            'ProjectionExpression': '#d, trades',
+            'ExpressionAttributeNames': {'#d': 'date'}
         }
 
         response = dynamodb.batch_get_item(RequestItems={'time_series': query})
 
-        final_series[i] = {}
-        final_series[i]['floor'] = []
-        final_series[i]['median'] = []
+        final_series[collection_id] = {}
+        final_series[collection_id]['floor'] = []
+        final_series[collection_id]['median'] = []
 
         for row in response['Responses']['time_series']:
-            final_series[i]['floor'].append({row['date'], min(row['trades'])})
-            final_series[i]['median'].append({row['date'], statistics.median(row['trades'])})
+            final_series[collection_id]['floor'].insert(0, [row['date'], min(row['trades'])])
+            final_series[collection_id]['median'].insert(0, [row['date'], statistics.median(row['trades'])])
 
+    set_config(final_series)
+
+    log.info("config updated")
 
     return
 
@@ -55,3 +60,18 @@ def get_config():
     return dynamodb.Table('Config').get_item(
         Key={'configKey': 'Leaderboard'}
     )['Item']['creators']
+
+
+def set_config(final_series):
+    config_table = dynamodb.Table('Config')
+
+    config_table.update_item(
+        Key={
+            'configKey': 'time_series'
+        },
+        UpdateExpression="set data_points=:dp",
+        ExpressionAttributeValues={
+            ":dp": final_series
+        },
+        ReturnValues="ALL_NEW"
+    )
