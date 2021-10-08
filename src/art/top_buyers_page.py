@@ -33,7 +33,7 @@ def get_recent(owner_address):
         ScanIndexForward=False,
         IndexName='owner-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, open_sea_data.description, description, collection_id, #o'
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, open_sea_data.description, description, collection_id, #o, collection_data'
     )
 
     uploads = data['Items']
@@ -44,7 +44,7 @@ def get_recent(owner_address):
             ScanIndexForward=False,
             IndexName='owner-recent_sk-index',
             ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, open_sea_data.description, description, collection_id, #o',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, open_sea_data.description, description, collection_id, #o, collection_data',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
