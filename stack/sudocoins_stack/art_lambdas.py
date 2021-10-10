@@ -508,6 +508,16 @@ class SudocoinsArtLambdas:
         )
         resources.time_series_table.grant_read_write_data(self.set_coll_ts_function)
         resources.config_table.grant_read_write_data(self.set_coll_ts_function)
+        set_collection_ts_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_collection_ts_target = events_targets.LambdaFunction(handler=self.set_coll_ts_function)
+        events.Rule(
+            scope,
+            "SetCollectionTSRule",
+            description="Periodically sets collection time series data",
+            enabled=True,
+            schedule=set_collection_ts_schedule,
+            targets=[set_collection_ts_target]
+        )
         # TOP BUYERS PAGE
         self.top_buyers_page_function = _lambda.Function(
             scope,

@@ -53,9 +53,19 @@ def lambda_handler(event, context):
                                                             "y": Decimal(min(row['trades'])) / (10 ** 18)})
             final_series[collection_id]['median'].insert(0, {"x": row['date'],
                                                              "y": Decimal(statistics.median(row['trades'])) / (
-                                                                         10 ** 18)})
+                                                                     10 ** 18)})
 
     set_config(final_series)
+
+    for k in final_series:
+        floor_list = final_series[k]['floor']
+        median_list = final_series[k]['median']
+
+        new_floor_list = sorted(floor_list, key=lambda i: i['x'], reverse=False)
+        new_median_list = sorted(median_list, key=lambda i: i['x'], reverse=False)
+
+        final_series[k]['floor'] = new_floor_list
+        final_series[k]['media'] = new_median_list
 
     log.info("config updated")
 
