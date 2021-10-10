@@ -16,6 +16,10 @@ def lambda_handler(event, context):
     collection_id = art['collection_id']
     lsp = art['last_sale_price']
     art_id = art['art_id']
+    if lsp == 0:
+        log.info(f'sale price 0: {art_id}')
+        return
+
 
     try:
         response = dynamodb.Table('time_series').update_item(
