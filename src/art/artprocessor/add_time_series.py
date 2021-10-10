@@ -40,6 +40,7 @@ def lambda_handler(event, context):
         log.info(response)
 
     except Exception as e:
+        log.info(e)
         if e.response['Error']['Code'] == "ValidationException":
             dynamodb.Table('time_series').update_item(
                 Key={'date': timestamp, 'collection_id': collection_id},
@@ -63,5 +64,7 @@ def lambda_handler(event, context):
                 },
                 ReturnValues="UPDATED_NEW"
             )
+        else:
+            log.info("other error")
 
     return
