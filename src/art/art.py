@@ -242,7 +242,8 @@ class Art:
             },
             "process_to_google_search": "TO_BE_INDEXED",
             "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
-            "owner": art_object.get('asset', {}).get("owner", {}).get('address', "")
+            "owner": art_object.get('winner_account', {}).get('address', ""),
+            "seller": art_object.get('seller', {}).get('address', "")
         }
 
         if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
@@ -251,8 +252,8 @@ class Art:
         else:
             art_record['collection_id'] = art_record['collection_address']
 
-
         log.info(f"art.add {art_record}")
+
         if art_record['preview_url'] is None:
             art_record['preview_url'] = art_record['art_url']
 
@@ -261,7 +262,6 @@ class Art:
             number = art_record.get("contractId#tokenId", "")
             number = number.split('#')[1]
             art_record['name'] = name + " #" + str(number)
-
 
         self.art_table.put_item(Item=art_record)
 
