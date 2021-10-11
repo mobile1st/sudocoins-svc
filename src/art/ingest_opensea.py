@@ -111,9 +111,15 @@ def process_open_sea(open_sea_response):
                     "sale_price": i.get('total_price'),
                     "created_date": created_date,
                     "asset": i.get('asset'),
-                    "owner": i.get('winner_account', {}).get('address', ""),
-                    "seller": i.get('seller', {}).get('address', "")
+                    "owner": i.get('winner_account', {}).get('address', "")
                 }
+
+                if i.get('seller') is None:
+                    seller = "unknown"
+                else:
+                    seller = i.get('seller', {}).get('address', "")
+                msg['seller'] = seller
+
                 # log.info(msg)
                 sns_client.publish(
                     TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
