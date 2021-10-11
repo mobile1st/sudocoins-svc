@@ -23,6 +23,8 @@ def lambda_handler(event, context):
     )['Items'][0]['event_date']
     log.info(f'created: {created}')
 
+    # created = '2021-10-11T18:18:14.229305'
+
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).seconds / 60
     log.info(f'difference: {difference}')
 
@@ -108,8 +110,11 @@ def process_open_sea(open_sea_response):
                     "open_sea_url": i.get('asset', {}).get('permalink'),
                     "sale_price": i.get('total_price'),
                     "created_date": created_date,
-                    "asset": i.get('asset')
+                    "asset": i.get('asset'),
+                    "owner": i.get('winner_account', {}).get('address', ""),
+                    "seller": i.get('seller', {}).get('address', "")
                 }
+                # log.info(msg)
                 sns_client.publish(
                     TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
                     MessageStructure='string',

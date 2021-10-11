@@ -55,8 +55,6 @@ class Art:
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea}")
-        creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
-        short_code = str(uuid.uuid4())[:8]
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -70,14 +68,12 @@ class Art:
             "click_count": 0,
             "first_user": user_id,
             "sort_idx": 'true',
-            "creator": creator_address,
             "process_status": "STREAM_TO_S3",
             "event_date": "0",
             "event_type": "manually added",
             "blockchain": "Ethereum",
             "last_sale_price": 0,
-            "process_to_google_search": "TO_BE_INDEXED",
-            "short_code": short_code
+            "process_to_google_search": "TO_BE_INDEXED"
         }
 
 
@@ -214,7 +210,6 @@ class Art:
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
         log.info(f"art.add {art_id} {open_sea} {art_object}")
-        creator_address = open_sea['creator'].get('address') if open_sea.get('creator') else "unknown"
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -228,7 +223,6 @@ class Art:
             "click_count": 0,
             "first_user": "ingest",
             "sort_idx": 'true',
-            "creator": creator_address,
             "process_status": "STREAM_TO_S3",
             "event_date": art_object.get('created_date'),
             "event_type": art_object.get('event_type'),
@@ -242,7 +236,8 @@ class Art:
             },
             "process_to_google_search": "TO_BE_INDEXED",
             "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
-            "owner": art_object.get('asset', {}).get("owner", {}).get('address', "")
+            "owner": art_object.get("owner", "unknown"),
+            "seller": art_object.get("seller", "unknown")
         }
 
         if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
@@ -250,7 +245,6 @@ class Art:
             art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
         else:
             art_record['collection_id'] = art_record['collection_address']
-
 
         log.info(f"art.add {art_record}")
         if art_record['preview_url'] is None:
@@ -261,7 +255,6 @@ class Art:
             number = art_record.get("contractId#tokenId", "")
             number = number.split('#')[1]
             art_record['name'] = name + " #" + str(number)
-
 
         self.art_table.put_item(Item=art_record)
 
