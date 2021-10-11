@@ -29,7 +29,7 @@ class Art:
         art = self.art_table.get_item(
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
-                                 "last_sale_price, open_sea_data, list_price, description, collection_id",
+                                 "last_sale_price, open_sea_data, list_price, description, collection_id, collection_data",
             ExpressionAttributeNames={'#n': 'name'})
         try:
             if 'Item' in art:
@@ -197,8 +197,6 @@ class Art:
                     number = number.split('#')[1]
                     art['name'] = name + " #" + str(number)
                     del art['contractId#tokenId']
-                    if 'collection_data' in art:
-                        del art['collection_data']
 
                 art_index[art['art_id']] = art
 
