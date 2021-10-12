@@ -76,7 +76,7 @@ def get_trending():
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
         IndexName='top-sales',
-        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o, collection_id",
+        ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o, collection_id, collection_name",
         ExpressionAttributeNames={'#o': 'owner'}
     )
     data = record['Items']
@@ -84,7 +84,7 @@ def get_trending():
         record = dynamodb.Table('art').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
             IndexName='top-sales',
-            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o, collection_id",
+            ProjectionExpression="art_id, last_sale_price, event_date, creator, preview_url, open_sea_data, collection_data, collection_address, blockchain, #o, collection_id, collection_name",
             ExpressionAttributeNames={'#o': 'owner'},
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
@@ -134,8 +134,7 @@ def get_trending():
                     artists2[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
                     artists2[i['collection_id']]['art1'] = i.get('art_id')
-                    artists2[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
-                                                                                                      i['creator'])
+                    artists2[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['collection_name'])
                     artists2[i['collection_id']]['collection_address'] = i.get('collection_address')
                     if artists2[i['collection_id']]['collection_address'] == 'unknown':
                         artists2[i['collection_id']]['collection_address'] = \
@@ -167,7 +166,7 @@ def get_trending():
 
                     artists3[i['collection_id']]['art1'] = i.get('art_id')
                     artists3[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
-                                                                                                      i['creator'])
+                                                                                                      i['collection_name'])
                     artists3[i['collection_id']]['collection_address'] = i.get('collection_address')
                     if artists3[i['collection_id']]['collection_address'] == 'unknown':
                         artists3[i['collection_id']]['collection_address'] = \
@@ -197,7 +196,7 @@ def get_trending():
                 artists[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
                 artists[i['collection_id']]['art1'] = i.get('art_id')
-                artists[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['creator'])
+                artists[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['collection_name'])
                 artists[i['collection_id']]['collection_address'] = i.get('collection_address')
                 if artists[i['collection_id']]['collection_address'] == 'unknown':
                     artists[i['collection_id']]['collection_address'] = i['open_sea_data']['asset']['asset_contract']['address']
