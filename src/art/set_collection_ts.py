@@ -65,7 +65,7 @@ def lambda_handler(event, context):
         new_median_list = sorted(median_list, key=lambda i: i['x'], reverse=False)
 
         final_series[k]['floor'] = new_floor_list
-        final_series[k]['media'] = new_median_list
+        final_series[k]['median'] = new_median_list
 
     log.info("config updated")
 
