@@ -15,12 +15,12 @@ def lambda_handler(event, context):
 
     last_sale_price = high_price(owner_address)
     recent = recently_bought(owner_address)
-    # sold = recently_sold(owner_address)
+    sold = recently_sold(owner_address)
 
     return {
         'last_sale_price': last_sale_price,
         'recent': recent,
-        # 'recently_sold': sold
+        'recently_sold': sold
     }
 
 
@@ -121,10 +121,10 @@ def high_price(owner_address):
 
 def recently_sold(owner_address):
     data = dynamodb.Table('art').query(
-        KeyConditionExpression=Key('owner').eq(owner_address),
+        KeyConditionExpression=Key('seller').eq(owner_address),
         ScanIndexForward=False,
         IndexName='seller-recent_sk-index',
-        ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
+        ExpressionAttributeNames={'#n': 'name', '#o': 'seller'},
         ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, #o'
     )
 
@@ -132,10 +132,10 @@ def recently_sold(owner_address):
 
     while 'LastEvaluatedKey' in data and len(uploads) < 250:
         data = dynamodb.Table('art').query(
-            KeyConditionExpression=Key('owner').eq(owner_address),
+            KeyConditionExpression=Key('seller').eq(owner_address),
             ScanIndexForward=False,
             IndexName='seller-recent_sk-index',
-            ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
+            ExpressionAttributeNames={'#n': 'name', '#o': 'seller'},
             ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id, #o',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
