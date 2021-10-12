@@ -48,14 +48,26 @@ def lambda_handler(event, context):
 
         getcontext().prec = 18
 
+        floor1 = 0
+        floor2 = 0
         for row in response['Responses']['time_series']:
-            final_series[collection_id]['floor'].insert(0, {"x": row['date'],
-                                                            "y": Decimal(min(row['trades'])) / (10 ** 18)})
+            floor2 = Decimal(min(row['trades'])) / (10 ** 18)
+
+            if floor2 > 0:
+                final_series[collection_id]['floor'].insert(0, {"x": row['date'],
+                                                                "y": Decimal(min(row['trades'])) / (10 ** 18)})
+                floor1 = Decimal(min(row['trades'])) / (10 ** 18)
+            else:
+                if floor1 == 0:
+                    continue
+                else:
+                    final_series[collection_id]['median'].insert(0, {"x": row['date'],
+                                                                     "y": Decimal(statistics.median(row['trades'])) / (
+                                                                             10 ** 18)})
+                    continue
             final_series[collection_id]['median'].insert(0, {"x": row['date'],
                                                              "y": Decimal(statistics.median(row['trades'])) / (
                                                                      10 ** 18)})
-
-    set_config(final_series)
 
     for k in final_series:
         floor_list = final_series[k]['floor']
@@ -68,6 +80,9 @@ def lambda_handler(event, context):
         final_series[k]['median'] = new_median_list
 
     log.info("config updated")
+    log.info(type(final_series))
+
+    result = set_config(final_series)
 
     return final_series
 
@@ -81,7 +96,7 @@ def get_config():
 def set_config(final_series):
     config_table = dynamodb.Table('Config')
 
-    config_table.update_item(
+    result = config_table.update_item(
         Key={
             'configKey': 'time_series'
         },
@@ -91,3 +106,5 @@ def set_config(final_series):
         },
         ReturnValues="ALL_NEW"
     )
+
+    return result
