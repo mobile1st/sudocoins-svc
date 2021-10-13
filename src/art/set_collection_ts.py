@@ -43,31 +43,33 @@ def lambda_handler(event, context):
         response = dynamodb.batch_get_item(RequestItems={'time_series': query})
 
         final_series[collection_id] = {}
-        final_series[collection_id]['low'] = []
-        final_series[collection_id]['high'] = []
+        final_series[collection_id]['floor'] = []
+        final_series[collection_id]['median'] = []
 
         getcontext().prec = 18
 
         for row in response['Responses']['time_series']:
-            final_series[collection_id]['low'].insert(0, {"x": row['date'],
+            final_series[collection_id]['floor'].insert(0, {"x": row['date'],
                                                             "y": Decimal(min(row['trades'])) / (10 ** 18)})
-            final_series[collection_id]['high'].insert(0, {"x": row['date'],
-                                                             "y": Decimal(statistics.median(row['trades'])) / (
+            final_series[collection_id]['median'].insert(0, {"x": row['date'],
+                                                             "y": Decimal(max(row['trades'])) / (
                                                                      10 ** 18)})
 
     set_config(final_series)
 
     for k in final_series:
-        floor_list = final_series[k]['low']
-        median_list = final_series[k]['high']
+        floor_list = final_series[k]['floor']
+        median_list = final_series[k]['median']
 
         new_floor_list = sorted(floor_list, key=lambda i: i['x'], reverse=False)
         new_median_list = sorted(median_list, key=lambda i: i['x'], reverse=False)
 
-        final_series[k]['low'] = new_floor_list
-        final_series[k]['high'] = new_median_list
+        final_series[k]['floor'] = new_floor_list
+        final_series[k]['median'] = new_median_list
 
     log.info("config updated")
+
+    set_config(final_series)
 
     return final_series
 
