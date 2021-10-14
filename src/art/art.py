@@ -29,7 +29,7 @@ class Art:
         art = self.art_table.get_item(
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
-                                 "last_sale_price, open_sea_data, list_price, description, collection_id, collection_data",
+                                 "last_sale_price, open_sea_data, list_price, description, collection_id, collection_data, collection_name",
             ExpressionAttributeNames={'#n': 'name'})
         try:
             if 'Item' in art:
@@ -325,7 +325,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='event_type-recent_sk-index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, list_price, description, collection_id, #T",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, list_price, description, collection_id, #T, collection_name",
             ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'}
         )
         if not res.get('Items'):
