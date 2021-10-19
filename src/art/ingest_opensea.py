@@ -36,7 +36,7 @@ def lambda_handler(event, context):
         make window bigger
     """
 
-    open_sea_response = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=6)).isoformat())
+    open_sea_response = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=20)).isoformat())
 
     length_response = len(open_sea_response)
     if length_response == 300:
