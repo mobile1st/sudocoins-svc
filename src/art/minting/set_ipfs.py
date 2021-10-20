@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     art_id = file_name.split(".")[0]
 
     ipfs_image = set_ipfs_image(file_name)
-    ipfs_meta = generate_meta_data(name, description, ipfs_image, art_id)
+    ipfs_meta = generate_meta_data(name, description, ipfs_image["ipfs_image"], art_id)
 
     return {
         "uri": ipfs_meta

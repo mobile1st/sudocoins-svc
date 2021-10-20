@@ -25,7 +25,7 @@ def lambda_handler(event, context):
 
     # created = '2021-10-11T18:18:14.229305'
 
-    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).seconds / 60
+    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
     log.info(f'difference: {difference}')
 
     if difference < 20:
@@ -36,14 +36,15 @@ def lambda_handler(event, context):
         make window bigger
     """
 
-    open_sea_response = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=20)).isoformat())
+    open_sea_response = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=5)).isoformat())
 
     length_response = len(open_sea_response)
     if length_response == 300:
+        log.info('split and call again')
         open_sea_response1 = call_open_sea(created,
                                            (datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat())
         open_sea_response2 = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat(),
-                                           (datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat())
+                                           (datetime.fromisoformat(created) + timedelta(minutes=6)).isoformat())
         open_sea_response = open_sea_response1 + open_sea_response2
 
     count_eth = process_open_sea(open_sea_response)
@@ -70,7 +71,9 @@ def call_open_sea(created, end_time):
     conn = http.client.HTTPSConnection("api.opensea.io")
     conn.request("GET", path)
     response = conn.getresponse()
+
     response2 = response.read().decode('utf-8')
+    # log.info(f'response: {response2}')
     open_sea_response = json.loads(response2)
 
     return open_sea_response['asset_events']

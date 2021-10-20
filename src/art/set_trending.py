@@ -10,12 +10,14 @@ dynamodb = boto3.resource('dynamodb')
 def lambda_handler(event, context):
     arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour = get_trending()
 
-    set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour)
+    set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day,
+               buyers_half, buyers_hour)
 
     return
 
 
-def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour):
+def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day,
+               buyers_half, buyers_hour):
     config_table = dynamodb.Table('Config')
 
     if len(arts_hour) == 0:
@@ -55,7 +57,6 @@ def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_
         }
     )
 
-
     log.info("configs updated")
 
 
@@ -72,6 +73,8 @@ def get_trending():
         ProjectionExpression="event_date"
     )['Items'][0]['event_date']
     log.info(created)
+
+    period = (datetime.fromisoformat(created) - timedelta(days=1)).isoformat()
 
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
@@ -134,7 +137,8 @@ def get_trending():
                     artists2[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
 
                     artists2[i['collection_id']]['art1'] = i.get('art_id')
-                    artists2[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['collection_name'])
+                    artists2[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
+                                                                                            i['collection_name'])
                     artists2[i['collection_id']]['collection_address'] = i.get('collection_address')
                     if artists2[i['collection_id']]['collection_address'] == 'unknown':
                         artists2[i['collection_id']]['collection_address'] = \
@@ -166,7 +170,7 @@ def get_trending():
 
                     artists3[i['collection_id']]['art1'] = i.get('art_id')
                     artists3[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
-                                                                                                      i['collection_name'])
+                                                                                            i['collection_name'])
                     artists3[i['collection_id']]['collection_address'] = i.get('collection_address')
                     if artists3[i['collection_id']]['collection_address'] == 'unknown':
                         artists3[i['collection_id']]['collection_address'] = \
@@ -199,7 +203,8 @@ def get_trending():
                 artists[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['collection_name'])
                 artists[i['collection_id']]['collection_address'] = i.get('collection_address')
                 if artists[i['collection_id']]['collection_address'] == 'unknown':
-                    artists[i['collection_id']]['collection_address'] = i['open_sea_data']['asset']['asset_contract']['address']
+                    artists[i['collection_id']]['collection_address'] = i['open_sea_data']['asset']['asset_contract'][
+                        'address']
 
         except Exception as e:
             log.info(e)
@@ -214,4 +219,8 @@ def get_trending():
     buyers_hour = sorted(owners2.values(), key=lambda x: x['score'], reverse=True)
     buyers_half = sorted(owners3.values(), key=lambda x: x['score'], reverse=True)
 
-    return hour[0:250], half_day[0:250], day[0:250], collections_day[0:175], collections_hour[0:175], collections_half[0:175], buyers_day[1:200], buyers_half[1:200], buyers_hour[1:200]
+    return hour[0:250], half_day[0:250], day[0:250], collections_day[0:175], collections_hour[0:175], collections_half[
+                                                                                                      0:175], buyers_day[
+                                                                                                              1:200], buyers_half[
+                                                                                                                      1:200], buyers_hour[
+                                                                                                                              1:200]
