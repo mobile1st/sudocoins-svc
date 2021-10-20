@@ -52,7 +52,7 @@ def generate_meta_data(name, description, image, art_id):
     data = {
         "name": name,
         "description": description,
-        "image": image,
+        "image": "ipfs://ipfs/" + image,
         "external_url": "https://app.sudocoins.com/art/social/" + art_id
     }
 
