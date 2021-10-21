@@ -1,9 +1,8 @@
 import boto3
 from util import sudocoins_logger
 from datetime import datetime
-import uuid
 import json
-from decimal import Decimal, getcontext
+
 
 
 log = sudocoins_logger.get()
@@ -14,25 +13,24 @@ def lambda_handler(event, context):
     body = json.loads(event['body'])
     # body = event
     time_now = str(datetime.utcnow().isoformat())
-
     url = "https://rarible.com/token/"
-    ending = body.get("mint_response", {}).get("id")
 
-    contractId = body.get("mint_response", {}).get("id").split(":")[0]
-    tokenId = body.get("mint_response", {}).get("id").split(":")[1]
-
+    contractId = body['make']['assetType']['contract']
+    tokenId = body['make']['assetType']['tokenId']
     contract_token_id = contractId + "#" + tokenId
+    contract_token_id_rarible = contractId + ":" + tokenId
 
     art_parse = body.get("file_name")
     art_id = art_parse.split('.')[0]
 
-    creator = body.get("mint_response", {}).get("creators")[0]['account']
+    creator = body['make']['assetType']['creators']['account']
+    owner = body['make']['assetType']['creators']['account']
 
     art_record = {
         'art_id': art_id,
-        "name": body.get("form_data", {}).get('name'),
-        "description": body.get("form_data", {}).get('description'),
-        'buy_url': url + ending,
+        "name": body.get('name', ""),
+        "description": body.get('description', ""),
+        'buy_url': url + contract_token_id_rarible,
         'contractId#tokenId': contract_token_id,
         'preview_url': "https://cdn.sudocoins.com/" + body.get("file_name"),
         'art_url': "https://cdn.sudocoins.com/" + body.get("file_name"),
@@ -55,8 +53,9 @@ def lambda_handler(event, context):
         "collection_name": "Rarible",
         "process_to_google_search": "TO_BE_INDEXED",
         "metadata": body.get("mint_response", {}).get('uri'),
-        "royalty": body.get("mint_response", {}).get('royalties'),
-        "list_price": Decimal(body.get("form_data", {}).get("price", 0)) * (10**18)
+        "royalty": body['make']['assetType']['royalties']['value'],
+        "list_price": body['take']['assetType']['value'],
+        "owner": owner
     }
 
     c_name = ("-".join(art_record['collection_name'].split())).lower()
@@ -64,7 +63,9 @@ def lambda_handler(event, context):
 
     dynamodb.Table('art').put_item(Item=art_record)
 
-    return art_record
+    return {
+        "art_id": art_record['art_id']
+    }
 
 
 def set_log_context(event):

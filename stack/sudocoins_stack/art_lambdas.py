@@ -318,7 +318,7 @@ class SudocoinsArtLambdas:
             scope,
             'AutoTweetV2',
             function_name='AutoTweetV2',
-            handler='art.auto_tweet.lambda_handler',
+            handler='art.marketing.auto_tweet.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(self.auto_tweet_function)
@@ -341,7 +341,7 @@ class SudocoinsArtLambdas:
             scope,
             'AutoFBV2',
             function_name='AutoFBV2',
-            handler='art.auto_fb.lambda_handler',
+            handler='art.marketing.auto_fb.lambda_handler',
             timeout=cdk.Duration.seconds(8),
             **lambda_default_kwargs
         )
