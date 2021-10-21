@@ -15,16 +15,19 @@ def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     url = "https://rarible.com/token/"
 
-    contractId = body['make']['assetType']['contract']
-    tokenId = body['make']['assetType']['tokenId']
+    # contractId = body['make']['assetType']['contract']
+    contractId = body['contract']
+    tokenId = body['tokenId']
     contract_token_id = contractId + "#" + tokenId
     contract_token_id_rarible = contractId + ":" + tokenId
 
-    art_parse = body.get("file_name")
+    art_parse = body['file_name'];
     art_id = art_parse.split('.')[0]
-
-    creator = body['make']['assetType']['creators']['account']
-    owner = body['make']['assetType']['creators']['account']
+    
+    creator = body['account']
+    owner = creator;
+    uri = body['uri'];
+    price = body['price'];
 
     art_record = {
         'art_id': art_id,
@@ -52,9 +55,9 @@ def lambda_handler(event, context):
         },
         "collection_name": "Rarible",
         "process_to_google_search": "TO_BE_INDEXED",
-        "metadata": body.get("mint_response", {}).get('uri'),
-        "royalty": body['make']['assetType']['royalties']['value'],
-        "list_price": body['take']['assetType']['value'],
+        "metadata": uri,
+        "royalty": body['royalty'],
+        "list_price": price,
         "owner": owner
     }
 
