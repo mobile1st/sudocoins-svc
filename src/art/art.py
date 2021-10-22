@@ -287,9 +287,6 @@ class Art:
 
         try:
             msg = {
-                "art_id": art_record.get("art_id", ""),
-                "name": art_record.get("name", ""),
-                "description": art_record.get('open_sea_data', {}).get("description", ""),
                 "collection_id": art_record.get('collection_id', "")
             }
             self.sns.publish(
@@ -315,6 +312,27 @@ class Art:
                 Message=json.dumps(msg)
             )
             log.info(f"add time series published")
+        except Exception as e:
+            log.info(e)
+
+        try:
+            dynamodb = boto3.resource('dynamodb')
+            dynamodb.Table('collections').update_item(
+                Key={
+                    'collection_id': art_record['collection_id']
+                },
+                UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sale_volume, :start2) + :inc2,"
+                                 "collection_name = :cn, preview_url = :purl",
+                ExpressionAttributeValues={
+                    ':start': 0,
+                    ':inc': 1,
+                    ':start': 0,
+                    ':inc': art_record['last_sale_price'],
+                    ':cn': art_record['collection_name'],
+                    ':purl': art_record['preview_url']
+                },
+                ReturnValues="UPDATED_NEW"
+            )
         except Exception as e:
             log.info(e)
 

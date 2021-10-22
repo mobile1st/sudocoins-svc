@@ -305,6 +305,7 @@ class SudocoinsArtLambdas:
         resources.add_search_topic.grant_publish(ingest_processor_function)
         resources.add_time_series_topic.grant_publish(ingest_processor_function)
         resources.creators_table.grant_read_write_data(ingest_processor_function)
+        resources.collections_table.grant_read_write_data(ingest_processor_function)
         # GET HEARTS
         self.get_hearts_function = _lambda.Function(
             scope,
@@ -398,6 +399,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.end_mint_function)
+        resources.collections_table.grant_read_write_data(self.end_mint_function)
         # ADD SEARCH
         add_search_function = _lambda.Function(
             scope,
