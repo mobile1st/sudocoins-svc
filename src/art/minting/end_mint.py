@@ -10,6 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    log.debug(f'event: {event}')
     body = json.loads(event['body'])
     # body = event
     time_now = str(datetime.utcnow().isoformat())
