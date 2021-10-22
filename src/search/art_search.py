@@ -17,24 +17,37 @@ def lambda_handler(event, context):
 
     key_list = []
     for i in query:
-        key_list.append(i.lower())
+        key_list.append({"search_key": i.lower()})
 
     query = {
         'Keys': key_list,
         'ProjectionExpression': 'collections'
     }
+    log.info(query)
+
     response = dynamodb.batch_get_item(RequestItems={'search': query})
+    log.info(response)
 
-    collections = []
+    collections = set([])
     for k in response['Responses']['search']:
-        collections.extend(k)
+        tmp_set = k['collections']
+        collections.update(tmp_set)
 
-    unique_collection = set(collections)
-    collections = list(unique_collection)
+    log.info(collections)
 
+    uploads = []
+    for i in collections:
+        data = dynamodb.Table('art').query(
+            KeyConditionExpression=Key('collection_id').eq(collection_id),
+            ScanIndexForward=False,
+            IndexName='collection_id-last_sale_price-index',
+            ProjectionExpression='art_id',
+            Limit=20
+        )
+        uploads.append(data['Items'])
 
     return {
-        'arts': collections
+        'arts': uploads[:250]
     }
 
 

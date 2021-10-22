@@ -222,10 +222,12 @@ class SudocoinsArtLambdas:
             'ArtSearch',
             function_name='ArtSearch',
             handler='search.art_search.lambda_handler',
-            timeout=cdk.Duration.seconds(7),
+            timeout=cdk.Duration.seconds(10),
             **lambda_default_kwargs
         )
         resources.search_table.grant_read_write_data(self.art_search_function)
+        resources.art_table.grant_read_write_data(self.art_search_function)
+        resources.grant_read_index_data(self.art_search_function, [resources.art_table])
         # SITEMAP UPLOADER
         sitemap_uploader_function = _lambda.Function(
             scope,
