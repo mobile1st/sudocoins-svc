@@ -29,8 +29,8 @@ class Art:
         art = self.art_table.get_item(
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
-                                 "last_sale_price, open_sea_data, list_price, description, collection_id, collection_data, collection_name",
-            ExpressionAttributeNames={'#n': 'name'})
+                                 "last_sale_price, open_sea_data, list_price, description, collection_id, collection_data, collection_name, #T",
+            ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'})
         try:
             if 'Item' in art:
                 name = art['Item'].get('name', "")
@@ -43,9 +43,13 @@ class Art:
                     log.info(desc)
                     if desc is None:
                         desc = ""
+                contract_tokenId = art['Item'].get('contractId#tokenId', "")
+                if contract_tokenId is None:
+                    contract_tokenId = ""
                 art['Item']['alt'] = name + " " + desc
                 del art['Item']['open_sea_data']
                 art['Item']['open_sea_data']['description'] = desc
+                art['Item']['contractId#tokenId'] = contract_tokenId
         except Exception as e:
             log.info(e)
 
