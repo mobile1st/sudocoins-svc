@@ -1,46 +1,42 @@
 import boto3
 from util import sudocoins_logger
 import string
+import json
 
 log = sudocoins_logger.get()
-google_search_host = 'customsearch.googleapis.com'
-search_engine_id = 'abe73c1ca8f9839de'
-api_key = 'AIzaSyA4Be7eS9trAjcz5S4nkxPxKhhpC2IEP6E'
-art_page_prefix = 'https://www.sudocoins.com/art/'
 dynamodb = boto3.resource('dynamodb')
+sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-    log.debug(f'event: {event}')
-    query = extract_parameters(event['queryStringParameters'])
-    log.info(query)
-    arts = []
-    for i in query:
-        log.info(i.lower())
-        tmp = dynamodb.Table('search').get_item(
-            Key={'search_key': i.lower()},
-            ProjectionExpression="arts")
-        log.info(tmp)
+    art = json.loads(event['Records'][0]['Sns']['Message'])
+    # art = event['Records'][0]['Sns']['Message']
 
-        if 'Item' in tmp:
-            tmp = tmp['Item']['arts']
+    log.info(f'payload: {art}')
 
-            for k in tmp:
-                if k not in arts:
-                    arts.append(k)
-    log.info(len(arts))
-    return {
-        'arts': arts[:250]
-    }
+    collection_id = art.get('collection_id')
+    if collection_id is None:
+        return
+
+    process_collection(collection_id)
+
+    log.info(f'success')
 
 
-def extract_parameters(query_params):
-    query = query_params['q']
-    words = query.split(" ")
+def process_collection(collection_id):
 
-    return words
+    words = collection_id.split("-")
 
+    for i in words:
+        dynamodb.Table('search').update_item(
+            Key={
+                'search_key': i
+            },
+            UpdateExpression="SET collections = list_append(if_not_exists(collections, :empty_list), :i)",
+            ExpressionAttributeValues={
+                ':i': [collection_id],
+                ':empty_list': []
+            },
+            ReturnValues="UPDATED_NEW"
+        )
 
-def set_log_context(event):
-    global log
-    log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))

@@ -61,7 +61,6 @@ def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_
 
 
 def get_trending():
-    period = (datetime.utcnow() - timedelta(days=1)).isoformat()
     time_now = datetime.utcnow().isoformat()
     log.info(time_now)
 

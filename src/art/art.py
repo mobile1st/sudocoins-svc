@@ -290,7 +290,7 @@ class Art:
                 "art_id": art_record.get("art_id", ""),
                 "name": art_record.get("name", ""),
                 "description": art_record.get('open_sea_data', {}).get("description", ""),
-                "collection_name": art_record.get('collection_data', {}).get('name', 'add')
+                "collection_id": art_record.get('collection_id', "")
             }
             self.sns.publish(
                 TopicArn='arn:aws:sns:us-west-2:977566059069:AddSearchTopic',
