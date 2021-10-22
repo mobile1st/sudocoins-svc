@@ -1,6 +1,7 @@
 import boto3
 from util import sudocoins_logger
 import string
+from boto3.dynamodb.conditions import Key
 
 log = sudocoins_logger.get()
 google_search_host = 'customsearch.googleapis.com'
@@ -35,19 +36,27 @@ def lambda_handler(event, context):
 
     log.info(collections)
 
+    '''
     uploads = []
     for i in collections:
         data = dynamodb.Table('art').query(
-            KeyConditionExpression=Key('collection_id').eq(collection_id),
-            ScanIndexForward=False,
-            IndexName='collection_id-last_sale_price-index',
-            ProjectionExpression='art_id',
-            Limit=20
-        )
+        KeyConditionExpression=Key('collection_id').eq(i),
+        ScanIndexForward=False,
+        IndexName='collection_id-last_sale_price-index',
+        ProjectionExpression='art_id',
+        Limit=20
+    )
+
         uploads.append(data['Items'])
 
+    arts = []
+
+    for i in uploads:
+        for k in i:
+            arts.append(k['art_id'])
+    '''
     return {
-        'arts': uploads[:250]
+        'arts': list(collections)
     }
 
 
