@@ -223,6 +223,7 @@ class SudocoinsArtLambdas:
         resources.search_table.grant_read_write_data(self.art_search_function)
         resources.art_table.grant_read_write_data(self.art_search_function)
         resources.grant_read_index_data(self.art_search_function, [resources.art_table])
+        resources.collections_table.grant_read_write_data(self.art_search_function)
         # SITEMAP UPLOADER
         sitemap_uploader_function = _lambda.Function(
             scope,

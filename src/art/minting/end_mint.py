@@ -3,8 +3,6 @@ from util import sudocoins_logger
 from datetime import datetime
 import json
 
-
-
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
@@ -24,7 +22,7 @@ def lambda_handler(event, context):
 
     art_parse = body['file_name'];
     art_id = art_parse.split('.')[0]
-    
+
     creator = body['account']
     owner = creator;
     uri = body['uri'];
@@ -77,8 +75,8 @@ def lambda_handler(event, context):
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
-                ':start': 0,
-                ':inc': art_record['last_sale_price'],
+                ':start2': 0,
+                ':inc2': art_record['last_sale_price'],
                 ':cn': art_record['collection_name'],
                 ':purl': art_record['preview_url']
             },

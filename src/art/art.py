@@ -322,17 +322,19 @@ class Art:
                     'collection_id': art_record['collection_id']
                 },
                 UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sale_volume, :start2) + :inc2,"
-                                 "collection_name = :cn, preview_url = :purl",
+                                 "collection_name = :cn, preview_url = :purl, collection_address = :ca",
                 ExpressionAttributeValues={
                     ':start': 0,
                     ':inc': 1,
-                    ':start': 0,
-                    ':inc': art_record['last_sale_price'],
+                    ':start2': 0,
+                    ':inc2': art_record['last_sale_price'],
                     ':cn': art_record['collection_name'],
-                    ':purl': art_record['preview_url']
+                    ':purl': art_record['preview_url'],
+                    ':ca': art_record['collection_address']
                 },
                 ReturnValues="UPDATED_NEW"
             )
+            log.info("collection table updated")
         except Exception as e:
             log.info(e)
 

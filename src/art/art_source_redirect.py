@@ -40,17 +40,6 @@ def lambda_handler(event, context):
             ReturnValues="ALL_NEW"
         )['Attributes']
         log.info("art table click_count increased")
-        art_votes_record = {
-            "unique_id": str(uuid.uuid1()),
-            "art_id": row_id,
-            "timestamp": str(datetime.utcnow().isoformat()),
-            "type": "buy",
-            "influencer": art_row['first_user']
-        }
-        dynamodb.Table('art_votes').put_item(
-            Item=art_votes_record
-        )
-        log.info("record added to art_votes table")
 
         buy_url = art_row['buy_url']
 

@@ -37,7 +37,7 @@ def lambda_handler(event, context):
     log.info(collections)
 
     return {
-        'arts': list(collections)
+        'arts': get_collection_data(collections)
     }
 
 
@@ -51,5 +51,23 @@ def extract_parameters(query_params):
 def set_log_context(event):
     global log
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
+
+
+def get_collection_data(collections):
+    key_list = []
+    for i in collections:
+        key_list.append({"collection_id": i})
+
+    query = {
+        'Keys': key_list,
+        'ProjectionExpression': 'collection_id, sale_count, sales_volume, collection_name, preview_url'
+    }
+    log.info(query)
+
+    response = dynamodb.batch_get_item(RequestItems={'search': query})
+
+    collection_objects = response['Responses']['search']
+
+    return collection_objects
 
 
