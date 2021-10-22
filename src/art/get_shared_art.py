@@ -40,7 +40,7 @@ def get_by_share_id(source_ip, share_id, user_id):
 
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count",
+        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, contractId#tokenId",
         ExpressionAttributeNames={'#n': 'name'}
     )
     log.info(art_uploads_record)
