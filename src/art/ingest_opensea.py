@@ -22,7 +22,7 @@ def lambda_handler(event, context):
     if difference < 20:
         return
 
-    end_time = (datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat()
+    end_time = (datetime.fromisoformat(created) + timedelta(minutes=5)).isoformat()
 
     open_sea_response = call_open_sea(created, end_time)
 
