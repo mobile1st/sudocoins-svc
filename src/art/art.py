@@ -192,7 +192,6 @@ class Art:
                     number = art.get("contractId#tokenId", "")
                     number = number.split('#')[1]
                     art['name'] = name + " #" + str(number)
-                    del art['contractId#tokenId']
 
                 art_index[art['art_id']] = art
 
