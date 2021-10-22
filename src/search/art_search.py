@@ -36,25 +36,6 @@ def lambda_handler(event, context):
 
     log.info(collections)
 
-    '''
-    uploads = []
-    for i in collections:
-        data = dynamodb.Table('art').query(
-        KeyConditionExpression=Key('collection_id').eq(i),
-        ScanIndexForward=False,
-        IndexName='collection_id-last_sale_price-index',
-        ProjectionExpression='art_id',
-        Limit=20
-    )
-
-        uploads.append(data['Items'])
-
-    arts = []
-
-    for i in uploads:
-        for k in i:
-            arts.append(k['art_id'])
-    '''
     return {
         'arts': list(collections)
     }

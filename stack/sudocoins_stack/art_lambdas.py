@@ -60,7 +60,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_shared_art_function)
-        resources.art_votes_table.grant_read_data(self.get_shared_art_function)
         resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
         resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
         resources.grant_read_index_data(self.get_shared_art_function, [resources.art_table])
@@ -73,7 +72,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.art_source_redirect_function)
-        resources.art_votes_table.grant_read_write_data(self.art_source_redirect_function)
         resources.art_uploads_table.grant_read_write_data(self.art_source_redirect_function)
         # GET ARTS
         self.get_arts_function = _lambda.Function(
@@ -118,7 +116,6 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_data(set_trending_function)
         resources.config_table.grant_read_write_data(set_trending_function)
         resources.grant_read_index_data(set_trending_function, [resources.art_table])
-        resources.grant_read_index_data(set_trending_function, [resources.art_votes_table])
         set_trending_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
         set_trending_target = events_targets.LambdaFunction(handler=set_trending_function)
         events.Rule(
@@ -174,7 +171,6 @@ class SudocoinsArtLambdas:
         resources.ledger_table.grant_read_write_data(register_click_function)
         resources.art_table.grant_read_write_data(register_click_function)
         resources.art_uploads_table.grant_read_write_data(register_click_function)
-        resources.art_votes_table.grant_read_write_data(register_click_function)
         register_click_function.add_event_source(
             event_sources.SqsEventSource(
                 resources.art_counter_queue,
@@ -193,8 +189,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.add_vote_function)
-        resources.art_votes_table.grant_read_write_data(self.add_vote_function)
-        resources.grant_read_index_data(self.add_vote_function, [resources.art_table, resources.art_votes_table])
+        resources.grant_read_index_data(self.add_vote_function, [resources.art_table])
         # GET PREVIEW
         self.get_preview_function = _lambda.Function(
             scope,
@@ -314,8 +309,6 @@ class SudocoinsArtLambdas:
             handler='art.get_hearts.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.art_votes_table.grant_read_write_data(self.get_hearts_function)
-        resources.grant_read_index_data(self.get_hearts_function, [resources.art_votes_table])
         # AUTO TWEET
         self.auto_tweet_function = _lambda.Function(
             scope,

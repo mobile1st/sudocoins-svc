@@ -57,17 +57,6 @@ def register_click(data):
             )
             log.info("art table click_count increased")
 
-            art_votes_record = {
-                "unique_id": str(uuid.uuid1()),
-                "art_id": art_id,
-                "timestamp": str(datetime.utcnow().isoformat()),
-                "type": "view",
-                "influencer": art_uploads_record['user_id']
-            }
-            dynamodb.Table('art_votes').put_item(
-                Item=art_votes_record
-            )
-            log.info("record added to art_votes table")
 
     # if it's not a custom art url, then it's a generic art url
     elif 'art_id' in data:
@@ -81,17 +70,7 @@ def register_click(data):
             ReturnValues="ALL_NEW"
         )
         log.info("art table click_count increased")
-        art_votes_record = {
-            "unique_id": str(uuid.uuid1()),
-            "art_id": data['art_id'],
-            "timestamp": str(datetime.utcnow().isoformat()),
-            "type": "view",
-            "influencer": art_row['Attributes']['first_user']
-        }
-        dynamodb.Table('art_votes').put_item(
-            Item=art_votes_record
-        )
-        log.info("record added to art_votes table")
+
 
 
 def update_user_count(user_id):
