@@ -14,51 +14,35 @@ def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
 
-    created = dynamodb.Table('art').query(
-        KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").lt(time_now),
-        ScanIndexForward=False,
-        Limit=1,
-        IndexName='sort_idx-event_date-index',
-        ProjectionExpression="event_date"
-    )['Items'][0]['event_date']
+    created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest_start_time'})['Item']['last_update']
     log.info(f'created: {created}')
-
-    # created = '2021-10-11T18:18:14.229305'
 
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
     log.info(f'difference: {difference}')
-
     if difference < 20:
         return
 
-    """
-    if difference > 60:
-        make window bigger
-    """
+    end_time = (datetime.fromisoformat(created) + timedelta(minutes=4)).isoformat()
 
-    open_sea_response = call_open_sea(created, (datetime.fromisoformat(created) + timedelta(minutes=5)).isoformat())
+    open_sea_response = call_open_sea(created, end_time)
 
     length_response = len(open_sea_response)
+
     if length_response == 300:
         log.info('split and call again')
-        open_sea_response1 = call_open_sea(created,
-                                           (datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat())
-        open_sea_response2 = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat(),
-                                           (datetime.fromisoformat(created) + timedelta(minutes=6)).isoformat())
+
+        end_time_small = (datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat()
+        end_time = (datetime.fromisoformat(created) + timedelta(minutes=6)).isoformat()
+
+        open_sea_response1 = call_open_sea(created, end_time_small)
+        open_sea_response2 = call_open_sea(end_time_small, end_time)
         open_sea_response = open_sea_response1 + open_sea_response2
 
     count_eth = process_open_sea(open_sea_response)
     log.info(count_eth)
 
-    if count_eth == 0:
-        log.info("try again ")
-        count1, count2 = 4, 6
-        open_sea_response = call_open_sea((datetime.fromisoformat(created) + timedelta(minutes=count1)).isoformat(),
-                                          (datetime.fromisoformat(created) + timedelta(minutes=count2)).isoformat())
-        count_eth = process_open_sea(open_sea_response)
-        count1 += 2
-        count2 += 2
-        log.info(count_eth)
+    set_config(end_time)
+    log.info(f'end_time: {end_time}')
 
     return
 
@@ -77,6 +61,19 @@ def call_open_sea(created, end_time):
     open_sea_response = json.loads(response2)
 
     return open_sea_response['asset_events']
+
+
+def set_config(end_time):
+    dynamodb.Table('Config').update_item(
+        Key={
+            'configKey': 'ingest_start_time'
+        },
+        UpdateExpression="set last_update=:lu",
+        ExpressionAttributeValues={
+            ":lu": end_time
+        },
+        ReturnValues="ALL_NEW"
+    )
 
 
 def process_open_sea(open_sea_response):

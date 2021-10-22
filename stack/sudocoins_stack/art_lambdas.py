@@ -275,6 +275,7 @@ class SudocoinsArtLambdas:
          )
         resources.ingest_opensea_topic.grant_publish(ingest_opensea_function)
         resources.art_table.grant_read_write_data(ingest_opensea_function)
+        resources.config_table.grant_read_write_data(ingest_opensea_function)
         resources.grant_read_index_data(
             ingest_opensea_function,
             [resources.art_table]
