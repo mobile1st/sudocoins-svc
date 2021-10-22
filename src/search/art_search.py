@@ -14,23 +14,27 @@ def lambda_handler(event, context):
     log.debug(f'event: {event}')
     query = extract_parameters(event['queryStringParameters'])
     log.info(query)
-    arts = []
+
+    key_list = []
     for i in query:
-        log.info(i.lower())
-        tmp = dynamodb.Table('search').get_item(
-            Key={'search_key': i.lower()},
-            ProjectionExpression="arts")
-        log.info(tmp)
+        key_list.append(i.lower())
 
-        if 'Item' in tmp:
-            tmp = tmp['Item']['arts']
+    query = {
+        'Keys': key_list,
+        'ProjectionExpression': 'collections'
+    }
+    response = dynamodb.batch_get_item(RequestItems={'search': query})
 
-            for k in tmp:
-                if k not in arts:
-                    arts.append(k)
+    collections = []
+    for k in response['Responses']['search']:
+        collections.extend(k)
+
+    unique_collection = set(collections)
+    collections = list(unique_collection)
+
 
     return {
-        'arts': arts
+        'arts': collections
     }
 
 
@@ -44,3 +48,5 @@ def extract_parameters(query_params):
 def set_log_context(event):
     global log
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
+
+
