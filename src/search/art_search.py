@@ -64,9 +64,9 @@ def get_collection_data(collections):
     }
     log.info(query)
 
-    response = dynamodb.batch_get_item(RequestItems={'search': query})
+    response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
-    collection_objects = response['Responses']['search']
+    collection_objects = response['Responses']['collections']
 
     return collection_objects
 
