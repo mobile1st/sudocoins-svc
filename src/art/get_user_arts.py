@@ -54,5 +54,3 @@ def get_uploads(sub):
         sanitized.append(a)
 
     return sanitized
-
-#  lambda_handler({'pathParameters': {'userId': '64e1975c-2a94-11eb-9ec8-2d6e99b50af0'}}, None)
