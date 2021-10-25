@@ -26,9 +26,9 @@ def get_uploads(sub):
     # returns the user's uploaded art sorted by timestamp
 
     uploads = dynamodb.Table('art').query(
-        KeyConditionExpression=Key('creator').eq(sub),
+        KeyConditionExpression=Key('owner').eq(sub),
         ScanIndexForward=False,
-        IndexName='creators-index',
+        IndexName='owner-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, list_price, open_sea_data.description, description, collection_id'
     )['Items']
