@@ -37,7 +37,7 @@ def update_trades(timestamp, collection_id, lsp, art_id, floor):
                 Key={'date': timestamp, 'collection_id': collection_id},
                 UpdateExpression="SET trades = list_append(if_not_exists(trades, :empty_list), :i),  "
                                  "trade_count = if_not_exists(trade_count, :st) + :inc,"
-                                 "sales_volume = if_not_exists(trade_count, :st) + :k,"
+                                 "sales_volume = if_not_exists(sales_volume, :st) + :k,"
                                  "floor = :fl",
                 ExpressionAttributeValues={
                     ':i': [lsp],
@@ -55,7 +55,7 @@ def update_trades(timestamp, collection_id, lsp, art_id, floor):
                 Key={'date': timestamp, 'collection_id': collection_id},
                 UpdateExpression="SET trades = list_append(if_not_exists(trades, :empty_list), :i),  "
                                  "trade_count = if_not_exists(trade_count, :st) + :inc,"
-                                 "sales_volume = if_not_exists(trade_count, :st) + :k",
+                                 "sales_volume = if_not_exists(sales_volume, :st) + :k",
                 ExpressionAttributeValues={
                     ':i': [lsp],
                     ':empty_list': [],
