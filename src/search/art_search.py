@@ -28,6 +28,10 @@ def lambda_handler(event, context):
 
     response = dynamodb.batch_get_item(RequestItems={'search': query})
     log.info(response)
+    if len(response['Responses']['search']) == 0:
+        return {
+            'arts': []
+        }
 
     collections = set([])
     for k in response['Responses']['search']:
@@ -67,7 +71,7 @@ def get_collection_data(collections):
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
     collection_objects = response['Responses']['collections']
+    newlist = sorted(collection_objects, key=lambda d: d['sales_volume'], reverse=True)
 
-    return collection_objects
-
+    return newlist
 
