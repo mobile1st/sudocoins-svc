@@ -13,14 +13,13 @@ def words(text):
     return re.findall('[a-z]+', text.lower())
 
 
-dictionary = Counter(words(open('big.txt').read()))
+dictionary = Counter(words(open('art/big.txt').read()))
 max_word_length = max(map(len, dictionary))
 
 
 def lambda_handler(event, context):
     art = json.loads(event['Records'][0]['Sns']['Message'])
     # . art = event['Records'][0]['Sns']['Message']
-
     log.info(f'payload: {art}')
 
     collection_id = art.get('collection_id')
@@ -30,23 +29,23 @@ def lambda_handler(event, context):
     collection_name = collection_id.split(":")[1]
     log.info(f'collection_name: {collection_name}')
     words = collection_name.split("-")
-    log.info(f'words before processing: {words}')
+    log.info(f'words before algo: {words}')
 
+    new_list = []
     for i in words:
-        tmp_list = viterbi_segment(i)[0]
-        words.append(tmp_list)
+        a = viterbi_segment(i)[0]
+        for k in a:
+            new_list.append(k)
 
-    tmp_set = set(words)
+    tmp_set = set(words + new_list)
     words = list(tmp_set)
+
+    log.info(f'words before processing: {words}')
 
     process_collection(collection_id, words)
 
-    log.info(f'success')
-
 
 def process_collection(collection_id, words):
-
-
     for i in words:
         dynamodb.Table('search').update_item(
             Key={
@@ -60,15 +59,12 @@ def process_collection(collection_id, words):
 
 def viterbi_segment(text):
     probs, lasts = [1.0], [0]
-    print("1")
     for i in range(1, len(text) + 1):
         prob_k, k = max((probs[j] * word_prob(text[j:i]), j)
                         for j in range(max(0, i - max_word_length), i))
         probs.append(prob_k)
         lasts.append(k)
     words = []
-    print(probs)
-    print(lasts)
     i = len(text)
     while 0 < i:
         words.append(text[lasts[i]:i])
@@ -79,7 +75,6 @@ def viterbi_segment(text):
 
 def word_prob(word):
     return dictionary[word] / 466560
-
 
 
 
