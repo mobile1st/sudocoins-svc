@@ -409,6 +409,7 @@ class SudocoinsArtLambdas:
             )
         )
         resources.search_table.grant_read_write_data(add_search_function)
+        resources.art_bucket.grant_read_write(add_search_function)
         # COLLECTION NAME
         self.collection_name_function = _lambda.Function(
             scope,
