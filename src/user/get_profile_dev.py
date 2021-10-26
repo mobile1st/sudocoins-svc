@@ -7,6 +7,7 @@ from util import sudocoins_logger
 import random
 from ethereum.utils import ecrecover_to_pub, sha3
 from eth_utils.hexadecimal import encode_hex, decode_hex, add_0x_prefix
+import http.client
 
 
 log = sudocoins_logger.get()
@@ -27,23 +28,25 @@ def lambda_handler(event, context):
         try:
             profile = loadProfileByMetaAddress(publicAddress, 'MetaMask', signature, hash_message, context)
             log.debug(f'profile: {profile}')
+            arts = get_metamask_arts(publicAddress)
         except Exception as e:
             log.exception(e)
             profile = {}
+            arts = []
     try:
         config = getConfig()
-        rate = getRate(config)
 
     except Exception as e:
         log.exception(e)
-        rate = '1'
 
     log.debug(f'profile: {profile}')
+
 
     return {
         "profile": profile,
         "earn": config['earn'],
-        "ethRate": config['ethRate']
+        "ethRate": config['ethRate'],
+        "arts": arts
     }
 
 
@@ -105,6 +108,7 @@ def loadProfileByMetaAddress(publicAddress, signupMethod, signature, hash_messag
             'status': 404,
             'message': 'User not found.'
         }
+
 
 def getConfig():
     configTable = dynamodb.Table('Config')
@@ -219,4 +223,51 @@ def parseJson(jsonInput):
 
 
     return signupMethod, publicAddress, signature, hash_message
+
+
+def get_metamask_arts(public_address):
+
+    path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + "0"
+    log.info(f'path: {path}')
+    conn = http.client.HTTPSConnection("api.opensea.io")
+    conn.request("GET", path)
+    response = conn.getresponse()
+    response2 = response.read().decode('utf-8')
+    open_sea_response = json.loads(response2)['assets']
+
+    arts = []
+    arts = arts + open_sea_response
+
+    count = 50
+    while len(open_sea_response) >= 50:
+        path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + str(count)
+        log.info(f'path: {path}')
+        conn = http.client.HTTPSConnection("api.opensea.io")
+        conn.request("GET", path)
+        response = conn.getresponse()
+        response2 = response.read().decode('utf-8')
+        open_sea_response = json.loads(response2)['assets']
+        count += 50
+        arts = arts + open_sea_response
+
+    art_objects = []
+    for i in arts:
+        contract = i.get("asset_contract", {}).get("address", "")
+        token = i.get("id", "")
+        contract_token = contract + "#" + token
+        msg = {
+            "art_url": i.get("image_url", ""),
+            "preview_url": i.get("image_preview_url", ""),
+            "name": i.get("name", ""),
+            "description": i.get("description", ""),
+            "collection_address": i.get("asset_contract", {}).get("address", ""),
+            "collection_name": i.get("collection", {}).get("name", ""),
+            "contractId#tokenId": contract_token,
+            "last_sale_price": i.get("last_sale", {}).get("total_price", "")
+        }
+
+        art_objects.append(msg)
+
+    return art_objects
+
 
