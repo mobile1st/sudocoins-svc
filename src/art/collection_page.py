@@ -34,7 +34,7 @@ def get_recent(collection_id):
         ScanIndexForward=False,
         IndexName='collection_id-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, open_sea_data.description, description, collection_id, collection_data'
+        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, description, collection_id, collection_data, collection_name'
     )
 
     uploads = data['Items']
@@ -45,7 +45,7 @@ def get_recent(collection_id):
             ScanIndexForward=False,
             IndexName='collection_id-recent_sk-index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, open_sea_data.description, description, collection_id, collection_data',
+            ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, collection_address, description, collection_id, collection_data, collection_name',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])

@@ -30,7 +30,7 @@ def get_uploads(sub):
         ScanIndexForward=False,
         IndexName='owner-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, list_price, open_sea_data.description, description, collection_id'
+        ProjectionExpression='shareId, click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, list_price, description, collection_id, collection_name'
     )['Items']
 
     art_ids = [i['art_id'] for i in uploads]
