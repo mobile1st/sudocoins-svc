@@ -42,6 +42,7 @@ class SudocoinsUserLambdas:
             'UserGetProfileDEV',
             function_name='UserGetProfileDEV',
             handler='user.get_profile_dev.lambda_handler',
+            timeout=cdk.Duration.seconds(60),
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )

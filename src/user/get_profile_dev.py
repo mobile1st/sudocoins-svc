@@ -9,7 +9,6 @@ from ethereum.utils import ecrecover_to_pub, sha3
 from eth_utils.hexadecimal import encode_hex, decode_hex, add_0x_prefix
 import http.client
 
-
 log = sudocoins_logger.get()
 config = Config(connect_timeout=0.1, read_timeout=0.1, retries={'max_attempts': 5, 'mode': 'standard'})
 dynamodb = boto3.resource('dynamodb', config=config)
@@ -19,6 +18,7 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     set_log_context(event)
     log.debug(f'event: {event}')
+    # . publicAddress = event['public']
     jsonInput = json.loads(event.get('body', '{}'))
     signupMethod, publicAddress, signature, hash_message = parseJson(jsonInput)
 
@@ -40,7 +40,6 @@ def lambda_handler(event, context):
         log.exception(e)
 
     log.debug(f'profile: {profile}')
-
 
     return {
         "profile": profile,
@@ -203,7 +202,6 @@ def createProfile(email, profileTable, userId, facebook, signupMethod, context, 
 
 
 def parseJson(jsonInput):
-
     if 'signupMethod' in jsonInput:
         signupMethod = jsonInput['signupMethod']
     else:
@@ -221,12 +219,10 @@ def parseJson(jsonInput):
     else:
         hash_message = ''
 
-
     return signupMethod, publicAddress, signature, hash_message
 
 
 def get_metamask_arts(public_address):
-
     path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + "0"
     log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
@@ -254,7 +250,8 @@ def get_metamask_arts(public_address):
     for i in arts:
         contract = i.get("asset_contract", {}).get("address", "")
         token = i.get("id", "")
-        contract_token = contract + "#" + token
+        contract_token = contract + "#" + str(token)
+
         msg = {
             "art_url": i.get("image_url", ""),
             "preview_url": i.get("image_preview_url", ""),
@@ -263,7 +260,7 @@ def get_metamask_arts(public_address):
             "collection_address": i.get("asset_contract", {}).get("address", ""),
             "collection_name": i.get("collection", {}).get("name", ""),
             "contractId#tokenId": contract_token,
-            "last_sale_price": i.get("last_sale", {}).get("total_price", "")
+            # . "last_sale_price": i.get("last_sale", {}).get("total_price", "")
         }
 
         art_objects.append(msg)
