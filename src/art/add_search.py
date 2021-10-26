@@ -47,14 +47,21 @@ def lambda_handler(event, context):
 
 def process_collection(collection_id, words):
     for i in words:
-        dynamodb.Table('search').update_item(
-            Key={
-                'search_key': i
-            },
-            UpdateExpression="ADD collections :i",
-            ExpressionAttributeValues={":i": set([collection_id])},
-            ReturnValues="UPDATED_NEW"
-        )
+        if i == "":
+            continue
+
+        elif len(i) == 1:
+            continue
+
+        else:
+            dynamodb.Table('search').update_item(
+                Key={
+                    'search_key': i
+                },
+                UpdateExpression="ADD collections :i",
+                ExpressionAttributeValues={":i": set([collection_id])},
+                ReturnValues="UPDATED_NEW"
+            )
 
 
 def viterbi_segment(text):
