@@ -13,16 +13,14 @@ def words(text):
     return re.findall('[a-z]+', text.lower())
 
 
-s3 = boto3.resource('s3')
-obj = s3.Object('sudocoins-art-bucket', 'big.txt')
-obj.get()['Body']
-dictionary = Counter(words(open(obj).read()))
+dictionary = Counter(words(open('big.txt').read()))
 max_word_length = max(map(len, dictionary))
 
 
 def lambda_handler(event, context):
-    # . art = json.loads(event['Records'][0]['Sns']['Message'])
-    art = event['Records'][0]['Sns']['Message']
+    art = json.loads(event['Records'][0]['Sns']['Message'])
+    # . art = event['Records'][0]['Sns']['Message']
+
     log.info(f'payload: {art}')
 
     collection_id = art.get('collection_id')
@@ -47,6 +45,8 @@ def lambda_handler(event, context):
 
 
 def process_collection(collection_id, words):
+
+
     for i in words:
         dynamodb.Table('search').update_item(
             Key={
@@ -79,6 +79,7 @@ def viterbi_segment(text):
 
 def word_prob(word):
     return dictionary[word] / 466560
+
 
 
 
