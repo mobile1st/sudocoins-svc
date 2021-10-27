@@ -4,9 +4,6 @@ import string
 from boto3.dynamodb.conditions import Key
 
 log = sudocoins_logger.get()
-google_search_host = 'customsearch.googleapis.com'
-search_engine_id = 'abe73c1ca8f9839de'
-api_key = 'AIzaSyA4Be7eS9trAjcz5S4nkxPxKhhpC2IEP6E'
 art_page_prefix = 'https://www.sudocoins.com/art/'
 dynamodb = boto3.resource('dynamodb')
 
@@ -58,20 +55,26 @@ def set_log_context(event):
 
 
 def get_collection_data(collections):
+    collection_objects = []
+
     key_list = []
     for i in collections:
         key_list.append({"collection_id": i})
 
-    query = {
-        'Keys': key_list,
-        'ProjectionExpression': 'collection_id, sale_count, sales_volume, collection_name, preview_url'
-    }
-    log.info(query)
+    for k in [key_list[x:x + 100] for x in range(0, len(key_list), 100)]:
+        query = {
+            'Keys': k,
+            'ProjectionExpression': 'collection_id, sale_count, sales_volume, collection_name, preview_url'
+        }
+        log.info(query)
 
-    response = dynamodb.batch_get_item(RequestItems={'collections': query})
+        response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
-    collection_objects = response['Responses']['collections']
+        collection_objects = collection_objects + response['Responses']['collections']
+
     newlist = sorted(collection_objects, key=lambda d: d['sales_volume'], reverse=True)
 
     return newlist
+
+
 
