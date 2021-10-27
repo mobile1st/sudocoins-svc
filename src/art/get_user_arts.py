@@ -10,13 +10,16 @@ dynamodb = boto3.resource('dynamodb')
 arts = Art(dynamodb)
 
 
+
 def lambda_handler(event, context):
     # returns the art shared by the user
     set_log_context(event)
     sub = event['pathParameters']['userId']
 
     return {
-        'art': get_uploads(sub)
+        'art': get_owned(sub),
+        "owned": get_owned(sub),
+        "created": get_created(sub)
     }
 
 
@@ -25,13 +28,47 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_uploads(sub):
+def get_owned(sub):
     # returns the user's uploaded art sorted by timestamp
 
     uploads = dynamodb.Table('art').query(
         KeyConditionExpression=Key('owner').eq(sub),
         ScanIndexForward=False,
         IndexName='owner-recent_sk-index',
+        ExpressionAttributeNames={'#n': 'name'},
+        ProjectionExpression='art_url, art_id, preview_url, #n, last_sale_price, list_price, description, collection_id, collection_name'
+    )['Items']
+
+    art_ids = [i['art_id'] for i in uploads]
+    art_list = arts.get_arts(art_ids)
+
+    art_index = {}
+    for art in art_list:
+        art_index[art['art_id']] = art
+
+    sanitized = []  # remove art that is no longer present in the art table
+    for a in uploads:
+        idx = art_index.get(a['art_id'])
+        if not idx:
+            log.info(f'Could not find art_id {a["art_id"]} in art table, hiding from user arts too')
+            continue
+
+        a['art_url'] = idx['art_url']  # this maybe a cdn url
+        if idx.get('mime_type'):
+            a['mime_type'] = idx.get('mime_type')
+            a['last_sale_price'] = idx.get('last_sale_price')
+        sanitized.append(a)
+
+    return sanitized
+
+
+def get_created(sub):
+    # returns the user's uploaded art sorted by timestamp
+
+    uploads = dynamodb.Table('art').query(
+        KeyConditionExpression=Key('creator').eq(sub),
+        ScanIndexForward=False,
+        IndexName='creator-recent_sk-index-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='art_url, art_id, preview_url, #n, last_sale_price, list_price, description, collection_id, collection_name'
     )['Items']
@@ -106,5 +143,6 @@ def get_metamask_arts(public_address):
             msg['list_price'] = i.get('sell_orders')[0]['current_price']
 
         art_objects.append(msg)
+
 
     return art_objects

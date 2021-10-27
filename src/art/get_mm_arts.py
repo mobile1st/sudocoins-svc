@@ -15,13 +15,15 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     event = json.loads(event['Records'][0]['Sns']['Message'])
     set_log_context(event)
-    sub = event['public_address']
-    log.info(f"public_address {sub}")
+    #  sub = event['event']
+    log.info(f"public_address {event['public_address']}")
 
-    nfts = get_metamask_arts(sub)
+    nfts = get_metamask_arts(event['public_address'])
 
     for i in nfts:
-        get_art_id(i)
+        if i['art_url'] == "" and i['preview_url'] == None:
+            continue
+        get_art_id(i['contractId#tokenId'], i)
 
     return
 
@@ -63,8 +65,6 @@ def get_metamask_arts(public_address):
                 token = i.get("id", "")
                 contract_token = contract + "#" + str(token)
 
-                get_art_id(contract_token)
-
                 open_sea = {
                     "image_url": i.get('image_url'),
                     "image_preview_url": i.get('image_preview_url'),
@@ -93,7 +93,7 @@ def get_metamask_arts(public_address):
                 }
 
                 if i['last_sale'] is not None:
-                    msg['last_sale_price'] = i.get('last_sale', {}).get('total_price')
+                    msg['last_sale_price'] = int(i.get('last_sale', {}).get('total_price'))
 
                 if i['sell_orders'] is not None and len(i['sell_orders']) > 0:
                     msg['list_price'] = i.get('sell_orders')[0]['current_price']
@@ -148,17 +148,18 @@ def add_art(msg):
         'contractId#tokenId': msg['contractId#tokenId'],
         'preview_url': msg['preview_url'],
         'art_url': msg['art_url'],
-        "open_sea_data": msg['open_sea'],
+        "open_sea_data": msg['open_sea_data'],
         "timestamp": time_now,
         "recent_sk": time_now + "#" + art_id,
         "click_count": 0,
         "first_user": "metamask",
         "sort_idx": 'true',
         "process_status": "STREAM_TO_S3",
-        "event_date": "",
+        "event_date": "0",
         "event_type": "metamask",
         "blockchain": "Ethereum",
-        "last_sale_price": msg['last_sale_price'],
+        "last_sale_price": msg.get('last_sale_price',0),
+        "list_price": msg.get('list_price',0),
         "collection_address": msg['collection_address'],
         "collection_data": msg['collection_data'],
         "process_to_google_search": "TO_BE_INDEXED",
@@ -183,7 +184,8 @@ def add_art(msg):
         number = number.split('#')[1]
         art_record['name'] = name + " #" + str(number)
 
-    dynamodb.Table('art').art_table.put_item(Item=art_record)
+
+    dynamodb.Table('art').put_item(Item=art_record)
 
     try:
         sns.publish(

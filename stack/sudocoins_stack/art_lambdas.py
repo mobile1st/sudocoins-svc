@@ -542,6 +542,7 @@ class SudocoinsArtLambdas:
             'GetMetaMaskV2',
             function_name='GetMetaMaskV2',
             handler='art.get_mm_arts.lambda_handler',
+            timeout=cdk.Duration.seconds(300),
             **lambda_default_kwargs
         )
         resources.get_meta_mask_topic.add_subscription(

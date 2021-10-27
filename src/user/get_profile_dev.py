@@ -22,6 +22,21 @@ def lambda_handler(event, context):
     jsonInput = json.loads(event.get('body', '{}'))
     signupMethod, publicAddress, signature, hash_message = parseJson(jsonInput)
 
+    try:
+        msg = {
+            "public_address": publicAddress
+        }
+
+        sns_client.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:GetMetaMaskTopic',
+            MessageStructure='string',
+            Message=json.dumps(msg)
+        )
+        log.info(f"meta mask message added")
+
+    except Exception as e:
+        log.info(e)
+
     global profile
 
     if publicAddress != "":
