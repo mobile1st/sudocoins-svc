@@ -18,7 +18,7 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     set_log_context(event)
     log.debug(f'event: {event}')
-    # . publicAddress = event['public']
+    #. publicAddress = event['public']
     jsonInput = json.loads(event.get('body', '{}'))
     signupMethod, publicAddress, signature, hash_message = parseJson(jsonInput)
 
@@ -259,9 +259,14 @@ def get_metamask_arts(public_address):
             "description": i.get("description", ""),
             "collection_address": i.get("asset_contract", {}).get("address", ""),
             "collection_name": i.get("collection", {}).get("name", ""),
-            "contractId#tokenId": contract_token,
-            # . "last_sale_price": i.get("last_sale", {}).get("total_price", "")
+            "contractId#tokenId": contract_token
         }
+
+        if i['last_sale'] is not None:
+            msg['last_sale_price'] = i.get('last_sale', {}).get('total_price')
+
+        if i['sell_orders'] is not None and len(i['sell_orders']) > 0:
+            msg['list_price'] = i.get('sell_orders')[0]['current_price']
 
         art_objects.append(msg)
 
