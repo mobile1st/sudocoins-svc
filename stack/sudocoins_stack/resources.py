@@ -100,6 +100,12 @@ class SudocoinsImportedResources:
             display_name='AddTimeSeriesTopic',
             topic_name='AddTimeSeriesTopic'
         )
+        self.get_meta_mask_topic = sns.Topic(
+            scope,
+            'GetMetaMaskTopic',
+            display_name='GetMetaMaskTopic',
+            topic_name='GetMetaMaskTopic'
+        )
 
     def construct_s3_buckets(self, scope):
         sitemaps_bucket_name = 'sitemaps.sudocoins.com'

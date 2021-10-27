@@ -536,6 +536,27 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_chart_data_function)
+        # GET META MASK
+        get_meta_mask_function = _lambda.Function(
+            scope,
+            'GetMetaMaskV2',
+            function_name='GetMetaMaskV2',
+            handler='art.get_mm_arts.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.get_meta_mask_topic.add_subscription(
+            subs.LambdaSubscription(
+                get_meta_mask_function
+            )
+        )
+        resources.art_table.grant_read_write_data(get_meta_mask_function)
+        resources.grant_read_index_data(
+            get_meta_mask_function,
+            [resources.art_table]
+        )
+        resources.art_processor_topic.grant_publish(get_meta_mask_function)
+
+
 
 
 
