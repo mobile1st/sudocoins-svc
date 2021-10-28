@@ -68,7 +68,7 @@ def get_created(sub):
     uploads = dynamodb.Table('art').query(
         KeyConditionExpression=Key('creator').eq(sub),
         ScanIndexForward=False,
-        IndexName='creator-recent_sk-index-index',
+        IndexName='creator-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='art_url, art_id, preview_url, #n, last_sale_price, list_price, description, collection_id, collection_name'
     )['Items']
