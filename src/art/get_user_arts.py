@@ -144,5 +144,4 @@ def get_metamask_arts(public_address):
 
         art_objects.append(msg)
 
-
     return art_objects
