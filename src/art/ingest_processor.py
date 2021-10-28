@@ -208,7 +208,8 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 'collection_id': collection_id
             },
             UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
-                             "collection_name = :cn, preview_url = :purl, collection_address = :ca",
+                             "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd,"
+                             "sort_index=:si",
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
@@ -216,7 +217,9 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 ':inc2': eth_sale_price,
                 ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
                 ':purl': preview_url,
-                ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown")
+                ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+                ':cd': art_object.get('collection', {}).get('collection_date', {}),
+                ":si": "true"
             },
             ReturnValues="UPDATED_NEW"
         )

@@ -32,7 +32,7 @@ def get_recent(collection_id):
     data = dynamodb.Table('art').query(
         KeyConditionExpression=Key('collection_id').eq(collection_id),
         ScanIndexForward=False,
-        IndexName='collection_id-recent_sk-index',
+        IndexName='collection_id-event_date-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, description, collection_id, collection_data, collection_name'
     )
@@ -43,7 +43,7 @@ def get_recent(collection_id):
         data = dynamodb.Table('art').query(
             KeyConditionExpression=Key('collection_id').eq(collection_id),
             ScanIndexForward=False,
-            IndexName='collection_id-recent_sk-index',
+            IndexName='collection_id-event_date-index',
             ExpressionAttributeNames={'#n': 'name'},
             ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, collection_address, description, collection_id, collection_data, collection_name',
             ExclusiveStartKey=data['LastEvaluatedKey']
