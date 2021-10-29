@@ -331,7 +331,7 @@ class Art:
                     ':cn': art_record['collection_name'],
                     ':purl': art_record['preview_url'],
                     ':ca': art_record['collection_address'],
-                    ':cd': art_object.get('collection', {}).get('collection_date', {}),
+                    ':cd': art_object.get('collection_date', "0"),
                     ":si": "true"
                 },
                 ReturnValues="UPDATED_NEW"

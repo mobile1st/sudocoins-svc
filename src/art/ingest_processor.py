@@ -218,7 +218,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
                 ':purl': preview_url,
                 ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
-                ':cd': art_object.get('collection', {}).get('collection_date', {}),
+                ':cd': art_object.get('collection_date', "0"),
                 ":si": "true"
             },
             ReturnValues="UPDATED_NEW"
