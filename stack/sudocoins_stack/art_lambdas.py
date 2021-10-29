@@ -556,6 +556,27 @@ class SudocoinsArtLambdas:
             [resources.art_table]
         )
         resources.art_processor_topic.grant_publish(get_meta_mask_function)
+        # SET NEW COLLECTIONS
+        set_new_collections_function = _lambda.Function(
+            scope,
+            'SetNewCollectionsV2',
+            function_name='SetNewCollectionsV2',
+            handler='art.artprocessor.set_new_collections.lambda_handler',
+            timeout=cdk.Duration.seconds(60)
+        )
+        resources.collections_table.grant_read_data(set_new_collections_function)
+        resources.config_table.grant_read_write_data(set_new_collections_function)
+        resources.grant_read_index_data(set_new_collections_function, [resources.collections_table])
+        set_new_collections_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_new_collections_target = events_targets.LambdaFunction(handler=set_new_collections_function)
+        events.Rule(
+            scope,
+            "SetNewCollectionsRule",
+            description="Periodically sets the list of new collections",
+            enabled=True,
+            schedule=set_new_collections_schedule,
+            targets=[set_new_collections_target]
+        )
 
 
 
