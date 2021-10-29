@@ -8,24 +8,13 @@ dynamodb = boto3.resource('dynamodb')
 sqs = boto3.resource('sqs')
 arts = Art(dynamodb)
 
+
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'art_prompt {event}')
-
     share_id = event['pathParameters']['shareId']
-    source_ip = event['requestContext']['http']['sourceIp']
-    try:
-        query_params = event['queryStringParameters']
-        unique_id = query_params.get('userId')
-        if unique_id:
-            print("true")
-            user_id = unique_id
-        else:
-            user_id = source_ip
-    except Exception as e:
-        user_id = source_ip
 
-    return get_by_share_id(source_ip, share_id, user_id)
+    return get_by_share_id(share_id)
 
 
 def set_log_context(event):
@@ -33,7 +22,7 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_by_share_id(source_ip, share_id, user_id):
+def get_by_share_id(share_id):
 
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
@@ -41,6 +30,15 @@ def get_by_share_id(source_ip, share_id, user_id):
         ExpressionAttributeNames={'#n': 'name', "#tc": "contractId#tokenId"}
     )
     log.info(art_uploads_record)
+
+    if 'Item' in art_uploads_record:
+        return arts.get(art_uploads_record['Item']['art_id'])
+
+    art = arts.get(share_id)
+
+    if art:
+
+        return art
 
     return
 
