@@ -33,15 +33,6 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=add_art_integration
         )
-        # SHARE ART
-        share_art_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.share_art_function
-        )
-        art_api_v3.add_routes(
-            path='/share',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=share_art_integration
-        )
         # ART SOURCE REDIRECT
         art_source_redirect_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.art_source_redirect_function
@@ -131,15 +122,6 @@ class SudocoinsArtApi:
             path='/social/{shareId}',
             methods=[apigwv2.HttpMethod.GET],
             integration=get_preview_integration
-        )
-        # GET SHORT URL
-        get_short_url_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.get_short_url_function
-        )
-        art_api_v3.add_routes(
-            path='/{shareId}/short',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_short_url_integration
         )
         # ART SEARCH
         art_search_integration = api_integrations.LambdaProxyIntegration(

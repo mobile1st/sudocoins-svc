@@ -146,18 +146,6 @@ class SudocoinsArtLambdas:
         resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
         resources.grant_read_index_data(self.get_user_arts_function, [resources.art_table, resources.art_uploads_table])
         resources.art_table.grant_read_data(self.get_user_arts_function)
-        # SHARE ART
-        self.share_art_function = _lambda.Function(
-            scope,
-            'ArtShareV2',
-            function_name='ArtShareV2',
-            handler='art.share_art.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.art_table.grant_read_data(self.share_art_function)
-        resources.art_uploads_table.grant_read_write_data(self.share_art_function)
-        resources.profile_table.grant_read_write_data(self.share_art_function)
-        resources.grant_read_index_data(self.share_art_function, [resources.art_uploads_table])
         # ADD VOTE
         self.add_vote_function = _lambda.Function(
             scope,
@@ -181,15 +169,6 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.get_preview_function)
         resources.art_uploads_table.grant_read_write_data(self.get_preview_function)
         resources.grant_read_index_data(self.get_preview_function, [resources.art_table, resources.art_uploads_table])
-        # GET SHORT URL
-        self.get_short_url_function = _lambda.Function(
-            scope,
-            'ArtGetShortUrlV1',
-            function_name='ArtGetShortUrlV1',
-            handler='art.get_short_url.lambda_handler',
-            timeout=cdk.Duration.seconds(5),
-            **lambda_default_kwargs
-        )
         # ART SEARCH
         self.art_search_function = _lambda.Function(
             scope,
