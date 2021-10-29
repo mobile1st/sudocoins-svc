@@ -562,7 +562,8 @@ class SudocoinsArtLambdas:
             'SetNewCollectionsV2',
             function_name='SetNewCollectionsV2',
             handler='art.artprocessor.set_new_collections.lambda_handler',
-            timeout=cdk.Duration.seconds(60)
+            timeout=cdk.Duration.seconds(60),
+            **lambda_default_kwargs
         )
         resources.collections_table.grant_read_data(set_new_collections_function)
         resources.config_table.grant_read_write_data(set_new_collections_function)
