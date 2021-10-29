@@ -50,7 +50,7 @@ class SudocoinsArtLambdas:
             handler='art.increment_view_count.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.art_counter_queue.grant_send_messages(self.increment_view_count_function)
+        #  resources.art_counter_queue.grant_send_messages(self.increment_view_count_function)
         # GET SHARED ART
         self.get_shared_art_function = _lambda.Function(
             scope,
@@ -61,7 +61,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_data(self.get_shared_art_function)
         resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
-        resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
+        #  resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
         resources.grant_read_index_data(self.get_shared_art_function, [resources.art_table])
         # ART SOURCE REDIRECT
         self.art_source_redirect_function = _lambda.Function(
@@ -158,27 +158,6 @@ class SudocoinsArtLambdas:
         resources.art_uploads_table.grant_read_write_data(self.share_art_function)
         resources.profile_table.grant_read_write_data(self.share_art_function)
         resources.grant_read_index_data(self.share_art_function, [resources.art_uploads_table])
-        # REGISTER CLICK
-        register_click_function = _lambda.Function(
-            scope,
-            'ArtRegisterClickV2',
-            function_name='ArtRegisterClickV2',
-            handler='art.register_click.lambda_handler',
-            timeout=cdk.Duration.seconds(15),
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_write_data(register_click_function)
-        resources.ledger_table.grant_read_write_data(register_click_function)
-        resources.art_table.grant_read_write_data(register_click_function)
-        resources.art_uploads_table.grant_read_write_data(register_click_function)
-        register_click_function.add_event_source(
-            event_sources.SqsEventSource(
-                resources.art_counter_queue,
-                batch_size=10,
-                enabled=True
-            )
-        )
-        resources.grant_read_index_data(register_click_function, [resources.ledger_table])
         # ADD VOTE
         self.add_vote_function = _lambda.Function(
             scope,

@@ -56,13 +56,6 @@ class SudocoinsImportedResources:
             'EndTransactionQueue',
             'arn:aws:sqs:us-west-2:977566059069:EndTransaction.fifo'
         )
-        self.art_counter_queue = sqs.Queue(
-            scope,
-            'ArtViewCounterQueue',
-            queue_name='ArtViewCounterQueue.fifo',
-            fifo=True,
-            content_based_deduplication=True
-        )
 
     def construct_topics(self, scope):
         self.transaction_topic = sns.Topic.from_topic_arn(

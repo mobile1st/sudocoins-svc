@@ -34,9 +34,6 @@ def set_log_context(event):
 
 
 def get_by_share_id(source_ip, share_id, user_id):
-    msg = {'sourceIp': source_ip}
-    queue = sqs.get_queue_by_name(QueueName='ArtViewCounterQueue.fifo')
-    # queue deduplication by sourceIp+artId/shareId for 5 minutes
 
     art_uploads_record = dynamodb.Table('art_uploads').get_item(
         Key={'shareId': share_id},
@@ -44,19 +41,6 @@ def get_by_share_id(source_ip, share_id, user_id):
         ExpressionAttributeNames={'#n': 'name', "#tc": "contractId#tokenId"}
     )
     log.info(art_uploads_record)
-
-    if 'Item' in art_uploads_record:
-        msg['shareId'] = share_id
-        log.info(f'sending message: {msg}')
-        queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
-        return arts.get(art_uploads_record['Item']['art_id'])
-
-    art = arts.get(share_id)
-    if art:
-        msg['art_id'] = share_id
-        log.debug(f'sending message: {msg}')
-        queue.send_message(MessageBody=json.dumps(msg), MessageGroupId='share_views')
-        return art
 
     return
 
