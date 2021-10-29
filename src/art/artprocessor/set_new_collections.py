@@ -12,45 +12,57 @@ def lambda_handler(event, context):
 
     set_config(day, day3, day7)
 
-    return
+    return {
+        "day": day,
+        "day3": day3,
+        "day7": day7
+    }
 
 
 def get_new():
     time_now = datetime.utcnow().isoformat()
     log.info(time_now)
-    period = (datetime.fromisoformat(time_now) - timedelta(days=3)).isoformat()
+    period = (datetime.fromisoformat(time_now) - timedelta(days=7)).isoformat()
+    print(period)
 
     record = dynamodb.Table('collections').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
-        IndexName='sort_idx-collection_date-index',
-        ProjectionExpression="collection_id, sales_volume, preview_url, collection_name",
+        IndexName='collection_date-index',
+        ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date",
 
     )
+    print(record)
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('collections').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
-            IndexName='sort_idx-collection_date-index',
-            ProjectionExpression="collection_id, sales_volume, preview_url, collection_name",
+            IndexName='collection_date-index',
+            ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
 
     sorted_arts = sorted(data, key=lambda item: item['sales_volume'], reverse=True)
 
+    print(sorted_arts)
+
     day = []
     day3 = []
     day7 = []
 
     for i in sorted_arts:
-        if i['collection_date'] > (datetime.fromisoformat(time_now) - timedelta(days=1)).isoformat():
-            day.append(i)
+        try:
+            if i['collection_date'] > (datetime.fromisoformat(time_now) - timedelta(days=1)).isoformat():
+                day.append(i)
 
-        if i['collection_date'] > (datetime.fromisoformat(time_now) - timedelta(days=3)).isoformat():
-            day3.append(i)
+            if i['collection_date'] > (datetime.fromisoformat(time_now) - timedelta(days=3)).isoformat():
+                day3.append(i)
 
-        if i['collection_date'] > (datetime.fromisoformat(time_now) - timedelta(days=7)).isoformat():
-            day7.append(i)
+            if i['collection_date'] > (datetime.fromisoformat(time_now) - timedelta(days=7)).isoformat():
+                day7.append(i)
+        except Exception as e:
+            log.info(e)
+            log.info(i)
 
     return day, day3, day7
 
@@ -62,7 +74,7 @@ def set_config(day, day3, day7):
         Key={
             'configKey': 'NewCollections'
         },
-        UpdateExpression="set day=:day, day3=:day3, day7=:day7",
+        UpdateExpression="set day1=:day, day3=:day3, day7=:day7",
         ExpressionAttributeValues={
             ":day": day,
             ":day3": day3,

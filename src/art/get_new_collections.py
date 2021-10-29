@@ -7,7 +7,7 @@ def lambda_handler(event, context):
     new_collections = get_config()
 
     return {
-        'day': new_collections['day'],
+        'day': new_collections['day1'],
         "day3": new_collections['day3'],
         "day7": new_collections['day7']
     }
