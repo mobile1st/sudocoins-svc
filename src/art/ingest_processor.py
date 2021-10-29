@@ -141,13 +141,13 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     contract_token_id = str(contract_id) + "#" + str(token_id)
     art_id = art.get_id(contract_token_id)
     if art_id:
-        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
+        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
 
     return art.auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
 
 
-def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price):
-
+def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id):
+    dynamodb = boto3.resource('dynamodb')
     collection_address = art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown")
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
@@ -182,6 +182,50 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
     log.info("art record updated")
     log.info(f"art_id: {art_id}")
+
+    try:
+        msg = {
+            "event_date": art_object.get('created_date'),
+            "last_sale_price": eth_sale_price,
+            "collection_id": collection_id,
+            'art_id': art_id,
+            'contractId#tokenId': contract_token_id
+        }
+        sns = boto3.client("sns")
+        sns.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeriesTopic',
+            MessageStructure='string',
+            Message=json.dumps(msg)
+        )
+        log.info(f"add time series published")
+    except Exception as e:
+        log.info(e)
+
+    try:
+        dynamodb = boto3.resource('dynamodb')
+        dynamodb.Table('collections').update_item(
+            Key={
+                'collection_id': collection_id
+            },
+            UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
+                             "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd,"
+                             "sort_index=:si",
+            ExpressionAttributeValues={
+                ':start': 0,
+                ':inc': 1,
+                ':start2': 0,
+                ':inc2': eth_sale_price,
+                ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
+                ':purl': preview_url,
+                ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+                ':cd': art_object.get('collection', {}).get('collection_date', {}),
+                ":si": "true"
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        log.info("collection table updated")
+    except Exception as e:
+        log.info(e)
 
     return
 
