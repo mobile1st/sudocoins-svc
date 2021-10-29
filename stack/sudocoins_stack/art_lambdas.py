@@ -577,6 +577,15 @@ class SudocoinsArtLambdas:
             schedule=set_new_collections_schedule,
             targets=[set_new_collections_target]
         )
+        # GET NEW COLLECTIONS
+        self.get_new_collections_function = _lambda.Function(
+            scope,
+            'GetNewCollectionsV2',
+            function_name='GetNewCollectionsV2',
+            handler='art.get_new_collections.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_data(self.get_new_collections_function)
 
 
 

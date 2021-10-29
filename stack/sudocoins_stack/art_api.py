@@ -267,4 +267,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_chart_data_integration
         )
+        # GET NEW COLLECTIONS
+        get_new_collections_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_new_collections_function
+        )
+        art_api_v3.add_routes(
+            path='/new-collections',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_new_collections_integration
+        )
 
