@@ -51,7 +51,7 @@ def get_collection2(collection_id):
         KeyConditionExpression=Key('collection_id').eq(collection_id),
         ScanIndexForward=False,
         Limit=1,
-        IndexName='collection_id-recent_sk-index',
+        IndexName='collection_id-event_date-index',
         ProjectionExpression='collection_data'
     )
 

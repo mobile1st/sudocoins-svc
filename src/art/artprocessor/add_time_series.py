@@ -1,6 +1,7 @@
 import boto3
 from util import sudocoins_logger
 import json
+import statistics
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -21,16 +22,16 @@ def lambda_handler(event, context):
         log.info(f'sale price 0: {art_id}')
         return
 
-    floor = update_mappings(collection_id, lsp, art_id)
+    floor, median = update_mappings(collection_id, lsp, art_id)
     log.info('mappings updated')
 
-    update_trades(timestamp, collection_id, lsp, art_id, floor)
+    update_trades(timestamp, collection_id, lsp, art_id, floor, median)
     log.info('trades updated')
 
     return
 
 
-def update_trades(timestamp, collection_id, lsp, art_id, floor):
+def update_trades(timestamp, collection_id, lsp, art_id, floor, median):
     try:
         if floor != 0:
             response = dynamodb.Table('time_series').update_item(
@@ -38,14 +39,15 @@ def update_trades(timestamp, collection_id, lsp, art_id, floor):
                 UpdateExpression="SET trades = list_append(if_not_exists(trades, :empty_list), :i),  "
                                  "trade_count = if_not_exists(trade_count, :st) + :inc,"
                                  "sales_volume = if_not_exists(sales_volume, :st) + :k,"
-                                 "floor = :fl",
+                                 "floor = :fl, median=:me",
                 ExpressionAttributeValues={
                     ':i': [lsp],
                     ':empty_list': [],
                     ':k': lsp,
                     ':st': 0,
                     ':inc': 1,
-                    ':fl': floor
+                    ':fl': floor,
+                    ":me": median
                 },
                 ReturnValues="UPDATED_NEW"
             )
@@ -55,13 +57,14 @@ def update_trades(timestamp, collection_id, lsp, art_id, floor):
                 Key={'date': timestamp, 'collection_id': collection_id},
                 UpdateExpression="SET trades = list_append(if_not_exists(trades, :empty_list), :i),  "
                                  "trade_count = if_not_exists(trade_count, :st) + :inc,"
-                                 "sales_volume = if_not_exists(sales_volume, :st) + :k",
+                                 "sales_volume = if_not_exists(sales_volume, :st) + :k, median=:me",
                 ExpressionAttributeValues={
                     ':i': [lsp],
                     ':empty_list': [],
                     ':k': lsp,
                     ':st': 0,
-                    ':inc': 1
+                    ':inc': 1,
+                    ":me": median
                 },
                 ReturnValues="UPDATED_NEW"
             )
@@ -83,14 +86,18 @@ def update_mappings(collection_id, lsp, art_id):
             ExpressionAttributeNames={
                 '#art': art_id
             },
-            ReturnValues="UPDATED_NEW"
+            ReturnValues="ALL_NEW"
         )
-        # . log.info(response)
+        log.info(response)
         my_dict = response['Attributes']['arts']
-        floor = min(my_dict.items(), key=lambda x: x[1])[1]
-        log.info(f'floor: {floor}')
+        floor = min(my_dict.values())
+        median = statistics.median(my_dict.values())
 
-        return floor
+        log.info(f'values: {my_dict}')
+        log.info(f'floor: {floor}')
+        log.info(f'median: {median}')
+
+        return floor, median
 
     except Exception as e:
         log.info(e)
@@ -101,7 +108,7 @@ def update_mappings(collection_id, lsp, art_id):
                 ExpressionAttributeValues={
                     ':new_dict': {}
                 },
-                ReturnValues="UPDATED_NEW"
+                ReturnValues="ALL_NEW"
             )
 
             response = dynamodb.Table('time_series').update_item(
@@ -113,15 +120,17 @@ def update_mappings(collection_id, lsp, art_id):
                 ExpressionAttributeNames={
                     '#art': art_id
                 },
-                ReturnValues="UPDATED_NEW"
+                ReturnValues="ALL_NEW"
             )
             # . log.info(response)
 
             my_dict = response['Attributes']['arts']
             floor = min(my_dict.items(), key=lambda x: x[1])[1]
+            median = statistics.median(my_dict.values())
             log.info(f'floor: {floor}')
+            log.info(f'floor: {median}')
 
-            return floor
+            return floor, median
 
         else:
             log.info("other error")

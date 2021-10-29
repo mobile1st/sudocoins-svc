@@ -112,7 +112,7 @@ def process_open_sea(open_sea_response):
                     "created_date": created_date,
                     "asset": i.get('asset'),
                     "owner": i.get('winner_account', {}).get('address', ""),
-                    "collection_date": i.get('collection', {}).get('created_date')
+                    "collection_date": i.get('asset',{}).get('collection', {}).get('created_date')
                 }
 
                 if i.get('seller') is None:

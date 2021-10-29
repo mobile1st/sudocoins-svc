@@ -10,11 +10,10 @@ dynamodb = boto3.resource('dynamodb')
 arts = Art(dynamodb)
 
 
-
 def lambda_handler(event, context):
     # returns the art shared by the user
     set_log_context(event)
-    sub = event['pathParameters']['userId']
+    sub = (event['pathParameters']['userId']).lower()
 
     return {
         'art': get_owned(sub),
@@ -64,14 +63,17 @@ def get_owned(sub):
 
 def get_created(sub):
     # returns the user's uploaded art sorted by timestamp
-
+    print(sub)
+    print("hi")
     uploads = dynamodb.Table('art').query(
         KeyConditionExpression=Key('creator').eq(sub),
         ScanIndexForward=False,
-        IndexName='creator-recent_sk-index-index',
+        IndexName='creator2-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name'},
         ProjectionExpression='art_url, art_id, preview_url, #n, last_sale_price, list_price, description, collection_id, collection_name'
     )['Items']
+
+    print(uploads)
 
     art_ids = [i['art_id'] for i in uploads]
     art_list = arts.get_arts(art_ids)
