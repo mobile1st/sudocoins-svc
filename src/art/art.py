@@ -322,7 +322,7 @@ class Art:
                     'collection_id': art_record['collection_id']
                 },
                 UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
-                                 "collection_name = :cn, preview_url = :purl, collection_address = :ca, created_date=:cd, sort_index=:si",
+                                 "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd, sort_index=:si",
                 ExpressionAttributeValues={
                     ':start': 0,
                     ':inc': 1,
