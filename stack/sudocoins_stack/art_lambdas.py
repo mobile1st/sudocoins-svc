@@ -146,17 +146,6 @@ class SudocoinsArtLambdas:
         resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
         resources.grant_read_index_data(self.get_user_arts_function, [resources.art_table, resources.art_uploads_table])
         resources.art_table.grant_read_data(self.get_user_arts_function)
-        # ADD VOTE
-        self.add_vote_function = _lambda.Function(
-            scope,
-            'ArtAddVote',
-            function_name='ArtAddVote',
-            handler='art.add_vote.lambda_handler',
-            timeout=cdk.Duration.seconds(5),
-            **lambda_default_kwargs
-        )
-        resources.art_table.grant_read_write_data(self.add_vote_function)
-        resources.grant_read_index_data(self.add_vote_function, [resources.art_table])
         # GET PREVIEW
         self.get_preview_function = _lambda.Function(
             scope,
