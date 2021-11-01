@@ -8,7 +8,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    log.info(f'event {eventh}')
+    log.info(f'event {event}')
     body = json.loads(event['body'])
     #  body = event
     file_name = body['file_name']
