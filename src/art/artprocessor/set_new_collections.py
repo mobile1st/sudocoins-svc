@@ -31,7 +31,7 @@ def get_new():
         ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date",
 
     )
-    print(record)
+    #. print(record)
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('collections').query(
@@ -44,7 +44,7 @@ def get_new():
 
     sorted_arts = sorted(data, key=lambda item: item['sales_volume'], reverse=True)
 
-    print(sorted_arts)
+    #. print(sorted_arts)
 
     day = []
     day3 = []
@@ -83,7 +83,7 @@ def set_config(day, day3, day7):
         ReturnValues="ALL_NEW"
     )
 
-    log.info(f"response: {response}")
+    #. log.info(f"response: {response}")
     log.info("configs updated")
 
 

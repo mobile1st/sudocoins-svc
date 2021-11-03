@@ -209,7 +209,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             },
             UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
                              "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd,"
-                             "sort_index=:si",
+                             "sort_idx=:si",
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
