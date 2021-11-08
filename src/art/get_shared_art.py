@@ -23,21 +23,8 @@ def set_log_context(event):
 
 
 def get_by_share_id(share_id):
-
-    art_uploads_record = dynamodb.Table('art_uploads').get_item(
-        Key={'shareId': share_id},
-        ProjectionExpression="art_id, preview_url, art_url, #n, click_count, #tc",
-        ExpressionAttributeNames={'#n': 'name', "#tc": "contractId#tokenId"}
-    )
-    log.info(art_uploads_record)
-
-    if 'Item' in art_uploads_record:
-        return arts.get(art_uploads_record['Item']['art_id'])
-
     art = arts.get(share_id)
-
     if art:
-
         return art
 
     return
