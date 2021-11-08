@@ -28,19 +28,28 @@ class Art:
         log.info(f"art.get {art_id}")
         art = self.art_table.get_item(
             Key={'art_id': art_id},
-            ProjectionExpression="art_id, preview_url, art_url, #n, mime_type, cdn_url, "
-                                 "last_sale_price, list_price, description, collection_id, collection_data, "
-                                 "collection_name, #T",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, mime_type, cdn_url, "
+                                 "last_sale_price, open_sea_data, list_price, description, collection_id, collection_data, collection_name, #T",
             ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'})
         try:
             if 'Item' in art:
-                if 'name' in art['Item'] and art['Item']['name'] is None:
-                    name = art['Item'].get('collection_data', {}).get('name', "")
-                    number = art['Item'].get("contractId#tokenId", "")
-                    number = number.split('#')[1]
-                    art['Item']['name'] = name + " #" + str(number)
-                    del art['Item']['contractId#tokenId']
-
+                name = art['Item'].get('name', "")
+                if name is None:
+                    name = ""
+                desc = art['Item'].get('open_sea_data', {}).get("description", "")
+                log.info(desc)
+                if desc is None:
+                    desc = art['Item'].get('open_sea_data', {}).get("asset", {}).get("collection", {}).get('description',{})
+                    log.info(desc)
+                    if desc is None:
+                        desc = ""
+                contract_tokenId = art['Item'].get('contractId#tokenId', "")
+                if contract_tokenId is None:
+                    contract_tokenId = ""
+                art['Item']['alt'] = name + " " + desc
+                del art['Item']['open_sea_data']
+                art['Item']['open_sea_data']['description'] = desc
+                art['Item']['contractId#tokenId'] = contract_tokenId
         except Exception as e:
             log.info(e)
 
