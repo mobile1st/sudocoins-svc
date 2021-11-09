@@ -255,7 +255,7 @@ class SudocoinsArtApi:
         )
         art_api_v3.add_routes(
             path='/add-chat',
-            methods=[apigwv2.HttpMethod.GET],
+            methods=[apigwv2.HttpMethod.POST],
             integration=add_chat_integration
         )
 
