@@ -107,7 +107,7 @@ class SudocoinsArtLambdas:
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
             handler='art.set_trending.lambda_handler',
-            timeout=cdk.Duration.seconds(300),
+            timeout=cdk.Duration.seconds(420),
             memory_size=2400,
             runtime=_lambda.Runtime.PYTHON_3_8,
             code=_lambda.Code.asset('../src'),
@@ -534,6 +534,15 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_new_collections_function)
+        # ADD CHAT
+        self.add_chat_function = _lambda.Function(
+            scope,
+            'AddChatV2',
+            function_name='AddChatV2',
+            handler='art.chat.add_chat.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.chat_table.grant_read_data(self.add_chat_function)
 
 
 

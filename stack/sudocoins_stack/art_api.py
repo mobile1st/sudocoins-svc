@@ -249,4 +249,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_new_collections_integration
         )
+        # ADD CHAT
+        add_chat_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.add_chat_function
+        )
+        art_api_v3.add_routes(
+            path='/add-chat',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=add_chat_integration
+        )
 
