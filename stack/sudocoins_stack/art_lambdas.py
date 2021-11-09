@@ -542,7 +542,7 @@ class SudocoinsArtLambdas:
             handler='art.chat.add_chat.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.chat_table.grant_read_data(self.add_chat_function)
+        resources.chat_table.grant_read_write_data(self.add_chat_function)
 
 
 
