@@ -73,7 +73,7 @@ def get_trending():
     )['Items'][0]['event_date']
     log.info(created)
 
-    period = (datetime.fromisoformat(created) - timedelta(days=1)).isoformat()
+    period = (datetime.fromisoformat(created) - timedelta(days=7)).isoformat()
 
     record = dynamodb.Table('art').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("event_date").gt(period),
@@ -143,7 +143,7 @@ def get_trending():
                         artists2[i['collection_id']]['collection_address'] = \
                             i['open_sea_data']['asset']['asset_contract']['address']
 
-            if i['event_date'] > (datetime.fromisoformat(created) - timedelta(hours=12)).isoformat():
+            if i['event_date'] > (datetime.fromisoformat(created) - timedelta(days=1)).isoformat():
                 half_day.append(i['art_id'])
 
                 if i['owner'] in owners3:
