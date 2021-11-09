@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         "user_id": body.get("user_id", "unknown")
     }
 
-    dynamodb.Table('chats').put_item(
+    dynamodb.Table('chat').put_item(
         Item=chat
     )
 
