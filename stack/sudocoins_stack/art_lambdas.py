@@ -558,7 +558,7 @@ class SudocoinsArtLambdas:
             scope,
             'ManageConnectionsV2',
             function_name='ManageConnectionsV2',
-            handler='art.chat.manage_connections.lambda_handler',
+            handler='art.chat.manage_connection.lambda_handler',
             **lambda_default_kwargs
         )
         resources.chat_connections_table.grant_read_write_data(self.manage_connections_function)
