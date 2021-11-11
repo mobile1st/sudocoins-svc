@@ -25,5 +25,21 @@ def lambda_handler(event, context):
         Item=chat
     )
 
+    table = dynamodb.Table("chat_connections")
+    response = table.scan(ProjectionExpression="ConnectionID")
+    items = response.get("Items", [])
+    connections = [x["ConnectionID"] for x in items if "ConnectionID" in x]
+
+    for connectionID in connections:
+        _send_to_connection(connectionID, chat, event)
+
     return
+
+
+def _send_to_connection(connection_id, data, event):
+    gatewayapi = boto3.client("apigatewaymanagementapi",
+            endpoint_url = "https://" + event["requestContext"]["domainName"] +
+                    "/" + event["requestContext"]["stage"])
+    return gatewayapi.post_to_connection(ConnectionId=connection_id,
+            Data=json.dumps(data).encode('utf-8'))
 
