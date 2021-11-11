@@ -543,7 +543,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.chat_table.grant_read_write_data(self.add_chat_function)
-        resources.chat_connections_table.grant_read_write_data(self.manage_connections_function)
+        resources.chat_connections_table.grant_read_write_data(self.add_chat_function)
         # GET CHATS
         self.get_chats_function = _lambda.Function(
             scope,
