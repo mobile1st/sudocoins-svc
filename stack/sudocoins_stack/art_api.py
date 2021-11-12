@@ -267,4 +267,13 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_chats_integration
         )
+        # GET UPCOMING
+        get_upcoming_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_upcoming_function
+        )
+        art_api_v3.add_routes(
+            path='/get-upcoming',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_upcoming_integration
+        )
 

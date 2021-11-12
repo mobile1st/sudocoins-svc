@@ -563,6 +563,16 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.chat_connections_table.grant_read_write_data(self.manage_connections_function)
+        # GET UPCOMING
+        self.get_upcoming_function = _lambda.Function(
+            scope,
+            'GetUpcomingV2',
+            function_name='GetUpcomingV2',
+            handler='art.get_upcoming.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.upcoming_table.grant_read_write_data(self.get_upcoming_function)
+        resources.grant_read_index_data(self.get_upcoming_function, [resources.upcoming_table])
 
 
 
