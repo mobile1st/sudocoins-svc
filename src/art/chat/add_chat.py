@@ -13,27 +13,44 @@ def lambda_handler(event, context):
     body = json.loads(event.get('body', '{}'))
     log.info(f'payload: {body}')
 
-    chat = {
-        "chat_id": str(uuid.uuid1()),
-        "timestamp": datetime.utcnow().isoformat(),
-        "message": body.get("message", ""),
-        "art_id": body.get("art_id", "0"),
-        "collection_id": body.get("collection_id", "0"),
-        "user_id": body.get("user_id", "unknown")
-    }
+    if body.get("detail", {}).get("type", "") == "message":
+        chat = {
+            "chat_id": str(uuid.uuid1()),
+            "timestamp": datetime.utcnow().isoformat(),
+            "message": body.get("detail", {}).get("message", ""),
+            "conversationId": body.get("detail", {}).get("conversationId", ""),
+            "userId": body.get("detail", {}).get("userId", "")
+        }
+        dynamodb.Table('chat').put_item(
+            Item=chat
+        )
 
-    dynamodb.Table('chat').put_item(
-        Item=chat
-    )
+        del chat['chat_id']
+        del chat['timestamp']
+        chat['type'] = 'message'
+
+    elif body.get("detail", {}).get("type", "") == "typing":
+        chat = {
+            "type": "typing",
+            "conversationId": body.get("detail", {}).get("conversationId", ""),
+            "userId": body.get("detail", {}).get("userId", ""),
+            "isTyping": body.get("detail", {}).get("isTyping", ""),
+            "content": body.get("detail", {}).get("isTyping", "")
+        }
+
 
     table = dynamodb.Table("chat_connections")
     response = table.scan(ProjectionExpression="ConnectionId")
     items = response.get("Items", [])
     connections = [x["ConnectionId"] for x in items if "ConnectionId" in x]
 
+    chat = {
+        "detail": chat
+    }
+
     for connectionID in connections:
         _send_to_connection(connectionID, chat, event)
-        print("sent")
+        log.info('sent to client')
 
     return {
         "statusCode": 200,
