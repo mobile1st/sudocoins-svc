@@ -29,7 +29,7 @@ def lambda_handler(event, context):
 
         # Add connectionID to the database
         table = dynamodb.Table("chat_connections")
-        table.put_item(Item={"ConnectionID": connectionID})
+        table.put_item(Item={"ConnectionId": connectionID})
         return _get_response(200, "Connect successful.")
 
     elif event["requestContext"]["eventType"] == "DISCONNECT":
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
 
         # Remove the connectionID from the database
         table = dynamodb.Table("chat_connections")
-        table.delete_item(Key={"ConnectionID": connectionID})
+        table.delete_item(Key={"ConnectionId": connectionID})
         return _get_response(200, "Disconnect successful.")
 
     else:

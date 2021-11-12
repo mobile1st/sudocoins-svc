@@ -9,6 +9,7 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    log.info(f'event: {event}')
     body = json.loads(event.get('body', '{}'))
     log.info(f'payload: {body}')
 
@@ -26,20 +27,25 @@ def lambda_handler(event, context):
     )
 
     table = dynamodb.Table("chat_connections")
-    response = table.scan(ProjectionExpression="ConnectionID")
+    response = table.scan(ProjectionExpression="ConnectionId")
     items = response.get("Items", [])
-    connections = [x["ConnectionID"] for x in items if "ConnectionID" in x]
+    connections = [x["ConnectionId"] for x in items if "ConnectionId" in x]
 
     for connectionID in connections:
         _send_to_connection(connectionID, chat, event)
+        print("sent")
 
-    return
+    return {
+        "statusCode": 200,
+        "body": "Message sent to connections"
+    }
 
 
 def _send_to_connection(connection_id, data, event):
+    endpoint="https://" + event["requestContext"]["domainName"] + "/" + event["requestContext"]["stage"]
+    log.info(f'url: {endpoint}')
     gatewayapi = boto3.client("apigatewaymanagementapi",
-            endpoint_url = "https://" + event["requestContext"]["domainName"] +
-                    "/" + event["requestContext"]["stage"])
+            endpoint_url=endpoint)
     return gatewayapi.post_to_connection(ConnectionId=connection_id,
             Data=json.dumps(data).encode('utf-8'))
 
