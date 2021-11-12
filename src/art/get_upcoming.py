@@ -12,12 +12,12 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
 
-    timestamp = datetime.today().strftime('%Y-%m-%d')
+    timestamp = str(datetime.today().strftime('%Y-%m-%d'))
 
-    upcoming_collections = dynamodb.Table('chat').query(
-        KeyConditionExpression=Key("approved").eq('true') & Key("release_date").ge(timestamp),
+    upcoming_collections = dynamodb.Table('upcoming').query(
+        KeyConditionExpression=Key("approved").eq('true') & Key("release_date").gte(timestamp),
         ScanIndexForward=False,
-        IndexName='Recent_index'
+        IndexName='approved-index'
     )['Items']
 
     return {

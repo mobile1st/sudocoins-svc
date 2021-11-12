@@ -573,6 +573,16 @@ class SudocoinsArtLambdas:
         )
         resources.upcoming_table.grant_read_write_data(self.get_upcoming_function)
         resources.grant_read_index_data(self.get_upcoming_function, [resources.upcoming_table])
+        # ADD UPCOMING
+        self.add_upcoming_function = _lambda.Function(
+            scope,
+            'AddUpcomingV2',
+            function_name='AddUpcomingV2',
+            handler='art.add_upcoming.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.upcoming_table.grant_read_write_data(self.add_upcoming_function)
+        resources.grant_read_index_data(self.add_upcoming_function, [resources.upcoming_table])
 
 
 
