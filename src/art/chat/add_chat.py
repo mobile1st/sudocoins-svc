@@ -19,7 +19,7 @@ def lambda_handler(event, context):
             captchaToken = body.get("captchaToken")
             recaptcha_response = call_google_recaptcha(captchaToken)
             success_response = recaptcha_response['success']
-            if success_response is not True:
+            if success_response is False:
                 return
 
         except Exception as e:
