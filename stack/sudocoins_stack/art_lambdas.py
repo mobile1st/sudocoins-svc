@@ -583,6 +583,15 @@ class SudocoinsArtLambdas:
         )
         resources.upcoming_table.grant_read_write_data(self.add_upcoming_function)
         resources.grant_read_index_data(self.add_upcoming_function, [resources.upcoming_table])
+        # HELLO WORLD
+        self.hello_world_function = _lambda.Function(
+            scope,
+            'HelloWorld',
+            function_name='HelloWorld',
+            handler='art.hello_world.lambda_handler',
+            **lambda_default_kwargs
+        )
+
 
 
 
