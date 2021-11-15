@@ -3,7 +3,7 @@ import json
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
 import uuid
-
+import pymysql
 from util import sudocoins_logger
 
 log = sudocoins_logger.get()
@@ -331,6 +331,31 @@ class Art:
         except Exception as e:
             log.info(e)
 
+        try:
+            rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
+            name = "admin"
+            password = "RHV2CiqtjiZpsM11"
+            db_name = "nft_events"
+
+            conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
+            with conn.cursor() as cur:
+                row_id = str(uuid.uuid1())
+                art_id = art_record['art_id']
+                price = art_record['last_sale_price']
+                collection_id = art_record['collection_id']
+                collection_name = art_record['collection_name']
+                contract_token = art_record['contractId#tokenId']
+                event_date = art_record['event_date']
+                time = time_now
+                blockchain = art_record['blockchain']
+                row_values = (row_id, art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain)
+                cur.execute(
+                    'INSERT INTO `nft_events`.`open_sea_events` (`id`, `art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                    row_values)
+                conn.commit()
+
+        except Exception as e:
+            log.info(e)
 
         return art_record
 
@@ -351,3 +376,5 @@ class Art:
             self.__use_cdn_url(art)
 
         return res['Items']
+
+

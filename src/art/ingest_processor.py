@@ -79,66 +79,30 @@ def call_open_sea(contract_id, token_id):
 
 
 def add(art_object):
-    if art_object['blockchain'] == "Ethereum":
-        contract_id, token_id = parse_url(art_object['open_sea_url'])
-        '''
-        open_sea_response = call_open_sea(contract_id, token_id)
-        open_sea = {
-            'redirect': art_object['open_sea_url'],
-            'name': open_sea_response.get('name', ""),
-            'description': open_sea_response['description'],
-            "image_url": open_sea_response['image_url'],
-            "image_preview_url": open_sea_response['image_preview_url'],
-            "image_thumbnail_url": open_sea_response['image_thumbnail_url'],
-            "image_original_url": open_sea_response['image_original_url'],
-            "animation_url": open_sea_response['animation_url'],
-            "animation_original_url": open_sea_response['animation_original_url'],
-            "creator": open_sea_response['creator'],
-            "permalink": open_sea_response['permalink'],
-            "asset": art_object.get('asset'),
-            "token_metadata": art_object.get('asset', {}).get('token_metadata')
-        }
-        '''
+    contract_id, token_id = parse_url(art_object['open_sea_url'])
+    open_sea = {
+        'redirect': art_object.get('open_sea_url'),
+        'name': art_object.get('asset', {}).get('name', ""),
+        'description': art_object.get('asset', {}).get('description'),
+        "image_url": art_object.get('asset', {}).get('image_url'),
+        "image_preview_url": art_object.get('asset', {}).get('image_preview_url'),
+        "image_thumbnail_url": art_object.get('asset', {}).get('image_thumbnail_url'),
+        "image_original_url": art_object.get('asset', {}).get('image_original_url'),
+        "animation_url": art_object.get('asset', {}).get('animation_url'),
+        "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
+        "creator": art_object.get('asset', {}).get('asset_contract'),
+        "permalink": art_object.get('open_sea_url'),
+        "asset": art_object.get('asset'),
+        "token_metadata": art_object.get('asset', {}).get('token_metadata')
+    }
+    log.info(f"experiment: {open_sea}")
 
-        open_sea = {
-            'redirect': art_object.get('open_sea_url'),
-            'name': art_object.get('asset', {}).get('name', ""),
-            'description': art_object.get('asset', {}).get('description'),
-            "image_url": art_object.get('asset', {}).get('image_url'),
-            "image_preview_url": art_object.get('asset', {}).get('image_preview_url'),
-            "image_thumbnail_url": art_object.get('asset', {}).get('image_thumbnail_url'),
-            "image_original_url": art_object.get('asset', {}).get('image_original_url'),
-            "animation_url": art_object.get('asset', {}).get('animation_url'),
-            "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
-            "creator": art_object.get('asset', {}).get('asset_contract'),
-            "permalink": art_object.get('open_sea_url'),
-            "asset": art_object.get('asset'),
-            "token_metadata": art_object.get('asset', {}).get('token_metadata')
-        }
-        log.info(f"experiment: {open_sea}")
-    else:
-        contract_id, token_id = parse_url(art_object['open_sea_url'])
-        open_sea = {
-            'redirect': art_object.get('open_sea_url'),
-            'name': art_object.get('asset', {}).get('name', ""),
-            'description': art_object.get('asset', {}).get('description'),
-            "image_url": art_object.get('asset', {}).get('image_url'),
-            "image_preview_url": art_object.get('asset', {}).get('image_preview_url'),
-            "image_thumbnail_url": art_object.get('asset', {}).get('image_thumbnail_url'),
-            "image_original_url": art_object.get('asset', {}).get('image_original_url'),
-            "animation_url": art_object.get('asset', {}).get('animation_url'),
-            "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
-            "creator": art_object.get('asset', {}).get('asset_contract'),
-            "permalink": art_object.get('open_sea_url'),
-            "asset": art_object.get('asset'),
-            "token_metadata": art_object.get('asset', {}).get('token_metadata')
-        }
-
+    buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     preview_url, art_url = get_urls(open_sea)
     if art_url == "" and preview_url is None:
         log.info("missing art_url and preview_url")
         return
-    buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
+
     eth_sale_price = eth_price(art_object)
 
     get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
