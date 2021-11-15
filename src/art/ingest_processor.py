@@ -81,6 +81,7 @@ def call_open_sea(contract_id, token_id):
 def add(art_object):
     if art_object['blockchain'] == "Ethereum":
         contract_id, token_id = parse_url(art_object['open_sea_url'])
+        '''
         open_sea_response = call_open_sea(contract_id, token_id)
         open_sea = {
             'redirect': art_object['open_sea_url'],
@@ -97,6 +98,24 @@ def add(art_object):
             "asset": art_object.get('asset'),
             "token_metadata": art_object.get('asset', {}).get('token_metadata')
         }
+        '''
+
+        open_sea = {
+            'redirect': art_object.get('open_sea_url'),
+            'name': art_object.get('asset', {}).get('name', ""),
+            'description': art_object.get('asset', {}).get('description'),
+            "image_url": art_object.get('asset', {}).get('image_url'),
+            "image_preview_url": art_object.get('asset', {}).get('image_preview_url'),
+            "image_thumbnail_url": art_object.get('asset', {}).get('image_thumbnail_url'),
+            "image_original_url": art_object.get('asset', {}).get('image_original_url'),
+            "animation_url": art_object.get('asset', {}).get('animation_url'),
+            "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
+            "creator": art_object.get('asset', {}).get('asset_contract'),
+            "permalink": art_object.get('open_sea_url'),
+            "asset": art_object.get('asset'),
+            "token_metadata": art_object.get('asset', {}).get('token_metadata')
+        }
+        log.info(f"experiment: {open_sea}")
     else:
         contract_id, token_id = parse_url(art_object['open_sea_url'])
         open_sea = {
