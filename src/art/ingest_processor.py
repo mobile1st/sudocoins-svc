@@ -6,6 +6,8 @@ from art.art import Art
 from util import sudocoins_logger
 from art.ledger import Ledger
 from decimal import Decimal, getcontext
+import pymysql
+from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -206,6 +208,35 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         log.info("collection table updated")
     except Exception as e:
         log.info(e)
+    """
+    try:
+        rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
+        name = "admin"
+        password = "RHV2CiqtjiZpsM11"
+        db_name = "nft_events"
+
+        conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
+        with conn.cursor() as cur:
+            art_id = art_id
+            price = eth_sale_price
+            collection_id = collection_id
+            collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
+            contract_token = contract_token_id
+            event_date = art_object.get('created_date')
+            time = str(datetime.utcnow().isoformat())
+            blockchain = art_object.get('blockchain')
+            event_type = 'successful'
+            row_values = (
+            art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type)
+            cur.execute(
+                'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                row_values)
+            conn.commit()
+            log.info("rds updated")
+
+    except Exception as e:
+        log.info(e)
+    """
 
     return
 

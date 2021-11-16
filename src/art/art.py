@@ -239,7 +239,6 @@ class Art:
         else:
             art_record['collection_id'] = art_record['collection_address']
 
-        log.info(f"art.add {art_record}")
         if art_record['preview_url'] is None:
             art_record['preview_url'] = art_record['art_url']
 
@@ -329,7 +328,7 @@ class Art:
             log.info("collection table updated")
         except Exception as e:
             log.info(e)
-
+        """
         try:
             rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
             name = "admin"
@@ -352,9 +351,11 @@ class Art:
                     'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
                     row_values)
                 conn.commit()
+                log.info("rds submitted")
 
         except Exception as e:
             log.info(e)
+        """
 
 
         return art_record
