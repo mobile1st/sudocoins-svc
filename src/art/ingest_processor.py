@@ -2,8 +2,6 @@ import boto3
 from util import sudocoins_logger
 import http.client
 import json
-from boto3.dynamodb.conditions import Key
-from datetime import datetime
 from art.art import Art
 from util import sudocoins_logger
 from art.ledger import Ledger
@@ -95,7 +93,6 @@ def add(art_object):
         "asset": art_object.get('asset'),
         "token_metadata": art_object.get('asset', {}).get('token_metadata')
     }
-    log.info(f"experiment: {open_sea}")
 
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     preview_url, art_url = get_urls(open_sea)

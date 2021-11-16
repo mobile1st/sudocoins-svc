@@ -203,7 +203,6 @@ class Art:
     def auto_add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price):
         time_now = str(datetime.utcnow().isoformat())
         art_id = str(uuid.uuid1())
-        log.info(f"art.add {art_id} {open_sea} {art_object}")
         art_record = {
             'art_id': art_id,
             "name": open_sea['name'],
@@ -330,7 +329,7 @@ class Art:
             log.info("collection table updated")
         except Exception as e:
             log.info(e)
-        '''
+
         try:
             rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
             name = "admin"
@@ -339,7 +338,6 @@ class Art:
 
             conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
             with conn.cursor() as cur:
-                row_id = str(uuid.uuid1())
                 art_id = art_record['art_id']
                 price = art_record['last_sale_price']
                 collection_id = art_record['collection_id']
@@ -348,15 +346,16 @@ class Art:
                 event_date = art_record['event_date']
                 time = time_now
                 blockchain = art_record['blockchain']
-                row_values = (row_id, art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain)
+                event_type = 'successful'
+                row_values = (art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type)
                 cur.execute(
-                    'INSERT INTO `nft_events`.`open_sea_events` (`id`, `art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                    'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
                     row_values)
                 conn.commit()
 
         except Exception as e:
             log.info(e)
-        '''
+
 
         return art_record
 

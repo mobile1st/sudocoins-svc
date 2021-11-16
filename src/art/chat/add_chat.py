@@ -49,7 +49,6 @@ def lambda_handler(event, context):
             "content": body.get("detail", {}).get("isTyping", "")
         }
 
-
     table = dynamodb.Table("chat_connections")
     response = table.scan(ProjectionExpression="ConnectionId")
     items = response.get("Items", [])
@@ -60,8 +59,12 @@ def lambda_handler(event, context):
     }
 
     for connectionID in connections:
-        _send_to_connection(connectionID, chat, event)
-        log.info('sent to client')
+        try:
+            log.info(connectionID)
+            _send_to_connection(connectionID, chat, event)
+            log.info('sent to client')
+        except Exception as e:
+            log.info(e)
 
     return {
         "statusCode": 200,
@@ -70,12 +73,12 @@ def lambda_handler(event, context):
 
 
 def _send_to_connection(connection_id, data, event):
-    endpoint="https://" + event["requestContext"]["domainName"] + "/" + event["requestContext"]["stage"]
-    log.info(f'url: {endpoint}')
+    endpoint = "https://" + event["requestContext"]["domainName"] + "/" + event["requestContext"]["stage"]
+
     gatewayapi = boto3.client("apigatewaymanagementapi",
-            endpoint_url=endpoint)
+                              endpoint_url=endpoint)
     return gatewayapi.post_to_connection(ConnectionId=connection_id,
-            Data=json.dumps(data).encode('utf-8'))
+                                         Data=json.dumps(data).encode('utf-8'))
 
 
 def call_google_recaptcha(input_token):
