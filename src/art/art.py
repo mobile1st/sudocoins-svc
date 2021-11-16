@@ -328,7 +328,7 @@ class Art:
             log.info("collection table updated")
         except Exception as e:
             log.info(e)
-        """
+
         try:
             rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
             name = "admin"
@@ -346,16 +346,19 @@ class Art:
                 time = time_now
                 blockchain = art_record['blockchain']
                 event_type = 'successful'
-                row_values = (art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type)
+                buyer = art_record['owner']
+                seller = art_record['seller']
+                contract_address = art_record['collection_address']
+                row_values = (art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type, buyer, seller, contract_address)
                 cur.execute(
-                    'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                    'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`,`collection_address`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
                     row_values)
                 conn.commit()
                 log.info("rds submitted")
 
         except Exception as e:
             log.info(e)
-        """
+
 
 
         return art_record
