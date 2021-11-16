@@ -330,7 +330,7 @@ class Art:
             log.info("collection table updated")
         except Exception as e:
             log.info(e)
-
+        '''
         try:
             rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
             name = "admin"
@@ -356,6 +356,7 @@ class Art:
 
         except Exception as e:
             log.info(e)
+        '''
 
         return art_record
 
