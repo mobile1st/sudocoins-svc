@@ -9,30 +9,35 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
+    log.info(f'event: {event}')
+    connectionID = event["requestContext"].get("connectionId")
+
     body = json.loads(event.get('body', '{}'))
     log.info(f'payload: {body}')
 
-    art_id = body.get('art_id')
-    collection_id = body.get('collection_id')
     timestamp = datetime.utcnow().isoformat()
+    conversationId = body.get("conversationId")
 
-    if art_id is not None:
-        res = dynamodb.Table('chat').query(
-            KeyConditionExpression=Key("art_id").eq(art_id) & Key("timestamp").lt(timestamp),
+    res = dynamodb.Table('chat').query(
+            KeyConditionExpression=Key("conversationId").eq(conversationId) & Key("timestamp").lt(timestamp),
             ScanIndexForward=False,
-            Limit=250,
-            IndexName='art_id-timestamp-index'
-        )
+            Limit=20,
+            IndexName='conversationId-timestamp-index'
+    )
 
-    else:
-        res = dynamodb.Table('chat').query(
-            KeyConditionExpression=Key("collection_id").eq(collection_id) & Key("timestamp").lt(timestamp),
-            ScanIndexForward=False,
-            Limit=250,
-            IndexName='collection_id-timestamp-index'
-        )
-
+    for i in res.get('Items'):
+        _send_to_connection(connectionID, i, event)
+        log.info('message sent')
 
     return {
-        "chats": res.get('Items')
+        "status": 200
     }
+
+
+def _send_to_connection(connection_id, data, event):
+    endpoint = "https://" + event["requestContext"]["domainName"] + "/" + event["requestContext"]["stage"]
+
+    gatewayapi = boto3.client("apigatewaymanagementapi",
+                              endpoint_url=endpoint)
+    return gatewayapi.post_to_connection(ConnectionId=connection_id,
+                                         Data=json.dumps(data).encode('utf-8'))
