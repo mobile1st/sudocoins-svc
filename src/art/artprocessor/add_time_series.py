@@ -13,7 +13,6 @@ def lambda_handler(event, context):
     log.info(f'art: {art}')
 
     timestamp = art['event_date'].split('T')[0]
-
     collection_id = art['collection_id']
     lsp = art['last_sale_price']
     art_id = art['art_id']
