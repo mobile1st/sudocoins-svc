@@ -601,6 +601,9 @@ class SudocoinsArtLambdas:
             handler='art.chat.get_chats.lambda_handler',
             **lambda_default_kwargs
         )
+        resources.chat_table.grant_read_write_data(self.get_chats_function)
+        resources.chat_connections_table.grant_read_write_data(self.get_chats_function)
+        resources.grant_read_index_data(self.get_chats_function, [resources.chat_table])
 
 
 
