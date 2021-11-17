@@ -392,6 +392,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
             ReturnValues="UPDATED_NEW"
         )
         log.info("collection table updated")
+
     except Exception as e:
         log.info(e)
 
