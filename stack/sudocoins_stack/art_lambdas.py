@@ -593,17 +593,7 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_write_data(self.get_related_function)
         resources.grant_read_index_data(self.get_related_function, [resources.art_table])
-        # GET CHATS
-        self.get_chats_function = _lambda.Function(
-            scope,
-            'GetChatsV2',
-            function_name='GetChatsV2',
-            handler='art.chat.get_chats.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.chat_table.grant_read_write_data(self.get_chats_function)
-        resources.chat_connections_table.grant_read_write_data(self.get_chats_function)
-        resources.grant_read_index_data(self.get_chats_function, [resources.chat_table])
+
 
 
 
