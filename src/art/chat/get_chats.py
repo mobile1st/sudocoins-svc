@@ -56,3 +56,4 @@ def _send_to_connection(connection_id, data, event):
                               endpoint_url=endpoint)
     return gatewayapi.post_to_connection(ConnectionId=connection_id,
                                          Data=json.dumps(data).encode('utf-8'))
+
