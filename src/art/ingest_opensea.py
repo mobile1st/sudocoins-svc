@@ -45,9 +45,14 @@ def call_open_sea(created, end_time):
            + created + "&occurred_before=" + end_time
     log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
-    conn.request("GET", path)
+    api_key = {
+        "X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"
+    }
+    conn.request("GET", path, headers=api_key)
     response = conn.getresponse()
+
     response2 = response.read().decode('utf-8')
+
     open_sea_response = json.loads(response2)
 
     return open_sea_response['asset_events']
