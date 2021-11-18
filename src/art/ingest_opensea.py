@@ -121,7 +121,7 @@ def process_open_sea(open_sea_response):
                             "seller": seller
                         }
 
-                        log.info(msg)
+                        #. log.info(msg)
                         sns_client.publish(
                             TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
                             MessageStructure='string',
