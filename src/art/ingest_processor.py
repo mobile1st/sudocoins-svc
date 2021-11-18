@@ -193,7 +193,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             },
             UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
                              "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd,"
-                             "sort_idx=:si",
+                             "sort_idx=:si, collection_data=:colldata",
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
@@ -203,7 +203,15 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 ':purl': preview_url,
                 ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
                 ':cd': art_object.get('collection_date', "0"),
-                ":si": "true"
+                ":si": "true",
+                ":colldata": {
+                    "name": art_object.get('asset', {}).get('collection', {}).get('name'),
+                    "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
+                    "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+                    "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+                    "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+                    "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', "")
+                }
             },
             ReturnValues="UPDATED_NEW"
         )
@@ -291,7 +299,10 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         "collection_data": {
             "name": art_object.get('asset', {}).get('collection', {}).get('name'),
             "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
-            "description": art_object.get('asset', {}).get('collection', {}).get('description', "")
+            "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+            "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+            "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+            "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', "")
         },
         "process_to_google_search": "TO_BE_INDEXED",
         "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
@@ -377,7 +388,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 'collection_id': art_record['collection_id']
             },
             UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
-                             "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd, sort_idx=:si",
+                             "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata",
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
@@ -387,7 +398,8 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 ':purl': art_record['preview_url'],
                 ':ca': art_record['collection_address'],
                 ':cd': art_object.get('collection_date', "0"),
-                ":si": "true"
+                ":si": "true",
+                ":colldata": art_record['collection_data']
             },
             ReturnValues="UPDATED_NEW"
         )
