@@ -154,7 +154,11 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             ":cd": {
                 "name": art_object.get('asset', {}).get('collection', {}).get('name'),
                 "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
-                "description": art_object.get('asset', {}).get('collection', {}).get('description', "")
+                "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+                "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+                "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+                "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+                "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
             },
             ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
             ":ow": art_object.get("owner", "unknown"),
@@ -210,7 +214,8 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                     "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
                     "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
                     "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
-                    "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', "")
+                    "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+                    "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
                 }
             },
             ReturnValues="UPDATED_NEW"
@@ -302,7 +307,8 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
             "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
             "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
             "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
-            "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', "")
+            "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+            "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
         },
         "process_to_google_search": "TO_BE_INDEXED",
         "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
