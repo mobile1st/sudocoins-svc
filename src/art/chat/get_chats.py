@@ -16,21 +16,36 @@ def lambda_handler(event, context):
     log.info(f'payload: {body}')
 
     timestamp = datetime.utcnow().isoformat()
-    conversationId = body.get("conversationId")
+    conversationId = body.get("detail", {}).get("conversationId")
+
+    log.info(f'conversationId: {conversationId}')
+    log.info(f'timestamp: {timestamp}')
 
     res = dynamodb.Table('chat').query(
-            KeyConditionExpression=Key("conversationId").eq(conversationId) & Key("timestamp").lt(timestamp),
-            ScanIndexForward=False,
-            Limit=20,
-            IndexName='conversationId-timestamp-index'
-    )
+        KeyConditionExpression=Key("conversationId").eq(conversationId) & Key("timestamp").lt(timestamp),
+        ScanIndexForward=False,
+        IndexName='conversationId-timestamp-index',
+        Limit=20
+    )['Items']
 
-    for i in res.get('Items'):
-        _send_to_connection(connectionID, i, event)
+    res.reverse()
+
+    log.info(f'res: {res}')
+
+    for i in res:
+        chat = {
+            "detail": i
+        }
+        chat['detail']['message']['contentType'] = int(chat['detail']['message']['contentType'])
+        chat['detail']['message']['status'] = int(chat['detail']['message']['status'])
+        chat['detail']['type'] = 'message'
+
+        _send_to_connection(connectionID, chat, event)
         log.info('message sent')
 
     return {
-        "status": 200
+        "statusCode": 200,
+        "body": "History sent to connectionId"
     }
 
 
