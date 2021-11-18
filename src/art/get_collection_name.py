@@ -13,15 +13,26 @@ def lambda_handler(event, context):
     set_log_context(event)
     body = json.loads(event['body'])
 
-    if 'collection_id' in body:
-        return {
-            'collection_data': get_collection2(body['collection_id'])['collection_data']
-        }
+    collection_id = body['collection_id']
 
-    collection = body['collectionId']
+    try:
+
+        res = dynamodb.Table('collections').get_item(
+            Key={'collection_id': collection_id},
+            ProjectionExpression="collection_data")
+
+        if 'Item' in res and 'collection_data' in res['Item']:
+
+            return{
+                "collection_data": res['Item']['collection_data']
+            }
+
+    except Exception as e:
+        log.info(e)
+
 
     return {
-        'collection_data': get_collection(collection)['collection_data']
+        'collection_data': get_collection(collection_id)['collection_data']
     }
 
 
@@ -30,22 +41,7 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_collection(collection):
-
-    data = dynamodb.Table('art').query(
-        KeyConditionExpression=Key('collection_address').eq(collection),
-        ScanIndexForward=False,
-        Limit=1,
-        IndexName='collection_address-recent_sk-index',
-        ProjectionExpression='collection_data'
-    )
-
-    collection_data = data['Items'][0]
-
-    return collection_data
-
-
-def get_collection2(collection_id):
+def get_collection(collection_id):
 
     data = dynamodb.Table('art').query(
         KeyConditionExpression=Key('collection_id').eq(collection_id),

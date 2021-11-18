@@ -366,6 +366,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.collection_name_function)
+        resources.collections_table.grant_read_write_data(self.collection_name_function)
         resources.grant_read_index_data(
             self.collection_name_function,
             [resources.art_table]
