@@ -3,6 +3,7 @@ from util import sudocoins_logger
 from art.art import Art
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
+import operator
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -20,8 +21,10 @@ def lambda_handler(event, context):
         IndexName='approved-index'
     )['Items']
 
+    s = sorted(upcoming_collections, key=lambda x: (x['release_date'], x['release_time']))
+
     return {
-        'upcoming': upcoming_collections
+        'upcoming': s
     }
 
 

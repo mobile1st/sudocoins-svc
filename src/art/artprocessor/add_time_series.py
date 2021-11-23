@@ -2,6 +2,8 @@ import boto3
 from util import sudocoins_logger
 import json
 import statistics
+from datetime import datetime, timedelta
+from decimal import Decimal, getcontext
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -48,9 +50,15 @@ def update_trades(timestamp, collection_id, lsp, art_id, floor, median):
                     ':fl': floor,
                     ":me": median
                 },
-                ReturnValues="UPDATED_NEW"
+                ReturnValues="UPDATED_OLD"
             )
-            # . log.info(response)
+            log.info(response)
+
+            if response['Attributes']['floor'] > floor:
+                update_collection(collection_id)
+
+
+
         else:
             response = dynamodb.Table('time_series').update_item(
                 Key={'date': timestamp, 'collection_id': collection_id},
@@ -136,6 +144,61 @@ def update_mappings(collection_id, lsp, art_id):
 
             floor = 0
             return floor
+
+
+def update_collection(collection_id):
+    time_series = str(datetime.utcnow().isoformat()).split('T')[0]
+    time_list = []
+    count = 6
+    while count > 0:
+        new_time = (datetime.utcnow() - timedelta(days=count)).isoformat().split('T')[0]
+        time_list.append(new_time)
+        count -= 1
+    time_list.append(time_series)
+
+    final_series = {}
+    keys_list = []
+
+    for k in time_list:
+        tmp = {
+            "date": k,
+            "collection_id": collection_id
+        }
+        keys_list.append(tmp)
+
+    query = {
+        'Keys': keys_list,
+        'ProjectionExpression': '#d, trades',
+        'ExpressionAttributeNames': {'#d': 'date'}
+    }
+    response = dynamodb.batch_get_item(RequestItems={'time_series': query})
+
+    final_series['floor'] = []
+    getcontext().prec = 18
+
+    for row in response['Responses']['time_series']:
+        final_series[collection_id]['floor'].insert(0, {"x": row['date'],
+                                                        "y": Decimal(min(row['trades'])) / (10 ** 18)})
+    for k in final_series:
+        floor_list = final_series[k]['floor']
+        new_floor_list = sorted(floor_list, key=lambda i: i['x'], reverse=False)
+        final_series['floor'] = new_floor_list
+
+    dynamodb.Table('collections').update_item(
+        Key={
+            'collection_id': collection_id
+        },
+        UpdateExpression="SET chart_data = ",
+        ExpressionAttributeValues={
+            ':cd': final_series
+        },
+        ReturnValues="UPDATED_NEW"
+    )
+
+    log.info("collection table updated")
+    log.info(f'collection table updated: {collection_id}')
+
+    return
 
 
 

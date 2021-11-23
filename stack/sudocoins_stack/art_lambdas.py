@@ -417,6 +417,7 @@ class SudocoinsArtLambdas:
             )
         )
         resources.time_series_table.grant_read_write_data(self.add_time_series_function)
+        resources.collections_table.grant_read_write_data(self.add_time_series_function)
         # COLLECTION PAGE
         self.collection_page_function = _lambda.Function(
             scope,

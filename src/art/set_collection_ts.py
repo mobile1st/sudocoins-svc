@@ -55,8 +55,6 @@ def lambda_handler(event, context):
                                                              "y": Decimal(max(row['trades'])) / (
                                                                      10 ** 18)})
 
-    set_config(final_series)
-
     for k in final_series:
         floor_list = final_series[k]['floor']
         median_list = final_series[k]['median']
