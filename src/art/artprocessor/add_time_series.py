@@ -52,9 +52,16 @@ def update_trades(timestamp, collection_id, lsp, art_id, floor, median):
                 },
                 ReturnValues="UPDATED_OLD"
             )
-            log.info(response)
 
-            if response['Attributes']['floor'] > floor:
+            if 'Attributes' in response and 'floor' in response['Attributes']:
+                old_floor = str(response['Attributes']['floor'])
+                log.info(f'old floor: {old_floor}')
+                log.info(f'current floor: {floor}')
+
+                if response['Attributes']['floor'] > floor:
+                    update_collection(collection_id)
+
+            else:
                 update_collection(collection_id)
 
 
@@ -95,12 +102,11 @@ def update_mappings(collection_id, lsp, art_id):
             },
             ReturnValues="ALL_NEW"
         )
-        log.info(response)
+
         my_dict = response['Attributes']['arts']
         floor = min(my_dict.values())
         median = statistics.median(my_dict.values())
 
-        log.info(f'values: {my_dict}')
         log.info(f'floor: {floor}')
         log.info(f'median: {median}')
 
@@ -129,7 +135,6 @@ def update_mappings(collection_id, lsp, art_id):
                 },
                 ReturnValues="ALL_NEW"
             )
-            # . log.info(response)
 
             my_dict = response['Attributes']['arts']
             floor = min(my_dict.items(), key=lambda x: x[1])[1]
@@ -177,25 +182,24 @@ def update_collection(collection_id):
     getcontext().prec = 18
 
     for row in response['Responses']['time_series']:
-        final_series[collection_id]['floor'].insert(0, {"x": row['date'],
-                                                        "y": Decimal(min(row['trades'])) / (10 ** 18)})
-    for k in final_series:
-        floor_list = final_series[k]['floor']
-        new_floor_list = sorted(floor_list, key=lambda i: i['x'], reverse=False)
-        final_series['floor'] = new_floor_list
+        final_series['floor'].insert(0, {"x": row['date'],
+                                         "y": Decimal(min(row['trades'])) / (10 ** 18)})
+
+    floor_list = final_series['floor']
+    new_floor_list = sorted(floor_list, key=lambda i: i['x'], reverse=False)
+    final_series['floor'] = new_floor_list
 
     dynamodb.Table('collections').update_item(
         Key={
             'collection_id': collection_id
         },
-        UpdateExpression="SET chart_data = ",
+        UpdateExpression="SET chart_data = :cd",
         ExpressionAttributeValues={
             ':cd': final_series
         },
         ReturnValues="UPDATED_NEW"
     )
 
-    log.info("collection table updated")
     log.info(f'collection table updated: {collection_id}')
 
     return
