@@ -28,23 +28,20 @@ def get_new():
     record = dynamodb.Table('collections').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
         IndexName='collection_date-index',
-        ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date",
+        ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date, chart_data",
 
     )
-    #. print(record)
     data = record['Items']
     while 'LastEvaluatedKey' in record:
         record = dynamodb.Table('collections').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
             IndexName='collection_date-index',
-            ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date",
+            ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date, chart_data",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
 
     sorted_arts = sorted(data, key=lambda item: item['sales_volume'], reverse=True)
-
-    #. print(sorted_arts)
 
     day = []
     day3 = []
