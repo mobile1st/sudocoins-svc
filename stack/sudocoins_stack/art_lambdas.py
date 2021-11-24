@@ -625,7 +625,7 @@ class SudocoinsArtLambdas:
             handler='art.get_top_collections.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.config_table.grant_read_write_data(set_top_collections_function)
+        resources.config_table.grant_read_write_data(self.get_top_collections_function)
 
 
 
