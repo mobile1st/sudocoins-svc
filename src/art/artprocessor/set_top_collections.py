@@ -5,25 +5,22 @@ from util import sudocoins_logger
 
 log = sudocoins_logger.get()
 
-rds_host = "rds-proxy-read-only.endpoint.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
-name = "admin"
-password = "RHV2CiqtjiZpsM11"
-db_name = "nft_events"
-port = 3306
+
 
 
 def lambda_handler(event, context):
-
-    try:
-        conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
-    except Exception as e:
-        sys.exit()
+    log.info("hey")
+    rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
+    name = "admin"
+    password = "RHV2CiqtjiZpsM11"
+    db_name = "nft_events"
+    port = 3306
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
 
     with conn.cursor() as cur:
         sql = "select collection_id, sum(price) as a, count(*) as b, count(distinct buyer) as c from nft_events.open_sea_events where created_date >= now() - interval 1 day group by collection_id order by a desc limit 100;"
-
-    cur.execute(sql)
-    result = cur.fetchall()
+        cur.execute(sql)
+        result = cur.fetchall()
 
     collection_list = []
     for i in result:
@@ -62,14 +59,12 @@ def lambda_handler(event, context):
         Key={
             'configKey': 'TopCollections'
         },
-        UpdateExpression="set day=:day",
+        UpdateExpression="set #d=:d",
         ExpressionAttributeValues={
-            ":day": collection_list
+            ":d": collection_list
         },
-        ReturnValues="ALL_NEW"
+        ReturnValues="ALL_NEW",
+        ExpressionAttributeNames={'#d': 'day'}
     )
 
     return
-
-
-

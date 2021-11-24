@@ -596,7 +596,7 @@ class SudocoinsArtLambdas:
         resources.art_table.grant_read_write_data(self.get_related_function)
         resources.grant_read_index_data(self.get_related_function, [resources.art_table])
         # SET TOP COLLECTIONS
-        set_trending_function = _lambda.Function(
+        set_top_collections_function = _lambda.Function(
             scope,
             'SetTopCollectionsV2',
             function_name='SetTopCollectionsV2',
@@ -605,10 +605,10 @@ class SudocoinsArtLambdas:
             code=_lambda.Code.asset('../src'),
             log_retention=logs.RetentionDays.THREE_MONTHS
         )
-        resources.collections_table.grant_read_data(set_trending_function)
-        resources.config_table.grant_read_write_data(set_trending_function)
+        resources.collections_table.grant_read_data(set_top_collections_function)
+        resources.config_table.grant_read_write_data(set_top_collections_function)
         set_top_collections_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
-        set_top_collection_target = events_targets.LambdaFunction(handler=set_trending_function)
+        set_top_collection_target = events_targets.LambdaFunction(handler=set_top_collections_function)
         events.Rule(
             scope,
             "SetTopCollectionRule",
@@ -616,6 +616,14 @@ class SudocoinsArtLambdas:
             enabled=True,
             schedule=set_top_collections_schedule,
             targets=[set_top_collection_target]
+        )
+        # GET TOP COLLECTIONS
+        self.get_top_collections_function = _lambda.Function(
+            scope,
+            'GetTopCollections',
+            function_name='GetTopCollections',
+            handler='art.get_top_collections.lambda_handler',
+            **lambda_default_kwargs
         )
 
 

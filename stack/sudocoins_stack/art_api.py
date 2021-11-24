@@ -294,4 +294,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_related_integration
         )
+        # GET TOP COLLECTIONS
+        get_top_collections_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_top_collections_function
+        )
+        art_api_v3.add_routes(
+            path='/get-top-collections',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_top_collections_integration
+        )
+
 
