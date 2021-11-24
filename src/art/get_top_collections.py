@@ -7,7 +7,9 @@ def lambda_handler(event, context):
     top_collections = get_config()
 
     return {
-        'day': top_collections['day']
+        'day': top_collections['day'],
+        'week': top_collections['week'],
+        'hour': top_collections['hour']
     }
 
 
