@@ -299,7 +299,7 @@ class SudocoinsArtApi:
             handler=lambdas.get_top_collections_function
         )
         art_api_v3.add_routes(
-            path='/get-top-collections',
+            path='/top-collections',
             methods=[apigwv2.HttpMethod.POST],
             integration=get_top_collections_integration
         )
