@@ -87,7 +87,7 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetRecentV2',
             function_name='ArtGetRecentV2',
-            handler='art.get_recent.lambda_handler',
+            handler='art.lists.get_recent.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_recent_function)
@@ -97,7 +97,7 @@ class SudocoinsArtLambdas:
             scope,
             'ArtGetTrendingV2',
             function_name='ArtGetTrendingV2',
-            handler='art.get_trending.lambda_handler',
+            handler='art.lists.get_trending.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_trending_function)
@@ -106,7 +106,7 @@ class SudocoinsArtLambdas:
             scope,
             'ArtSetTrendingV2',
             function_name='ArtSetTrendingV2',
-            handler='art.set_trending.lambda_handler',
+            handler='art.set_lists.set_trending.lambda_handler',
             timeout=cdk.Duration.seconds(420),
             memory_size=4800,
             runtime=_lambda.Runtime.PYTHON_3_8,
@@ -126,21 +126,12 @@ class SudocoinsArtLambdas:
             schedule=set_trending_schedule,
             targets=[set_trending_target]
         )
-        # GET LEADERBOARD
-        self.get_leaderboard_function = _lambda.Function(
-            scope,
-            'ArtGetLeaderboardV2',
-            function_name='ArtGetLeaderboardV2',
-            handler='art.get_leaderboard.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.config_table.grant_read_data(self.get_leaderboard_function)
         # GET USER ARTS
         self.get_user_arts_function = _lambda.Function(
             scope,
             'ArtGetUserArtsV2',
             function_name='ArtGetUserArtsV2',
-            handler='art.get_user_arts.lambda_handler',
+            handler='art.lists.get_user_arts.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
@@ -207,7 +198,7 @@ class SudocoinsArtLambdas:
             'IngestOpenSeaV2',
             function_name='IngestOpenSeaV2',
             timeout=cdk.Duration.seconds(30),
-            handler='art.ingest_opensea.lambda_handler',
+            handler='art.events.ingest_opensea.lambda_handler',
             **lambda_default_kwargs
         )
         ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
@@ -232,7 +223,7 @@ class SudocoinsArtLambdas:
             scope,
             'IngestProcessorV2',
             function_name='IngestProcessorV2',
-            handler='art.ingest_processor.lambda_handler',
+            handler='art.events.ingest_processor.lambda_handler',
             **lambda_default_kwargs
         )
         resources.ingest_opensea_topic.add_subscription(
@@ -390,7 +381,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetMintedV2',
             function_name='GetMintedV2',
-            handler='art.get_minted.lambda_handler',
+            handler='art.lists.get_minted.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.get_minted_function)
@@ -403,7 +394,7 @@ class SudocoinsArtLambdas:
             scope,
             'AddTimeSeriesV2',
             function_name='AddTimeSeriesV2',
-            handler='art.artprocessor.add_time_series.lambda_handler',
+            handler='art.events.add_time_series.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.get_minted_function)
@@ -423,7 +414,7 @@ class SudocoinsArtLambdas:
             scope,
             'CollectionPageV2',
             function_name='CollectionPageV2',
-            handler='art.collection_page.lambda_handler',
+            handler='art.lists.collection_page.lambda_handler',
             timeout=cdk.Duration.seconds(15),
             **lambda_default_kwargs
         )
@@ -437,7 +428,7 @@ class SudocoinsArtLambdas:
             scope,
             'SetCollectionTSV2',
             function_name='SetCollectionTS',
-            handler='art.set_collection_ts.lambda_handler',
+            handler='art.set_lists.set_collection_ts.lambda_handler',
             timeout=cdk.Duration.seconds(60),
             **lambda_default_kwargs
         )
@@ -458,7 +449,7 @@ class SudocoinsArtLambdas:
             scope,
             'TopBuyersPageV2',
             function_name='TopBuyersPageV2',
-            handler='art.top_buyers_page.lambda_handler',
+            handler='art.lists.top_buyers_page.lambda_handler',
             timeout=cdk.Duration.seconds(15),
             **lambda_default_kwargs
         )
@@ -472,7 +463,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetBuyersV2',
             function_name='GetBuyersV2',
-            handler='art.get_buyers.lambda_handler',
+            handler='art.lists.get_buyers.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_buyers_function)
@@ -510,7 +501,7 @@ class SudocoinsArtLambdas:
             scope,
             'SetNewCollectionsV2',
             function_name='SetNewCollectionsV2',
-            handler='art.artprocessor.set_new_collections.lambda_handler',
+            handler='art.set_lists.set_new_collections.lambda_handler',
             timeout=cdk.Duration.seconds(60),
             **lambda_default_kwargs
         )
@@ -532,7 +523,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetNewCollectionsV2',
             function_name='GetNewCollectionsV2',
-            handler='art.get_new_collections.lambda_handler',
+            handler='art.lists.get_new_collections.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_new_collections_function)
@@ -570,7 +561,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetUpcomingV2',
             function_name='GetUpcomingV2',
-            handler='art.get_upcoming.lambda_handler',
+            handler='art.lists.get_upcoming.lambda_handler',
             **lambda_default_kwargs
         )
         resources.upcoming_table.grant_read_write_data(self.get_upcoming_function)
@@ -580,7 +571,7 @@ class SudocoinsArtLambdas:
             scope,
             'AddUpcomingV2',
             function_name='AddUpcomingV2',
-            handler='art.add_upcoming.lambda_handler',
+            handler='art.set_lists.add_upcoming.lambda_handler',
             **lambda_default_kwargs
         )
         resources.upcoming_table.grant_read_write_data(self.add_upcoming_function)
@@ -590,7 +581,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetRelatedArt',
             function_name='GetRelatedArt',
-            handler='art.get_related_art.lambda_handler',
+            handler='art.lists.get_related_art.lambda_handler',
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.get_related_function)
@@ -600,7 +591,7 @@ class SudocoinsArtLambdas:
             scope,
             'SetTopCollectionsV2',
             function_name='SetTopCollectionsV2',
-            handler='art.artprocessor.set_top_collections.lambda_handler',
+            handler='art.set_lists.set_top_collections.lambda_handler',
             runtime=_lambda.Runtime.PYTHON_3_8,
             code=_lambda.Code.asset('../src'),
             log_retention=logs.RetentionDays.THREE_MONTHS
@@ -622,7 +613,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetTopCollections',
             function_name='GetTopCollections',
-            handler='art.get_top_collections.lambda_handler',
+            handler='art.lists.get_top_collections.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(self.get_top_collections_function)

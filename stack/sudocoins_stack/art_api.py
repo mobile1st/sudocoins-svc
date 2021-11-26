@@ -87,15 +87,6 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_shared_art_integration
         )
-        # INCREMENT VIEW COUNT
-        increment_view_count_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.increment_view_count_function
-        )
-        art_api_v3.add_routes(
-            path='/increment-view',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=increment_view_count_integration
-        )
         # GET LEADERBOARD
         get_leaderboard_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_leaderboard_function

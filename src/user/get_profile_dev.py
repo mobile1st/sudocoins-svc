@@ -207,9 +207,6 @@ def createProfile(email, profileTable, userId, facebook, signupMethod, context, 
     log.info("profile added to sns")
 
     sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName='affiliates.fifo')
-    queue.send_message(MessageBody=json.dumps(profile), MessageGroupId='shareId')
-    log.info("affiliate added")
 
     profile["new_user"] = True
 

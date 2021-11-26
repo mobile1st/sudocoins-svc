@@ -269,12 +269,7 @@ def createProfile(email, profileTable, userId, facebook, signupMethod, context, 
     )
     log.info("profile added to sns")
 
-    sns_client.publish(
-        TopicArn='arn:aws:sns:us-west-2:977566059069:Affiliates',
-        MessageStructure='string',
-        Message=json.dumps(profile)
-    )
-    log.info("affiliate added")
+
 
     profile["new_user"] = True
 

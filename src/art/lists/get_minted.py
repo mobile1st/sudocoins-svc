@@ -1,14 +1,19 @@
 import boto3
-import json
 from util import sudocoins_logger
+from art.art import Art
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-sqs = boto3.resource('sqs')
+arts = Art(dynamodb)
 
 
 def lambda_handler(event, context):
-    return ''
+    set_log_context(event)
+    query_params = event['queryStringParameters']
+    count = int(query_params['count'])
+    return {
+        'art': arts.get_minted(count, query_params['timestamp'])
+    }
 
 
 def set_log_context(event):

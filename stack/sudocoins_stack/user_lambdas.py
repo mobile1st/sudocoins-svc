@@ -35,7 +35,7 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
         resources.grant_read_index_data(self.get_profile_function, [resources.profile_table])
-        resources.affiliates_topic.grant_publish(self.get_profile_function)
+
         # GET PROFILE DEV
         self.get_profile_dev_function = _lambda.Function(
             scope,
@@ -51,7 +51,7 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_profile_dev_function)
         resources.config_table.grant_read_data(self.get_profile_dev_function)
         resources.grant_read_index_data(self.get_profile_dev_function, [resources.profile_table])
-        resources.affiliates_topic.grant_publish(self.get_profile_function)
+
         resources.get_meta_mask_topic.grant_publish(self.get_profile_dev_function)
         # GET USERID FOR META USER
         self.get_user_id_function = _lambda.Function(
@@ -160,22 +160,7 @@ class SudocoinsUserLambdas:
                 actions=['dynamodb:Query']
             )
         )
-        # AFFILIATES
-        self.affiliates_function = _lambda.Function(
-            scope,
-            'AffiliatesV2',
-            function_name='AffiliatesV2',
-            handler='user.affiliates.lambda_handler',
-            description='Processes affiliate transactions',
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_write_data(self.affiliates_function)
-        resources.art_uploads_table.grant_read_write_data(self.affiliates_function)
-        resources.ledger_table.grant_read_write_data(self.affiliates_function)
-        resources.grant_read_index_data(self.affiliates_function, [resources.ledger_table])
-        resources.affiliates_topic.add_subscription(
-            subs.LambdaSubscription(self.affiliates_function)
-        )
+
         # TWITTER AUTH TOKEN
         self.get_twitter_token_function = _lambda.Function(
             scope,
