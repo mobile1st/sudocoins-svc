@@ -593,6 +593,7 @@ class SudocoinsArtLambdas:
             function_name='SetTopCollectionsV2',
             handler='art.set_lists.set_top_collections.lambda_handler',
             runtime=_lambda.Runtime.PYTHON_3_8,
+            timeout=cdk.Duration.seconds(30),
             code=_lambda.Code.asset('../src'),
             log_retention=logs.RetentionDays.THREE_MONTHS
         )
@@ -622,6 +623,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetTradesDelta',
             function_name='GetTradesDelta',
+            timeout=cdk.Duration.seconds(30),
             handler='art.lists.get_trades_delta.lambda_handler',
             **lambda_default_kwargs
         )

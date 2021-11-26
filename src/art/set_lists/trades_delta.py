@@ -44,8 +44,8 @@ def get_collections():
     for i in result:
         tmp = {
             "collection_id": i[0],
-            "today": i[1],
-            "yesterday": i[2],
+            "yesterday": i[1],
+            "today": i[2],
             "delta": i[3]
         }
         collection_list.append(tmp)
