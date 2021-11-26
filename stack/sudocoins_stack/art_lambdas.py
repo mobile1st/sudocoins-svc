@@ -633,7 +633,7 @@ class SudocoinsArtLambdas:
             scope,
             'SetTradesDelta',
             function_name='SetTradesDelta',
-            handler='art.set_lists.set_trades_delta.lambda_handler',
+            handler='art.set_lists.trades_delta.lambda_handler',
             runtime=_lambda.Runtime.PYTHON_3_8,
             code=_lambda.Code.asset('../src'),
             log_retention=logs.RetentionDays.THREE_MONTHS
