@@ -223,6 +223,7 @@ class SudocoinsArtLambdas:
             scope,
             'IngestProcessorV2',
             function_name='IngestProcessorV2',
+            timeout=cdk.Duration.seconds(30),
             handler='art.events.ingest_processor.lambda_handler',
             **lambda_default_kwargs
         )
