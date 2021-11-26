@@ -87,15 +87,6 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_shared_art_integration
         )
-        # GET LEADERBOARD
-        get_leaderboard_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.get_leaderboard_function
-        )
-        art_api_v3.add_routes(
-            path='/leaderboard',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_leaderboard_integration
-        )
         # GET PREVIEW
         get_preview_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_preview_function
@@ -293,6 +284,15 @@ class SudocoinsArtApi:
             path='/top-collections',
             methods=[apigwv2.HttpMethod.POST],
             integration=get_top_collections_integration
+        )
+        # GET TRADES DELTA
+        get_trades_delta_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_trades_delta_function
+        )
+        art_api_v3.add_routes(
+            path='/trades-delta',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_trades_delta_integration
         )
 
 

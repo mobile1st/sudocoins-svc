@@ -617,6 +617,37 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(self.get_top_collections_function)
+        # GET TRADES DELTA
+        self.get_trades_delta_function = _lambda.Function(
+            scope,
+            'GetTradesDelta',
+            function_name='GetTradesDelta',
+            handler='art.lists.get_trades_delta.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.get_trades_delta_function)
+        # SET TRADES DELTA
+        set_trades_delta_function = _lambda.Function(
+            scope,
+            'SetTradesDelta',
+            function_name='SetTradesDelta',
+            handler='art.set_lists.set_trades_delta.lambda_handler',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset('../src'),
+            log_retention=logs.RetentionDays.THREE_MONTHS
+        )
+        resources.collections_table.grant_read_data(set_trades_delta_function)
+        resources.config_table.grant_read_write_data(set_trades_delta_function)
+        set_trades_delta_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_trades_delta_target = events_targets.LambdaFunction(handler=set_trades_delta_function)
+        events.Rule(
+            scope,
+            "SetTradesDeltaRule",
+            description="Periodically sets top trades delta",
+            enabled=True,
+            schedule=set_trades_delta_schedule,
+            targets=[set_trades_delta_target]
+        )
 
 
 
