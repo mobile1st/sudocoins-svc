@@ -36,7 +36,7 @@ def lambda_handler(event, context):
 
 def get_collections():
     with conn.cursor() as cur:
-        sql = "SELECT distinct t1.collection_id, t2.day2, t1.day,  (t1.day-t2.day2)/t2.day2*100 AS a FROM (SELECT collection_id, COUNT(*) AS day FROM nft_events.open_sea_events where event_date >= now() - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS day2 FROM nft_events.open_sea_events where event_date >= now() - interval 2 day and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id where t2.day2 > 10 order by a desc limit 100;"
+        sql = "SELECT distinct t1.collection_id, t2.day2, t1.day,  round(((t1.day-t2.day2)/t2.day2*100),1) AS a FROM (SELECT collection_id, COUNT(*) AS day FROM nft_events.open_sea_events where event_date >= now() - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS day2 FROM nft_events.open_sea_events where event_date >= now() - interval 2 day and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id where t2.day2 > 10 order by a desc limit 100;"
         cur.execute(sql)
         result = cur.fetchall()
 
