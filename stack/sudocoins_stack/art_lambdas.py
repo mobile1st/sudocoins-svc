@@ -651,6 +651,56 @@ class SudocoinsArtLambdas:
             schedule=set_trades_delta_schedule,
             targets=[set_trades_delta_target]
         )
+        # INGEST OPENSEA2
+        ingest_opensea2_function = _lambda.Function(
+            scope,
+            'IngestOpenSea2V2',
+            function_name='IngestOpenSea2V2',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.events.ingest_opensea2.lambda_handler',
+            **lambda_default_kwargs
+        )
+        ingest_opensea2_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
+        ingest_opensea2_target = events_targets.LambdaFunction(handler=ingest_opensea2_function)
+        events.Rule(
+            scope,
+            "IngestOpensea2Rule",
+            description="Periodically refreshes trending arts sorted by click counts",
+            enabled=True,
+            schedule=ingest_opensea2_schedule,
+            targets=[ingest_opensea2_target]
+        )
+        resources.ingest_opensea2_topic.grant_publish(ingest_opensea2_function)
+        resources.art_table.grant_read_write_data(ingest_opensea2_function)
+        resources.config_table.grant_read_write_data(ingest_opensea2_function)
+        resources.grant_read_index_data(
+            ingest_opensea2_function,
+            [resources.art_table]
+        )
+        # INGEST PROCESSOR2
+        ingest_processor2_function = _lambda.Function(
+            scope,
+            'IngestProcessor2V2',
+            function_name='IngestProcessor2V2',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.events.ingest_processor2.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.ingest_opensea2_topic.add_subscription(
+            subs.LambdaSubscription(
+                ingest_processor2_function
+            )
+        )
+        resources.art_table.grant_read_write_data(ingest_processor2_function)
+        resources.grant_read_index_data(
+            ingest_processor2_function,
+            [resources.art_table]
+        )
+        resources.art_processor2_topic.grant_publish(ingest_processor2_function)
+        resources.add_search_topic.grant_publish(ingest_processor2_function)
+        resources.add_time_series_topic.grant_publish(ingest_processor2_function)
+        resources.creators_table.grant_read_write_data(ingest_processor2_function)
+        resources.collections_table.grant_read_write_data(ingest_processor2_function)
 
 
 

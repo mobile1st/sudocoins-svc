@@ -75,6 +75,12 @@ class SudocoinsImportedResources:
             display_name='IngestOpenSeaTopic',
             topic_name='IngestOpenSeaTopic'
         )
+        self.ingest_opensea2_topic = sns.Topic(
+            scope,
+            'IngestOpenSea2Topic',
+            display_name='IngestOpenSea2Topic',
+            topic_name='IngestOpenSea2Topic'
+        )
         self.add_search_topic = sns.Topic(
             scope,
             'AddSearchTopic',
