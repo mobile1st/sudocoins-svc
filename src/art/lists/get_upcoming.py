@@ -21,7 +21,17 @@ def lambda_handler(event, context):
         IndexName='approved-index'
     )['Items']
 
-    s = sorted(upcoming_collections, key=lambda x: (x['release_date'], x['release_time']))
+    next_collection = []
+
+    for i in upcoming_collections:
+        if i['release_date'] is None:
+            i['release_date'] = ""
+        if i['release_time'] is None:
+            i['release_date'] = ""
+
+        next_collection.append(i)
+
+    s = sorted(next_collection, key=lambda x: (x.get('release_date', ""), x.get('release_time', "")))
 
     return {
         'upcoming': s

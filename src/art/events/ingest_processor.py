@@ -19,6 +19,7 @@ sns = boto3.client("sns")
 
 
 def lambda_handler(event, context):
+
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {art_object}')
     if art_object['open_sea_url'] is None:

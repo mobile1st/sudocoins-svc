@@ -13,11 +13,12 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
-    #created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest_start_time'})['Item']['last_update']
-    created = "2021-11-26T07:16:58"
-    if created > "2021-11-27T05:36:40":
-        return
+    created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
     log.info(f'created: {created}')
+    # . created = "2021-11-26T07:16:58"
+
+    if created >= "2021-11-27T05:05:00":
+        return
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
     log.info(f'difference: {difference}')
     if difference < 20:
@@ -124,9 +125,9 @@ def process_open_sea(open_sea_response):
                             "seller": seller
                         }
 
-                        #. log.info(msg)
+                        # . log.info(msg)
                         sns_client.publish(
-                            TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
+                            TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
                             MessageStructure='string',
                             Message=json.dumps(msg)
                         )
@@ -178,7 +179,7 @@ def process_open_sea(open_sea_response):
 
                     # log.info(msg)
                     sns_client.publish(
-                        TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
+                        TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
                         MessageStructure='string',
                         Message=json.dumps(msg)
                     )

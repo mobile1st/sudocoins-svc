@@ -12,7 +12,6 @@ sns_client = boto3.client("sns")
 
 def lambda_handler(event, context):
 
-    return
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
     created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest_start_time'})['Item']['last_update']
@@ -79,7 +78,7 @@ def process_open_sea(open_sea_response):
     for i in open_sea_response:
         if i.get('asset') is None:
             try:
-                log.info(i)
+
                 log.info("bundle")
                 asset_bundle = i.get('asset_bundle', {}).get('assets', [])
                 bundle_count = len(asset_bundle)
@@ -193,6 +192,4 @@ def process_open_sea(open_sea_response):
     log.info(f'eth count: {count_eth}')
 
     return count_eth
-
-
 
