@@ -696,7 +696,6 @@ class SudocoinsArtLambdas:
             ingest_processor2_function,
             [resources.art_table]
         )
-        resources.art_processor2_topic.grant_publish(ingest_processor2_function)
         resources.add_search_topic.grant_publish(ingest_processor2_function)
         resources.add_time_series_topic.grant_publish(ingest_processor2_function)
         resources.creators_table.grant_read_write_data(ingest_processor2_function)
