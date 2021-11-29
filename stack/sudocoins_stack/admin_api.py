@@ -64,3 +64,13 @@ class SudocoinsAdminApi:
             integration=update_cash_out_integration,
             authorizer=resources.sudocoins_admin_authorizer
         )
+        # GET PENDING UPCOMING
+        pending_upcoming_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_pending_upcoming_function
+        )
+        admin_api_v2.add_routes(
+            path='/pending-upcoming',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=pending_upcoming_integration,
+            authorizer=resources.sudocoins_admin_authorizer
+        )

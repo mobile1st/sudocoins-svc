@@ -89,3 +89,13 @@ class SudocoinsAdminLambdas:
             schedule=set_rates_schedule,
             targets=[set_rates_target]
         )
+        # GET PENDING UPCOMING
+        self.get_pending_upcoming_function = _lambda.Function(
+            scope,
+            'GetPendingUpcoming',
+            function_name='GetPendingUpcoming',
+            handler='art.admin.get_pending_upcoming.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.upcoming_table.grant_read_data(self.get_pending_upcoming_function)
+        resources.grant_read_index_data(self.get_pending_upcoming_function, [resources.upcoming_table])
