@@ -94,7 +94,7 @@ class SudocoinsAdminLambdas:
             scope,
             'GetPendingUpcoming',
             function_name='GetPendingUpcoming',
-            handler='art.admin.get_pending_upcoming.lambda_handler',
+            handler='admin.get_pending_upcoming.lambda_handler',
             **lambda_default_kwargs
         )
         resources.upcoming_table.grant_read_data(self.get_pending_upcoming_function)
