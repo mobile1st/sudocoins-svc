@@ -70,7 +70,17 @@ class SudocoinsAdminApi:
         )
         admin_api_v2.add_routes(
             path='/pending-upcoming',
-            methods=[apigwv2.HttpMethod.POST],
+            methods=[apigwv2.HttpMethod.GET],
             integration=pending_upcoming_integration,
+            authorizer=resources.sudocoins_admin_authorizer
+        )
+        # SET PENDING UPCOMING
+        set_pending_upcoming_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.set_pending_upcoming_function
+        )
+        admin_api_v2.add_routes(
+            path='/set-pending-upcoming',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=set_pending_upcoming_integration,
             authorizer=resources.sudocoins_admin_authorizer
         )

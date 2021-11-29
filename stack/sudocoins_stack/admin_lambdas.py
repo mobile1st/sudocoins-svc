@@ -99,3 +99,13 @@ class SudocoinsAdminLambdas:
         )
         resources.upcoming_table.grant_read_data(self.get_pending_upcoming_function)
         resources.grant_read_index_data(self.get_pending_upcoming_function, [resources.upcoming_table])
+        # SET PENDING UPCOMING
+        self.set_pending_upcoming_function = _lambda.Function(
+            scope,
+            'SetPendingUpcoming',
+            function_name='SetPendingUpcoming',
+            handler='admin.set_pending_upcoming.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.upcoming_table.grant_read_data(self.set_pending_upcoming_function)
+        resources.grant_read_index_data(self.set_pending_upcoming_function, [resources.upcoming_table])
