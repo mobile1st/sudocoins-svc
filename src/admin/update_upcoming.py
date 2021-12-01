@@ -9,11 +9,12 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     body = json.loads(event['body'])
+    #. body = event
     log.debug(f'data: {body}')
 
-    if body['status'] == "approved":
+    if body['status'] == "approve":
         status = "true"
-    elif body['status'] == "disapproved":
+    elif body['status'] == "disapprove":
         status = "disapproved"
 
     response = dynamodb.Table('upcoming').update_item(
@@ -31,6 +32,7 @@ def lambda_handler(event, context):
     return {
         "response": response
     }
+
 
 
 
