@@ -19,13 +19,11 @@ def lambda_handler(event, context):
 
         res = dynamodb.Table('collections').get_item(
             Key={'collection_id': collection_id},
-            ProjectionExpression="collection_data")
+            ProjectionExpression="collection_data, sales_volume, collection_date, sale_count")
 
         if 'Item' in res and 'collection_data' in res['Item']:
 
-            return{
-                "collection_data": res['Item']['collection_data']
-            }
+            return res['Item']
 
     except Exception as e:
         log.info(e)

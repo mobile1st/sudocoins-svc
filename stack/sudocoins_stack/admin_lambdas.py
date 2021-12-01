@@ -107,5 +107,5 @@ class SudocoinsAdminLambdas:
             handler='admin.update_upcoming.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.upcoming_table.grant_read_data(self.set_pending_upcoming_function)
+        resources.upcoming_table.grant_read_write_data(self.set_pending_upcoming_function)
         resources.grant_read_index_data(self.set_pending_upcoming_function, [resources.upcoming_table])
