@@ -48,7 +48,7 @@ def get_collection(collection_id):
         ScanIndexForward=False,
         Limit=1,
         IndexName='collection_id-event_date-index',
-        ProjectionExpression='collection_data'
+        ProjectionExpression='collection_data, sales_volume, collection_date, sale_count'
     )
 
     collection_data = data['Items'][0]
