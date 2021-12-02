@@ -33,10 +33,10 @@ def lambda_handler(event, context):
     request_uri = 'https://api.twitter.com/1.1/statuses/update.json'
     resp, content = client.request(request_uri, 'POST', urllib.parse.urlencode(data))
 
-    #. log.info(f"response:  {resp}")
-    #. log.info(f"content:  {content}")
+    # . log.info(f"response:  {resp}")
+    # . log.info(f"content:  {content}")
 
-    return tweet
+    return content
 
 
 def get_art():
@@ -53,40 +53,45 @@ def get_art():
     art_list = []
 
     for i in trending_art:
-        art = dynamodb.Table('art').get_item(
-            Key={'art_id': i})['Item']
-        try:
-            if 'name' in art['collection_data'] and art['collection_data']['name'] is not None:
-                if art['collection_data']['name'] in ['Mutant Ape Yacht Club',
-                                                      'Bored Ape Yacht Club, Bored Ape Kennel Club']:
-                    name = art['collection_data']['name']
-                    token_id = art['contractId#tokenId'].split('#')[1]
-                    name_split = name.split()
-                    hashtag = "#" + (name.replace(" ", ""))
-                    message = name_split[0] + " " + name_split[1] + " " + token_id + " sells for "
-                    usd_price = "${:,.2f}".format(
-                        round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
-                    tweet = message + usd_price + " " + art['buy_url'] + " " + hashtag + " #NFT #digitalart"
-                    msg = {
-                        "art_id": i,
-                        "message": tweet,
-                        "timestamp": str(datetime.utcnow().isoformat()),
-                        "platform": "twitter"
-                    }
-                    dynamodb.Table('auto_tweet').put_item(Item=msg)
-                    #. log.info(f"msg:  {msg}")
+        if count < 1:
+            art = dynamodb.Table('art').get_item(
+                Key={'art_id': i})['Item']
+            resp = dynamodb.Table('auto_tweet').get_item(
+                Key={'art_id': art['art_id']})
+            if 'Item' in resp:
+                continue
+            try:
+                if 'name' in art['collection_data'] and art['collection_data']['name'] is not None:
+                    if art['collection_data']['name'] in ['Mutant Ape Yacht Club',
+                                                          'Bored Ape Yacht Club, Bored Ape Kennel Club']:
+                        name = art['collection_data']['name']
+                        token_id = art['contractId#tokenId'].split('#')[1]
+                        name_split = name.split()
+                        hashtag = "#" + (name.replace(" ", ""))
+                        message = name_split[0] + " " + name_split[1] + " " + token_id + " sells for "
+                        usd_price = "${:,.2f}".format(
+                            round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
+                        tweet = message + usd_price + " #NFT " + art['buy_url']
+                        msg = {
+                            "art_id": i,
+                            "message": tweet,
+                            "timestamp": str(datetime.utcnow().isoformat()),
+                            "platform": "twitter"
+                        }
+                        dynamodb.Table('auto_tweet').put_item(Item=msg)
+                        # . log.info(f"msg:  {msg}")
 
-                    return tweet
-            count += 1
-            art_list.append(art)
+                        return tweet
+                count += 1
+                art_list.append(art)
 
-        except Exception as e:
-            count += 1
-            log.info(e)
-            continue
+            except Exception as e:
+                count += 1
+                log.info(e)
+                continue
 
     for i in art_list:
-        #. log.info(i)
+        # . log.info(i)
         try:
             if i['name'] is not None or i['collection_data']['name'] is not None:
                 resp = dynamodb.Table('auto_tweet').get_item(
@@ -99,7 +104,7 @@ def get_art():
                 message = name + " sells for"
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
-                tweet = message + " " + usd_price + " " + art['buy_url'] + " " + hashtag + " #NFT #digitalart"
+                tweet = message + " " + usd_price + " #NFT " + art['buy_url']
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
@@ -107,7 +112,7 @@ def get_art():
                     "platform": "twitter"
                 }
                 dynamodb.Table('auto_tweet').put_item(Item=msg)
-                #. log.info(f"msg:  {msg}")
+                # . log.info(f"msg:  {msg}")
 
                 return tweet
         except Exception as e:
