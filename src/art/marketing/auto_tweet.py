@@ -11,10 +11,15 @@ getcontext().prec = 18
 
 
 def lambda_handler(event, context):
-    access_token = "1341826225405308928-D3tZFaQMVnpMRqMFBxN4HeH7D2jfqb"
-    access_token_secret = "aHVw47EV5W8U6L8cEmTi7QCGuOchsgA1bY63SkFlnTi8m"
-    consumer_key = "zcmikK0KTZB7mkdVB2cM9SwJX"
-    consumer_secret = "t3ss4GZgr38IvTzHZWfCivrlVyhKEfpZz5VvpP7UmvubIpZkUR"
+    access_token = "1464273755510042624-OrSgAl8yIo3dNcOUBtCkIHOq68fLQG"
+    # SGMbZgiWk0oNjkoet4RKr3DPt
+
+    access_token_secret = "A0a83V9dGjcWaUYlpFzyk6DBGDQJGBwLL5PEAxnJnDlq9"
+    # fuQEFEzcYxoGzP32CkO7pbvtoMHdKZ8TZYa6W3TGbDiAacHdax
+    consumer_key = "FZzJVAxaXk7kXEpev7GNs2AoN"
+    consumer_secret = "8zIt0IMRDxHifySEQk8cqWzZVZSnAZaSqZ7StoEugoJcSpzvJ9"
+
+    # bear AAAAAAAAAAAAAAAAAAAAAJQAWQEAAAAAAE1Pwau2RGMyP4cfQXeh1I%2F%2BEkc%3DUWG6rJuxsGeFOz2Tf0GmOTlEa4X3IOnUIFXwlCiJjxBX3FwDE1
     token = oauth.Token(access_token, access_token_secret)
     consumer = oauth.Consumer(consumer_key, consumer_secret)
     client = oauth.Client(consumer, token)
@@ -62,8 +67,7 @@ def get_art():
                         message = name_split[0] + " " + name_split[1] + " " + token_id + " sells for "
                         usd_price = "${:,.2f}".format(
                             round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
-                        tweet = message + usd_price + " " + url + art[
-                            'art_id'] + " " + hashtag + " #NFT #Ethereum #ETH #cryptoart #digitalart #NFTs #BSC"
+                        tweet = message + usd_price + " " + art['buy_url'] + " " + hashtag + " #NFT #digitalart"
                         msg = {
                             "art_id": i,
                             "message": tweet,
@@ -96,8 +100,7 @@ def get_art():
                 message = name + " sells for"
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
-                tweet = message + " " + usd_price + " " + url + i[
-                    'art_id'] + " " + hashtag + " #NFT #Ethereum #ETH #cryptoart #digitalart #NFTs #Polygon"
+                tweet = message + " " + usd_price + " " + art['buy_url'] + " " + hashtag + " #NFT #digitalart"
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
