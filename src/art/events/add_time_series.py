@@ -4,10 +4,19 @@ import json
 import statistics
 from datetime import datetime, timedelta
 from decimal import Decimal, getcontext
+import pymysql
+import numpy as np
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
+
+rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
+name = "admin"
+password = "RHV2CiqtjiZpsM11"
+db_name = "nft_events"
+port = 3306
+conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
 
 
 def lambda_handler(event, context):
@@ -26,13 +35,13 @@ def lambda_handler(event, context):
     floor, median = update_mappings(collection_id, lsp, art_id)
     log.info('mappings updated')
 
-    update_trades(timestamp, collection_id, lsp, art_id, floor, median)
+    update_trades(timestamp, collection_id, lsp, floor, median)
     log.info('trades updated')
 
     return
 
 
-def update_trades(timestamp, collection_id, lsp, art_id, floor, median):
+def update_trades(timestamp, collection_id, lsp, floor, median):
     try:
         if floor != 0:
             response = dynamodb.Table('time_series').update_item(
@@ -109,6 +118,25 @@ def update_mappings(collection_id, lsp, art_id):
 
         log.info(f'floor: {floor}')
         log.info(f'median: {median}')
+
+        #
+        with conn.cursor() as cur:
+            sql = "select art_id, price from nft_events.open_sea_events where collection_id = " + collection_id + "group by art_id;"
+            cur.execute(sql)
+            result = cur.fetchall()
+
+        med = np.median(list(dict(result).values()))
+
+        dynamodb.Table('collections').update_item(
+            Key={
+                'collection_id': collection_id
+            },
+            UpdateExpression="SET median = :me",
+            ExpressionAttributeValues={
+                ':me': med
+            },
+            ReturnValues="UPDATED_NEW"
+        )
 
         return floor, median
 
