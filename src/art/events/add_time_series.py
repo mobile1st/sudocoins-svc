@@ -5,11 +5,12 @@ import statistics
 from datetime import datetime, timedelta
 from decimal import Decimal, getcontext
 import pymysql
-import numpy as np
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
+
+log.info("hi")
 
 rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
 name = "admin"
@@ -119,26 +120,43 @@ def update_mappings(collection_id, lsp, art_id):
         log.info(f'floor: {floor}')
         log.info(f'median: {median}')
 
-        #
-        with conn.cursor() as cur:
-            sql = "select art_id, price from nft_events.open_sea_events where collection_id = " + collection_id + "group by art_id;"
-            cur.execute(sql)
-            result = cur.fetchall()
-
-        med = np.median(list(dict(result).values()))
-
-        dynamodb.Table('collections').update_item(
-            Key={
-                'collection_id': collection_id
-            },
-            UpdateExpression="SET median = :me",
-            ExpressionAttributeValues={
-                ':me': med
-            },
-            ReturnValues="UPDATED_NEW"
-        )
-
         return floor, median
+
+        #
+        """
+        try:
+            with conn.cursor() as cur:
+                sql = "select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id= \"" + collection_id + "\" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"
+                log.info(f'sql: {sql}')
+                cur.execute(sql)
+                result = cur.fetchall()
+
+            values1 = {}
+
+            for k in result:
+                values1[k[0]] = k[1]
+
+
+            med = statistics.median(values1.values())
+            mins = min(values1.values())
+            maxs = max(values1.values())
+
+            dynamodb.Table('collections').update_item(
+                Key={'collection_id': collection_id},
+                UpdateExpression="SET floor = :fl, median = :me, maximum = :ma",
+                ExpressionAttributeValues={
+                    ':fl': mins,
+                    ':me': med,
+                    ':ma': maxs
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+
+            return floor, median
+
+        except Exception as e:
+        """
+
 
     except Exception as e:
         log.info(e)
