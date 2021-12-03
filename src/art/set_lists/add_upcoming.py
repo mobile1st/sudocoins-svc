@@ -34,6 +34,7 @@ def lambda_handler(event, context):
             "release_date": body.get("release_date"),
             "release_time": body.get("release_time"),
             "presale_time": body.get("presale_time"),
+            "presale_date": body.get("presale_date"),
             "blockchain": body.get("blockchain"),
             "approved": "false"
         }
