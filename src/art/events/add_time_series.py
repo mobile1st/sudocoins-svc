@@ -17,7 +17,6 @@ name = "admin"
 password = "RHV2CiqtjiZpsM11"
 db_name = "nft_events"
 port = 3306
-conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
 
 
 def lambda_handler(event, context):
@@ -120,22 +119,25 @@ def update_mappings(collection_id, lsp, art_id):
         log.info(f'floor: {floor}')
         log.info(f'median: {median}')
 
-        return floor, median
-
-        #
-        """
         try:
+            conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
             with conn.cursor() as cur:
-                sql = "select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id= \"" + collection_id + "\" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"
+                if collection_id.find("'") != -1:
+                    sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
+                elif collection_id.find('"') != -1:
+                    sql = """select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id='""" + collection_id + """' group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"""
+                else:
+                    sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
+
                 log.info(f'sql: {sql}')
                 cur.execute(sql)
                 result = cur.fetchall()
+                log.info('RDS query executed')
 
             values1 = {}
 
             for k in result:
                 values1[k[0]] = k[1]
-
 
             med = statistics.median(values1.values())
             mins = min(values1.values())
@@ -151,11 +153,13 @@ def update_mappings(collection_id, lsp, art_id):
                 },
                 ReturnValues="UPDATED_NEW"
             )
-
-            return floor, median
+            log.info('floor median and max added to collection table')
 
         except Exception as e:
-        """
+            log.info(e)
+
+        return floor, median
+
 
 
     except Exception as e:

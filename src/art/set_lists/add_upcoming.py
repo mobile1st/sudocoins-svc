@@ -36,7 +36,8 @@ def lambda_handler(event, context):
             "presale_time": body.get("presale_time"),
             "presale_date": body.get("presale_date"),
             "blockchain": body.get("blockchain"),
-            "approved": "false"
+            "approved": "false",
+            "presale_total": body.get("presale_total")
         }
 
         dynamodb.Table('upcoming').put_item(
