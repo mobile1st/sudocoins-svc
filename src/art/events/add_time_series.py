@@ -201,6 +201,7 @@ def update_mappings(collection_id, lsp, art_id):
             return floor
 
 
+
 def update_collection(collection_id):
     time_series = str(datetime.utcnow().isoformat()).split('T')[0]
     time_list = []
