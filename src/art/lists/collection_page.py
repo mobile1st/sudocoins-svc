@@ -10,8 +10,13 @@ arts = Art(dynamodb)
 
 def lambda_handler(event, context):
     set_log_context(event)
+    log.info(event)
     query_params = event['queryStringParameters']
     collection_id = query_params['collection-id']
+
+    if event[
+        'rawQueryString'] == "collection-id=0x999e88075692bcee3dbc07e7e64cd32f39a1d3ab%3Awizards-&-dragons-game-(wnd)=":
+        collection_id = "0x999e88075692bcee3dbc07e7e64cd32f39a1d3ab:wizards-&-dragons-game-(wnd)"
 
     last_sale_price = get_lsp(collection_id)
     recent = get_recent(collection_id)
@@ -70,7 +75,7 @@ def get_recent(collection_id):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    #newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+    # newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
 
     return sanitized
 
@@ -118,6 +123,6 @@ def get_lsp(collection_id):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    #newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+    # newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
 
     return sanitized
