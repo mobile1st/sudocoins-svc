@@ -17,6 +17,7 @@ name = "admin"
 password = "RHV2CiqtjiZpsM11"
 db_name = "nft_events"
 port = 3306
+conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
 
 
 def lambda_handler(event, context):
@@ -37,6 +38,11 @@ def lambda_handler(event, context):
 
     update_trades(timestamp, collection_id, lsp, floor, median)
     log.info('trades updated')
+
+    try:
+        update_charts(collection_id)
+    except Exception as e:
+        log.info(e)
 
     return
 
@@ -120,7 +126,6 @@ def update_mappings(collection_id, lsp, art_id):
         log.info(f'median: {median}')
 
         try:
-            conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
             with conn.cursor() as cur:
                 if collection_id.find("'") != -1:
                     sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
@@ -203,6 +208,7 @@ def update_mappings(collection_id, lsp, art_id):
 
 
 def update_collection(collection_id):
+    #update collection floor price chart. create a new way by using mysql
     time_series = str(datetime.utcnow().isoformat()).split('T')[0]
     time_list = []
     count = 6
@@ -252,6 +258,88 @@ def update_collection(collection_id):
     )
 
     log.info(f'collection table updated: {collection_id}')
+
+    return
+
+
+def update_charts(collection_id):
+    with conn.cursor() as cur:
+        if collection_id.find("'") != -1:
+            sql1 = '''select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            sql2 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            sql3 = '''select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            sql4 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+        elif collection_id.find('"') != -1:
+            sql1 = """select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
+            sql2 = """select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
+            sql3 = """select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
+            sql4 = """select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
+        else:
+            sql1 = '''select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            sql2 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            sql3 = '''select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            sql4 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+
+        statements = []
+        statements.append(sql1)
+        statements.append(sql2)
+        statements.append(sql3)
+        statements.append(sql4)
+
+        charts = []
+        for i in range(len(statements)):
+            cur.execute(statements[i])
+            result = cur.fetchall()
+            log.info('RDS queries executed')
+            chart_data = []
+            for k in range(len(result)):
+                if i == 0:
+                    #floor chart
+                    point = {
+                        "x": result[k][0],
+                        "y": result[k][1] / (10 ** 18)
+                    }
+                    chart_data.append(point)
+                elif i == 1:
+                    #sum chart
+                    point = {
+                        "x": result[k][0],
+                        "y": result[k][1] / (10 ** 18)
+                    }
+                    chart_data.append(point)
+                    continue
+
+                elif i == 2:
+                    #avg chart
+                    point = {
+                        "x": result[k][0],
+                        "y": result[k][1] / (10 ** 18)
+                    }
+                    chart_data.append(point)
+                    continue
+
+                elif i == 3:
+                    #trades chart
+                    point = {
+                        "x": result[k][0],
+                        "y": result[k][1]
+                    }
+                    chart_data.append(point)
+                    continue
+
+            charts.append(chart_data)
+
+
+
+    dynamodb.Table('collections').update_item(
+        Key={'collection_id': collection_id},
+        UpdateExpression="SET more_charts = :mc",
+        ExpressionAttributeValues={
+            ':mc': charts
+        },
+        ReturnValues="UPDATED_NEW"
+    )
+    log.info('rds charts added to collections table')
 
     return
 
