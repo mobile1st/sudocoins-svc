@@ -396,7 +396,7 @@ class SudocoinsArtLambdas:
             'AddTimeSeriesV2',
             function_name='AddTimeSeriesV2',
             handler='art.events.add_time_series.lambda_handler',
-            timeout=cdk.Duration.seconds(30)
+            timeout=cdk.Duration.seconds(30),
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.get_minted_function)
