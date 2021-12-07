@@ -21,13 +21,9 @@ def lambda_handler(event, context):
     art = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'art: {art}')
 
-    timestamp = art['event_date'].split('T')[0]
-    lsp = art['last_sale_price']
-    art_id = art['art_id']
-
     collection_id = art['collection_id']
     log.info('about to connect')
-    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=10)
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     try:
         with conn.cursor() as cur:
             if collection_id.find("'") != -1:
@@ -63,7 +59,7 @@ def lambda_handler(event, context):
             result2 = cur.fetchall()
             floor_chart = result2
             log.info('RDS query for Floor Charts executed')
-            '''
+
             statements = []
             statements.append(sql3)
             statements.append(sql4)
@@ -74,43 +70,42 @@ def lambda_handler(event, context):
                 for i in range(len(statements)):
                     cur.execute(statements[i])
                     result = cur.fetchall()
-                    log.info('more charts executed')
                     chart_data2 = []
                     for k in range(len(result)):
                         if i == 0:
-                            #floor chart
+                            # floor chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1] / (10 ** 18)
                             }
                             chart_data2.append(point)
                         elif i == 1:
-                            #sum chart
+                            # sum chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1] / (10 ** 18)
                             }
                             chart_data2.append(point)
                         elif i == 2:
-                            #avg chart
+                            # avg chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1] / (10 ** 18)
                             }
                             chart_data2.append(point)
                         elif i == 3:
-                            #trades chart
+                            # trades chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1]
                             }
                             chart_data2.append(point)
                     charts.append(chart_data2)
-                log.info(charts)
+                log.info("more charts created")
 
             except Exception as e:
                 log.info(e)
-            '''
+
         conn.close()
 
         values1 = {}
@@ -144,7 +139,7 @@ def lambda_handler(event, context):
             },
             ReturnValues="UPDATED_NEW"
         )
-        log.info('floor median and max added to collection table')
+        log.info('data added to collection table')
 
 
     except Exception as e:
