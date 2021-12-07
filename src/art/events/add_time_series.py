@@ -10,8 +10,6 @@ log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
 
-log.info("hi")
-
 rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
 name = "admin"
 password = "RHV2CiqtjiZpsM11"
@@ -24,182 +22,141 @@ def lambda_handler(event, context):
     log.info(f'art: {art}')
 
     timestamp = art['event_date'].split('T')[0]
-    collection_id = art['collection_id']
     lsp = art['last_sale_price']
     art_id = art['art_id']
 
-    if lsp == 0:
-        log.info(f'sale price 0: {art_id}')
-        return
-
-    floor, median = update_mappings(collection_id, lsp, art_id)
-    log.info('mappings updated')
-
-    update_trades(timestamp, collection_id, lsp, floor, median)
-    log.info('trades updated')
-
-    return
-
-
-def update_trades(timestamp, collection_id, lsp, floor, median):
+    collection_id = art['collection_id']
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
     try:
-        if floor != 0:
-            response = dynamodb.Table('time_series').update_item(
-                Key={'date': timestamp, 'collection_id': collection_id},
-                UpdateExpression="SET trades = list_append(if_not_exists(trades, :empty_list), :i),  "
-                                 "trade_count = if_not_exists(trade_count, :st) + :inc,"
-                                 "sales_volume = if_not_exists(sales_volume, :st) + :k,"
-                                 "floor = :fl, median=:me",
-                ExpressionAttributeValues={
-                    ':i': [lsp],
-                    ':empty_list': [],
-                    ':k': lsp,
-                    ':st': 0,
-                    ':inc': 1,
-                    ':fl': floor,
-                    ":me": median
-                },
-                ReturnValues="UPDATED_OLD"
-            )
-
-            if 'Attributes' in response and 'floor' in response['Attributes']:
-                old_floor = str(response['Attributes']['floor'])
-                log.info(f'old floor: {old_floor}')
-                log.info(f'current floor: {floor}')
-
-                if response['Attributes']['floor'] > floor:
-                    update_collection(collection_id)
+        with conn.cursor() as cur:
+            if collection_id.find("'") != -1:
+                sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
+                sql2 = '''select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 7 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql3 = '''select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+            elif collection_id.find('"') != -1:
+                sql = """select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and collection_id='""" + collection_id + """' group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"""
+                sql2 = """select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 7 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
+                sql3 = """select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
+                sql4 = """select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
+                sql5 = """select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
+                sql6 = """select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
 
             else:
-                update_collection(collection_id)
+                sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and  collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
+                sql2 = '''select date(event_date), min(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 7 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql3 = '''select date(event_date), min(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+
+            log.info(f'sql: {sql}')
+            cur.execute(sql)
+            result = cur.fetchall()
+            more_charts = result
+            log.info('RDS queries for Floor, Median, and Max executed')
+
+            log.info(f'sql: {sql2}')
+            cur.execute(sql2)
+            result2 = cur.fetchall()
+            floor_chart = result2
+            log.info('RDS query for Floor Charts executed')
+
+            statements = []
+            statements.append(sql3)
+            statements.append(sql4)
+            statements.append(sql5)
+            statements.append(sql6)
+            charts = []
+            try:
+                for i in range(len(statements)):
+                    cur.execute(statements[i])
+                    result = cur.fetchall()
+                    log.info('more charts executed')
+                    chart_data2 = []
+                    for k in range(len(result)):
+                        if i == 0:
+                            # floor chart
+                            point = {
+                                "x": str(result[k][0]),
+                                "y": result[k][1] / (10 ** 18)
+                            }
+                            chart_data2.append(point)
+                        elif i == 1:
+                            # sum chart
+                            point = {
+                                "x": str(result[k][0]),
+                                "y": result[k][1] / (10 ** 18)
+                            }
+                            chart_data2.append(point)
 
 
+                        elif i == 2:
+                            # avg chart
+                            point = {
+                                "x": str(result[k][0]),
+                                "y": result[k][1] / (10 ** 18)
+                            }
+                            chart_data2.append(point)
 
-        else:
-            response = dynamodb.Table('time_series').update_item(
-                Key={'date': timestamp, 'collection_id': collection_id},
-                UpdateExpression="SET trades = list_append(if_not_exists(trades, :empty_list), :i),  "
-                                 "trade_count = if_not_exists(trade_count, :st) + :inc,"
-                                 "sales_volume = if_not_exists(sales_volume, :st) + :k, median=:me",
-                ExpressionAttributeValues={
-                    ':i': [lsp],
-                    ':empty_list': [],
-                    ':k': lsp,
-                    ':st': 0,
-                    ':inc': 1,
-                    ":me": median
-                },
-                ReturnValues="UPDATED_NEW"
-            )
+
+                        elif i == 3:
+                            # trades chart
+                            point = {
+                                "x": str(result[k][0]),
+                                "y": result[k][1]
+                            }
+                            chart_data2.append(point)
+
+                    charts.append(chart_data2)
+                log.info(charts)
+
+            except Exception as e:
+                log.info(e)
+
+        values1 = {}
+        for k in more_charts:
+            values1[k[0]] = k[1]
+        med = statistics.median(values1.values())
+        mins = min(values1.values())
+        maxs = max(values1.values())
+
+        chart_data = []
+        for i in floor_chart:
+            point = {
+                "x": str(i[0]),
+                "y": i[1] / (10 ** 18)
+            }
+            chart_data.append(point)
+        floor_points = {
+            "floor": chart_data
+        }
+
+        log.info(f'floor_data: {floor_points}')
+
+        dynamodb.Table('collections').update_item(
+            Key={'collection_id': collection_id},
+            UpdateExpression="SET floor = :fl, median = :me, maximum = :ma, chart_data =:cd, more_charts=:mc",
+            ExpressionAttributeValues={
+                ':fl': mins,
+                ':me': med,
+                ':ma': maxs,
+                ':cd': chart_data,
+                ':mc': charts
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        log.info('floor median and max added to collection table')
+
 
     except Exception as e:
         log.info(e)
+
+    update_collection(collection_id)
 
     return
-
-
-def update_mappings(collection_id, lsp, art_id):
-    try:
-        response = dynamodb.Table('time_series').update_item(
-            Key={'date': 'last_sale_price', 'collection_id': collection_id},
-            UpdateExpression="SET arts.#art = :k ",
-            ExpressionAttributeValues={
-                ':k': lsp
-            },
-            ExpressionAttributeNames={
-                '#art': art_id
-            },
-            ReturnValues="ALL_NEW"
-        )
-
-        my_dict = response['Attributes']['arts']
-        floor = min(my_dict.values())
-        median = statistics.median(my_dict.values())
-
-        log.info(f'floor: {floor}')
-        log.info(f'median: {median}')
-
-        try:
-            conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
-            with conn.cursor() as cur:
-                if collection_id.find("'") != -1:
-                    sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
-                elif collection_id.find('"') != -1:
-                    sql = """select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id='""" + collection_id + """' group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"""
-                else:
-                    sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
-
-                log.info(f'sql: {sql}')
-                cur.execute(sql)
-                result = cur.fetchall()
-                log.info('RDS query executed')
-
-            values1 = {}
-
-            for k in result:
-                values1[k[0]] = k[1]
-
-            med = statistics.median(values1.values())
-            mins = min(values1.values())
-            maxs = max(values1.values())
-
-            dynamodb.Table('collections').update_item(
-                Key={'collection_id': collection_id},
-                UpdateExpression="SET floor = :fl, median = :me, maximum = :ma",
-                ExpressionAttributeValues={
-                    ':fl': mins,
-                    ':me': med,
-                    ':ma': maxs
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            log.info('floor median and max added to collection table')
-
-        except Exception as e:
-            log.info(e)
-
-        return floor, median
-
-
-
-    except Exception as e:
-        log.info(e)
-        if e.response['Error']['Code'] == "ValidationException":
-            dynamodb.Table('time_series').update_item(
-                Key={'date': 'last_sale_price', 'collection_id': collection_id},
-                UpdateExpression="SET arts = if_not_exists(arts, :new_dict)",
-                ExpressionAttributeValues={
-                    ':new_dict': {}
-                },
-                ReturnValues="ALL_NEW"
-            )
-
-            response = dynamodb.Table('time_series').update_item(
-                Key={'date': 'last_sale_price', 'collection_id': collection_id},
-                UpdateExpression="SET arts.#art = :i",
-                ExpressionAttributeValues={
-                    ':i': lsp
-                },
-                ExpressionAttributeNames={
-                    '#art': art_id
-                },
-                ReturnValues="ALL_NEW"
-            )
-
-            my_dict = response['Attributes']['arts']
-            floor = min(my_dict.items(), key=lambda x: x[1])[1]
-            median = statistics.median(my_dict.values())
-            log.info(f'floor: {floor}')
-            log.info(f'floor: {median}')
-
-            return floor, median
-
-        else:
-            log.info("other error")
-
-            floor = 0
-            return floor
-
 
 
 def update_collection(collection_id):
@@ -254,3 +211,4 @@ def update_collection(collection_id):
     log.info(f'collection table updated: {collection_id}')
 
     return
+
