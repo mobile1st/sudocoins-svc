@@ -26,7 +26,8 @@ def lambda_handler(event, context):
     art_id = art['art_id']
 
     collection_id = art['collection_id']
-    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
+    log.info('about to connect')
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=10)
     try:
         with conn.cursor() as cur:
             if collection_id.find("'") != -1:
@@ -43,7 +44,6 @@ def lambda_handler(event, context):
                 sql4 = """select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
                 sql5 = """select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
                 sql6 = """select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
-
             else:
                 sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and  collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
                 sql2 = '''select date(event_date), min(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 7 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
             result2 = cur.fetchall()
             floor_chart = result2
             log.info('RDS query for Floor Charts executed')
-
+            '''
             statements = []
             statements.append(sql3)
             statements.append(sql4)
@@ -78,43 +78,40 @@ def lambda_handler(event, context):
                     chart_data2 = []
                     for k in range(len(result)):
                         if i == 0:
-                            # floor chart
+                            #floor chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1] / (10 ** 18)
                             }
                             chart_data2.append(point)
                         elif i == 1:
-                            # sum chart
+                            #sum chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1] / (10 ** 18)
                             }
                             chart_data2.append(point)
-
-
                         elif i == 2:
-                            # avg chart
+                            #avg chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1] / (10 ** 18)
                             }
                             chart_data2.append(point)
-
-
                         elif i == 3:
-                            # trades chart
+                            #trades chart
                             point = {
                                 "x": str(result[k][0]),
                                 "y": result[k][1]
                             }
                             chart_data2.append(point)
-
                     charts.append(chart_data2)
                 log.info(charts)
 
             except Exception as e:
                 log.info(e)
+            '''
+        conn.close()
 
         values1 = {}
         for k in more_charts:
@@ -138,13 +135,12 @@ def lambda_handler(event, context):
 
         dynamodb.Table('collections').update_item(
             Key={'collection_id': collection_id},
-            UpdateExpression="SET floor = :fl, median = :me, maximum = :ma, chart_data =:cd, more_charts=:mc",
+            UpdateExpression="SET floor = :fl, median = :me, maximum = :ma, chart_data =:cd",
             ExpressionAttributeValues={
                 ':fl': mins,
                 ':me': med,
                 ':ma': maxs,
-                ':cd': chart_data,
-                ':mc': charts
+                ':cd': chart_data
             },
             ReturnValues="UPDATED_NEW"
         )
