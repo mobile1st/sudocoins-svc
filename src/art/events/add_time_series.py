@@ -136,7 +136,7 @@ def lambda_handler(event, context):
                 ':fl': mins,
                 ':me': med,
                 ':ma': maxs,
-                ':cd': chart_data,
+                ':cd': floor_points,
                 ':mc': charts
             },
             ReturnValues="UPDATED_NEW"
@@ -148,3 +148,5 @@ def lambda_handler(event, context):
         log.info(e)
 
     return
+
+
