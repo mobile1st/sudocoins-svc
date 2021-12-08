@@ -19,7 +19,7 @@ def lambda_handler(event, context):
 
         res = dynamodb.Table('collections').get_item(
             Key={'collection_id': collection_id},
-            ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts")
+            ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea")
 
         if 'Item' in res and 'collection_data' in res['Item']:
 

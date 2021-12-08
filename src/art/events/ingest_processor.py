@@ -198,7 +198,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             },
             UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
                              "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd,"
-                             "sort_idx=:si, collection_data=:colldata",
+                             "sort_idx=:si, collection_data=:colldata, open_sea=:os",
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
@@ -209,6 +209,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
                 ':cd': art_object.get('collection_date', "0"),
                 ":si": "true",
+                ":os": art_object.get('asset', {}).get('collection', {}).get('slug', ""),
                 ":colldata": {
                     "name": art_object.get('asset', {}).get('collection', {}).get('name'),
                     "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
@@ -395,7 +396,8 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 'collection_id': art_record['collection_id']
             },
             UpdateExpression="SET sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(sales_volume, :start2) + :inc2,"
-                             "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata",
+                             "collection_name = :cn, preview_url = :purl, collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata,"
+                             "open_sea=:os",
             ExpressionAttributeValues={
                 ':start': 0,
                 ':inc': 1,
@@ -406,6 +408,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 ':ca': art_record['collection_address'],
                 ':cd': art_object.get('collection_date', "0"),
                 ":si": "true",
+                ":os": art_object.get('asset', {}).get('collection', {}).get('slug', ""),
                 ":colldata": art_record['collection_data']
             },
             ReturnValues="UPDATED_NEW"
