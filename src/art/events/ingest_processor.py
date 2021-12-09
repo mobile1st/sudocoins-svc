@@ -101,9 +101,6 @@ def add(art_object):
 
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     preview_url, art_url = get_urls(open_sea)
-    if art_url == "" and preview_url is None:
-        log.info("missing art_url and preview_url")
-        return
 
     eth_sale_price = eth_price(art_object)
 
@@ -138,50 +135,48 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     c_name = ("-".join(collection_name.split())).lower()
     collection_id = collection_address + ":" + c_name
 
-    dynamodb.Table('art').update_item(
-        Key={'art_id': art_id},
-        UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
-                         "last_sale_price=:lsp, event_date=:ed, #n=:na, collection_address=:ca, collection_data=:cd,"
-                         "collection_name=:cn, #o=:ow, collection_id=:cid, seller=:se",
-        ExpressionAttributeValues={
-            ':art': art_url,
-            ':buy': buy_url,
-            ':pre': preview_url,
-            ':open': open_sea,
-            ':lsp': eth_sale_price,
-            ":ed": art_object.get('created_date'),
-            ":na": open_sea.get('name'),
-            ":ca": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
-            ":cd": {
-                "name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
-                "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
-                "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
-                "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
-                "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
-                "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
+    if art_url != "" and preview_url is not None:
+        dynamodb.Table('art').update_item(
+            Key={'art_id': art_id},
+            UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
+                             "last_sale_price=:lsp, event_date=:ed, #n=:na, collection_address=:ca, collection_data=:cd,"
+                             "collection_name=:cn, #o=:ow, collection_id=:cid, seller=:se",
+            ExpressionAttributeValues={
+                ':art': art_url,
+                ':buy': buy_url,
+                ':pre': preview_url,
+                ':open': open_sea,
+                ':lsp': eth_sale_price,
+                ":ed": art_object.get('created_date'),
+                ":na": open_sea.get('name'),
+                ":ca": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+                ":cd": {
+                    "name": art_object.get('asset', {}).get('collection', {}).get('name'),
+                    "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
+                    "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+                    "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+                    "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+                    "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+                    "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
+                },
+                ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
+                ":ow": art_object.get("owner", "unknown"),
+                ":cid": collection_id,
+                ":se": art_object.get("seller", "unknown")
             },
-            ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
-            ":ow": art_object.get("owner", "unknown"),
-            ":cid": collection_id,
-            ":se": art_object.get("seller", "unknown")
-        },
-        ExpressionAttributeNames={'#n': 'name', '#o': 'owner'}
-    )
-
-    log.info("art record updated")
-    log.info(f"art_id: {art_id}")
+            ExpressionAttributeNames={'#n': 'name', '#o': 'owner'}
+        )
+        log.info("art record updated")
+        log.info(f"art_id: {art_id}")
+    else:
+        log.info("missing art_url and preview_url")
+        return
 
     try:
         msg = {
-            "event_date": art_object.get('created_date'),
-            "last_sale_price": eth_sale_price,
-            "collection_id": collection_id,
-            'art_id': art_id,
-            'contractId#tokenId': contract_token_id
+            "collection_id": collection_id
         }
-        sns = boto3.client("sns")
-        sns.publish(
+        boto3.client("sns").publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeriesTopic',
             MessageStructure='string',
             Message=json.dumps(msg)
@@ -333,7 +328,9 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         number = number.split('#')[1]
         art_record['name'] = name + " #" + str(number)
 
-    dynamodb.Table('art').put_item(Item=art_record)
+    if art_url != "" and preview_url != "":
+        dynamodb.Table('art').put_item(Item=art_record)
+        log.info("art added to art table")
 
     try:
 
