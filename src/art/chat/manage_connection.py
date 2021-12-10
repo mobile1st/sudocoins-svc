@@ -10,6 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     body = json.loads(event.get('body', '{}'))
+    log.info(f'event: {event}')
     log.info(f'payload: {body}')
 
     """
@@ -42,7 +43,9 @@ def lambda_handler(event, context):
 
         # Remove the connectionID from the database
         table = dynamodb.Table("chat_connections")
-        table.delete_item(Key={"ConnectionId": connectionID})
+        delete_response = table.delete_item(Key={"ConnectionId": connectionID})
+        log.info(f'delete_response: {delete_response}')
+        log.info("Disconnect successful")
         return _get_response(200, "Disconnect successful.")
 
     else:
