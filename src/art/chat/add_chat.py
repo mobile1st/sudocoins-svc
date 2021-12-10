@@ -6,6 +6,7 @@ import uuid
 import http.client
 from ethereum.utils import ecrecover_to_pub, sha3
 from eth_utils.hexadecimal import encode_hex, decode_hex, add_0x_prefix
+import http.client
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -15,7 +16,26 @@ def lambda_handler(event, context):
     log.info(f'event: {event}')
     body = json.loads(event.get('body', '{}'))
     log.info(f'payload: {body}')
+    '''
+    try:
+        state = verifyPubKey(body.get(publicAddress), body.get(signature), body.get(hash_message))
+    except Exception as e:
+        state = False
 
+    if state == False:
+        return {
+            'status': 404,
+            'message': 'Invalid authentication.'
+        }
+    
+    state2 = verifyNFTowner(body.get(publicAddress), body.get(contractAddress))
+    if state2 == False:
+        return {
+            'status': 404,
+            'message': 'User doesn't own NFTs from this collection'
+        }
+    
+    '''
     if body.get("detail", {}).get("type", "") == "message":
         try:
             captchaToken = body.get("captchaToken")
@@ -95,15 +115,12 @@ def call_google_recaptcha(input_token):
     return json_response
 
 
-def loadProfileByMetaAddress(publicAddress, signupMethod, signature, hash_message, context):
-
+def verifyPubKey(publicAddress, signature, hash_message):
     subTable = dynamodb.Table('sub')
     subResponse = subTable.get_item(Key={'sub': publicAddress})
     log.info(f'subResponse: {subResponse}')
-    log.info(f'signupMethod: {signupMethod}')
 
     log.info(f'msgHex: {hash_message}')
-
     r = int(signature[0:66], 16)
     s = int(add_0x_prefix(signature[66:130]), 16)
     v = int(add_0x_prefix(signature[130:132]), 16)
@@ -119,18 +136,34 @@ def loadProfileByMetaAddress(publicAddress, signupMethod, signature, hash_messag
             userId = subResponse['Item']['userId']
             log.info(f'userId: {userId}')
 
-        userId = str(uuid.uuid1())
+        else:
+            userId = str(uuid.uuid1())
+            subTable.put_item(
+                Item={
+                    "sub": publicAddress,
+                    "userId": userId
+                }
+            )
 
-        subTable.put_item(
-            Item={
-                "sub": publicAddress,
-                "userId": userId
-            }
-        )
+        return True
 
     else:
-        return {
-            'status': 404,
-            'message': 'Invalid authentication.'
-        }
+        return False
 
+
+def verifyNFTowner(public_address, contract_address):
+    path = "/api/v1/assets?owner=" + public_address + "&asset_contract_address=" + contract_address + "&order_direction=desc&offset=0&limit=20"
+    conn = http.client.HTTPSConnection("api.opensea.io")
+    api_key = {
+        "X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"
+    }
+    conn.request("GET", path, headers=api_key)
+    response = conn.getresponse()
+    response2 = response.read().decode('utf-8')
+    open_sea_response = json.loads(response2)
+    print(len(open_sea_response['assets']))
+
+    if len(open_sea_response['assets']) > 0:
+        return True
+    else:
+        return False
