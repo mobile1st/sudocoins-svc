@@ -18,22 +18,20 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     set_log_context(event)
     log.debug(f'event: {event}')
-    #. publicAddress = event['public']
     jsonInput = json.loads(event.get('body', '{}'))
-    signupMethod, publicAddress, signature, hash_message = parseJson(jsonInput)
+
+    publicAddress, signature, hash_message = parseJson(jsonInput)
 
     try:
         msg = {
             "public_address": publicAddress
         }
-
         sns_client.publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:GetMetaMaskTopic',
             MessageStructure='string',
             Message=json.dumps(msg)
         )
         log.info(f"meta mask message added")
-
     except Exception as e:
         log.info(e)
 
@@ -41,13 +39,13 @@ def lambda_handler(event, context):
 
     if publicAddress != "":
         try:
-            profile = loadProfileByMetaAddress(publicAddress, 'MetaMask', signature, hash_message, context)
+            profile = loadProfileByMetaAddress(publicAddress, signature, hash_message, context)
             log.debug(f'profile: {profile}')
-            arts = get_metamask_arts(publicAddress)
+            # arts = get_metamask_arts(publicAddress)
         except Exception as e:
             log.exception(e)
             profile = {}
-            arts = []
+            # arts = []
     try:
         config = getConfig()
 
@@ -59,8 +57,7 @@ def lambda_handler(event, context):
     return {
         "profile": profile,
         "earn": config['earn'],
-        "ethRate": config['ethRate'],
-        "arts": arts
+        "ethRate": config['ethRate']
     }
 
 
@@ -69,12 +66,10 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def loadProfileByMetaAddress(publicAddress, signupMethod, signature, hash_message, context):
-    profileTable = dynamodb.Table('Profile')
+def loadProfileByMetaAddress(publicAddress, signature, hash_message, context):
     subTable = dynamodb.Table('sub')
-    subResponse = subTable.get_item(Key={'sub': publicAddress})
+    subResponse = subTable.get_item(Key={'sub': publicAddress}, ProjectionExpression='sub,portfolio')
     log.info(f'subResponse: {subResponse}')
-    log.info(f'signupMethod: {signupMethod}')
 
     log.info(f'msgHex: {hash_message}')
 
@@ -89,34 +84,19 @@ def loadProfileByMetaAddress(publicAddress, signupMethod, signature, hash_messag
 
     if publicAddress == encode_hex(sha3(pubkey)[-20:]):
         if 'Item' in subResponse:
-            log.debug("found userid matching publicAddress")
-            userId = subResponse['Item']['userId']
-            log.info(f'userId: {userId}')
-            profileObject = profileTable.get_item(Key={'userId': userId})
-            log.info(f'profileObject: {profileObject}')
-
-            if 'Item' not in profileObject:
-                email = userId + "@sudocoins.com"
-                log.info(f'create profile:')
-                profile = createProfile(email, profileTable, userId, '', signupMethod, context, '')
-                return profile
-            else:
-                return profileObject['Item']
-        log.debug("no sub or email found in database. New user.")
-        userId = str(uuid.uuid1())
-
-        log.debug("completely new user with no email in cognito")
-        email = userId + "@sudocoins.com"
+            log.debug("user in DB")
+            return subResponse['Item']
 
         subTable.put_item(
             Item={
-                "sub": publicAddress,
-                "userId": userId
+                "sub": publicAddress
             }
         )
-        profile = createProfile(email, profileTable, userId, '', signupMethod, context, '')
 
-        return profile
+        return {
+            "sub": publicAddress
+        }
+
     else:
         return {
             'status': 404,
@@ -140,84 +120,8 @@ def getRate(config):
     return rate
 
 
-def create_user_name(email, profileTable):
-    un_index = email.find('@')
-    un = email[:un_index]
-    profileQuery = profileTable.query(
-        IndexName='user_name-index',
-        KeyConditionExpression='user_name = :user_name',
-        ExpressionAttributeValues={
-            ':user_name': un
-        }
-    )
-    if profileQuery['Count'] > 0:
-        appendix = str(random.randint(0, 1000))
-        new_un = un + appendix
-
-        return new_un
-    return un
-
-
-def createProfile(email, profileTable, userId, facebook, signupMethod, context, shareId):
-    created = datetime.utcnow().isoformat()
-    user_name = create_user_name(email, profileTable)
-    profile = {
-        "active": True,
-        "email": email,
-        "signupDate": created,
-        "userId": userId,
-        "currency": "usd",
-        "gravatarEmail": email,
-        "facebookUrl": facebook,
-        "consent": "",
-        "history": [],
-        "balance": 0,
-        "sudocoins": 0,
-        "verificationState": None,
-        "signupMethod": signupMethod,
-        "user_name": user_name,
-        "twitter_handle": None,
-        "affiliate": shareId
-    }
-
-    log.info(f'profile: {profile}')
-    profileTable.put_item(
-        Item=profile
-    )
-    log.debug("profile submitted")
-
-    sns_client.publish(
-        TopicArn="arn:aws:sns:us-west-2:977566059069:transaction-event",
-        MessageStructure='string',
-        MessageAttributes={
-            'source': {
-                'DataType': 'String',
-                'StringValue': 'PROFILE'
-            }
-        },
-        Message=json.dumps({
-            'userId': userId,
-            'source': 'PROFILE',
-            'status': 'CREATED',
-            'awsRequestId': context.aws_request_id,
-            'timestamp': created,
-            'signUpMethod': signupMethod
-        })
-    )
-    log.info("profile added to sns")
-
-    sqs = boto3.resource('sqs')
-
-    profile["new_user"] = True
-
-    return profile
-
 
 def parseJson(jsonInput):
-    if 'signupMethod' in jsonInput:
-        signupMethod = jsonInput['signupMethod']
-    else:
-        signupMethod = ""
     if 'publicAddress' in jsonInput:
         publicAddress = jsonInput['publicAddress']
     else:
@@ -231,7 +135,7 @@ def parseJson(jsonInput):
     else:
         hash_message = ''
 
-    return signupMethod, publicAddress, signature, hash_message
+    return publicAddress, signature, hash_message
 
 
 def get_metamask_arts(public_address):

@@ -181,3 +181,16 @@ class SudocoinsUserLambdas:
         resources.profile_table.grant_read_write_data(self.set_portfolio_function)
         resources.sub_table.grant_read_write_data(self.set_portfolio_function)
         resources.portfolio_table.grant_read_write_data(self.set_portfolio_function)
+        # GET PORTFOLIO
+        self.get_portfolio_function = _lambda.Function(
+            scope,
+            'GetPortfolio',
+            function_name='GetPortfolio',
+            handler='user.get_portfolio.lambda_handler',
+            description='Gets the user portfolio',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.get_portfolio_function)
+        resources.sub_table.grant_read_write_data(self.get_portfolio_function)
+        resources.portfolio_table.grant_read_write_data(self.get_portfolio_function)
+        resources.grant_read_index_data(self.get_portfolio_function, [resources.portfolio_table])

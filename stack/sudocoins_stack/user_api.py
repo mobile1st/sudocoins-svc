@@ -124,4 +124,13 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=set_portfolio_integration
         )
+        # GET PORTFOLIO
+        get_portfolio_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_portfolio_function
+        )
+        user_api_v3.add_routes(
+            path="/get-portfolio",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_portfolio_integration
+        )
 

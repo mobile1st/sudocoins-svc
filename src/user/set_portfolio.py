@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     log.info(f'event: {event}')
     input_json = json.loads(event.get('body', '{}'))
 
-    user_id = input_json.get('user_id')
+    user_id = input_json.get('sub')
     collection_code = input_json.get('collection_id')
 
     if input_json['action'] == "add":
