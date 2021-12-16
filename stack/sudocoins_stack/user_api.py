@@ -115,4 +115,13 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_twitter_token_integration
         )
+        # SET PORTFOLIO
+        set_portfolio_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.set_portfolio_function
+        )
+        user_api_v3.add_routes(
+            path="/set-portfolio",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=set_portfolio_integration
+        )
 

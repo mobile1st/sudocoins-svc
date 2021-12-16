@@ -160,7 +160,6 @@ class SudocoinsUserLambdas:
                 actions=['dynamodb:Query']
             )
         )
-
         # TWITTER AUTH TOKEN
         self.get_twitter_token_function = _lambda.Function(
             scope,
@@ -170,3 +169,15 @@ class SudocoinsUserLambdas:
             description='Returning twitter auth token',
             **lambda_default_kwargs
         )
+        # SET PORTFOLIO
+        self.set_portfolio_function = _lambda.Function(
+            scope,
+            'SetPortfolio',
+            function_name='SetPortfolio',
+            handler='user.set_portfolio.lambda_handler',
+            description='Sets the user portfolio',
+            **lambda_default_kwargs
+        )
+        resources.profile_table.grant_read_write_data(self.set_portfolio_function)
+        resources.sub_table.grant_read_write_data(self.set_portfolio_function)
+        resources.portfolio_table.grant_read_write_data(self.set_portfolio_function)
