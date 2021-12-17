@@ -1,6 +1,5 @@
 import boto3
 from util import sudocoins_logger
-import http.client
 import json
 from art.art import Art
 from util import sudocoins_logger
@@ -9,6 +8,7 @@ from decimal import Decimal, getcontext
 import pymysql
 from datetime import datetime
 import uuid
+import os
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -127,11 +127,10 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     collection_id = collection_address + ":" + c_name
 
     try:
-        rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
-        name = "admin"
-        password = "RHV2CiqtjiZpsM11"
-        db_name = "nft_events"
-
+        rds_host = os.environ['db_host']
+        name = os.environ['db_user']
+        password = os.environ['db_pw']
+        db_name = os.environ['dn_name']
         conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
         with conn.cursor() as cur:
             art_id = art_id
@@ -148,7 +147,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             row_values = (
             art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type, buyer, seller, collection_address)
             cur.execute(
-                'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`,`collection_address`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
+                'INSERT INTO `nft`.`events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`,`collection_address`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
                 row_values)
             conn.commit()
             log.info("rds updated")
@@ -234,42 +233,38 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         art_record['name'] = name + " #" + str(number)
 
     try:
-        rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
-        name = "admin"
-        password = "RHV2CiqtjiZpsM11"
-        db_name = "nft_events"
-
+        rds_host = os.environ['db_host']
+        name = os.environ['db_user']
+        password = os.environ['db_pw']
+        db_name = os.environ['dn_name']
         conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
         with conn.cursor() as cur:
-            #collection
+            #collection table
             collection_code = art_record['collection_id']
             if collection_code.find("'") != -1:
-                sql = '''select id from nft_events.collections where collection_code="''' + collection_code + '''" ;'''
+                sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" ;'''
             elif collection_code.find('"') != -1:
-                sql = """select id from nft_events.collections where collection_code='""" + collection_code + """' ;"""
+                sql = """select id from nft.collections where collection_code='""" + collection_code + """' ;"""
             else:
-                sql = '''select id from nft_events.collections where collection_code="''' + collection_code + '''" ;'''
+                sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" ;'''
             cur.execute(sql)
             result = cur.fetchall()
             if len(result) == 0:
                 name = art_record.get('collection_name')
-                collection_data = art_record.get('collection_data')
-                chart_data = ""
                 avatar = art_object.get('asset', {}).get('collection', {}).get('image_url')
                 collection_address = art_record.get("collection_address")
                 created_date = art_object.get('collection_date')
-                timestamp = time_now
-                contract_token = art_record['contractId#tokenId']
-                row_values = (collection_code, name, collection_data, chart_data, avatar, collection_address, created_date, timestamp, contract_token)
+                blockchain = art_object.get('blockchain').lower()
+                row_values = (collection_code, name, avatar, collection_address, created_date, blockchain)
                 cur.execute(
-                    'INSERT INTO `nft_events`.`collections` (`collection_code`, `name`,`collection_data`,`chart_data`,`avatar`,`collection_address`,`created_date`,`timestamp`, `contract_token`) VALUES (%s, %s, %s, %s, %s,%s,%s,%s,%s)',
+                    'INSERT INTO `nft`.`collections` (`collection_code`, `collection_name`, `avatar`, `collection_address`,`created_date`, `blockchain`) VALUES (%s, %s, %s, %s, %s,%s)',
                     row_values)
                 if collection_code.find("'") != -1:
-                    sql = '''select id from nft_events.collections where collection_code="''' + collection_code + '''" ;'''
+                    sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" ;'''
                 elif collection_code.find('"') != -1:
-                    sql = """select id from nft_events.collections where collection_code='""" + collection_code + """' ;"""
+                    sql = """select id from nft.collections where collection_code='""" + collection_code + """' ;"""
                 else:
-                    sql = '''select id from nft_events.collections where collection_code="''' + collection_code + '''" ;'''
+                    sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" ;'''
                 cur.execute(sql)
                 result = cur.fetchall()
                 collection_id = result[0][0]
@@ -277,15 +272,16 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 collection_id = result[0][0]
             #nft
             nft_code = art_record['art_id']
-            sql = '''select id from nft_events.nfts where nft_code="''' + nft_code + '''" ;'''
+            token_id = int(art_record.get('contractId#tokenId').split('#')[1])
+            sql = '''select id from nft.nfts where nft_code="''' + nft_code + '''" ;'''
             cur.execute(sql)
             result = cur.fetchall()
             if len(result) == 0:
-                row_values = (nft_code, collection_id)
+                row_values = (nft_code, collection_id, token_id)
                 cur.execute(
-                    'INSERT INTO `nft_events`.`nfts` (`nft_code`, `collection_id`) VALUES (%s,%s)',
+                    'INSERT INTO `nft`.`nfts` (`nft_code`, `collection_id`, `token_id`) VALUES (%s,%s,%s)',
                     row_values)
-                sql = '''select id from nft_events.nfts where nft_code="''' + nft_code + '''" ;'''
+                sql = '''select id from nft.nfts where nft_code="''' + nft_code + '''" ;'''
                 cur.execute(sql)
                 result = cur.fetchall()
                 nft_id = result[0][0]
@@ -293,15 +289,15 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 nft_id = result[0][0]
             #buyer
             public_key = art_record['owner']
-            sql = '''select id from nft_events.users where public_key="''' + public_key + '''" ;'''
+            sql = '''select id from nft.users where public_key="''' + public_key + '''" ;'''
             cur.execute(sql)
             result = cur.fetchall()
             if len(result) == 0:
                 row_values = (public_key)
                 cur.execute(
-                    'INSERT INTO `nft_events`.`users` (`public_key`) VALUES (%s)',
+                    'INSERT INTO `nft`.`users` (`public_key`) VALUES (%s)',
                     row_values)
-                sql = '''select id from nft_events.users where public_key="''' + public_key + '''" ;'''
+                sql = '''select id from nft.users where public_key="''' + public_key + '''" ;'''
                 cur.execute(sql)
                 result = cur.fetchall()
                 buyer_id = result[0][0]
@@ -309,15 +305,15 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 buyer_id = result[0][0]
             #seller
             public_key = art_record['seller']
-            sql = '''select id from nft_events.users where public_key="''' + public_key + '''" ;'''
+            sql = '''select id from nft.users where public_key="''' + public_key + '''" ;'''
             cur.execute(sql)
             result = cur.fetchall()
             if len(result) == 0:
                 row_values = (public_key)
                 cur.execute(
-                    'INSERT INTO `nft_events`.`users` (`public_key`) VALUES (%s)',
+                    'INSERT INTO `nft`.`users` (`public_key`) VALUES (%s)',
                     row_values)
-                sql = '''select id from nft_events.users where public_key="''' + public_key + '''" ;'''
+                sql = '''select id from nft.users where public_key="''' + public_key + '''" ;'''
                 cur.execute(sql)
                 result = cur.fetchall()
                 seller_id = result[0][0]
@@ -325,14 +321,14 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
                 seller_id = result[0][0]
 
             #insert event
-            price = art_record['last_sale_price']
+            price = int(art_record['last_sale_price'])
             event_date = art_record['event_date']
             blockchain = 1
             event_type = 1
 
-            row_values = (collection_id,nft_id, price, event_date, time_now, blockchain, event_type, buyer_id, seller_id)
+            row_values = (collection_id, nft_id, price, event_date, time_now, blockchain, event_type, buyer_id, seller_id)
             cur.execute(
-                'INSERT INTO `nft_events`.`open_sea_events` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s)',
+                'INSERT INTO `nft`.`events` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s)',
                 row_values)
             conn.commit()
             log.info("rds submitted")

@@ -36,7 +36,7 @@ def get_user_id(public_address):
 
     if 'Item' in sub_response:
         log.debug("found userid matching publicAddress")
-        user_id = sub_response['Item']['userId']
+        user_id = sub_response['Item'].get('userId')
         if user_id:
             return user_id
         else:
