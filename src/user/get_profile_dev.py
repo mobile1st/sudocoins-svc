@@ -96,9 +96,7 @@ def loadProfileByMetaAddress(publicAddress, signature, hash_message, context):
             }
         )
 
-        return {
-            "sub": publicAddress
-        }
+        return subResponse['Item']
 
     else:
         return {}
