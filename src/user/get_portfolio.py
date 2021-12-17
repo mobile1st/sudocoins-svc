@@ -10,17 +10,18 @@ dynamodb = boto3.resource('dynamodb')
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
-    input_json = json.loads(event.get('body', '{}'))
-
+    # input_json = json.loads(event.get('body', '{}'))
+    input_json = event
     user_id = input_json.get('sub')
-
 
     # get user collections from portfolio table
     collection_list = dynamodb.Table('portfolio').query(
         KeyConditionExpression=Key('user_id').eq(user_id),
         ScanIndexForward=False,
         IndexName='user_id-index',
-        ProjectionExpression='collection_code')['Attributes']
+        ProjectionExpression='collection_code')['Items']
+
+    log.info(collection_list)
 
     # get collection data for each collection
 

@@ -194,5 +194,6 @@ class SudocoinsUserLambdas:
         resources.profile_table.grant_read_write_data(self.get_portfolio_function)
         resources.sub_table.grant_read_write_data(self.get_portfolio_function)
         resources.portfolio_table.grant_read_write_data(self.get_portfolio_function)
+        resources.collections_table.grant_read_write_data(self.get_portfolio_function)
         resources.grant_read_index_data(self.get_portfolio_function, [resources.portfolio_table])
 
