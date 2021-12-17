@@ -37,16 +37,27 @@ def get_user_id(public_address):
     if 'Item' in sub_response:
         log.debug("found userid matching publicAddress")
         user_id = sub_response['Item']['userId']
+        if user_id:
+            return user_id
+        else:
+            log.debug("no sub or email found in database. New user.")
+
+            user_id = str(uuid.uuid1())
+            log.debug("completely new user with no email in cognito")
+            sub_table.put_item(
+                Item={
+                    "sub": public_address,
+                    "userId": user_id
+                }
+            )
+            return user_id
+    else:
+        user_id = str(uuid.uuid1())
+        log.debug("completely new user with no email in cognito")
+        sub_table.put_item(
+            Item={
+                "sub": public_address,
+                "userId": user_id
+            }
+        )
         return user_id
-    log.debug("no sub or email found in database. New user.")
-
-    user_id = str(uuid.uuid1())
-    log.debug("completely new user with no email in cognito")
-    sub_table.put_item(
-        Item={
-            "sub": public_address,
-            "userId": user_id
-        }
-    )
-
-    return user_id
