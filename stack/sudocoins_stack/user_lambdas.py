@@ -181,6 +181,13 @@ class SudocoinsUserLambdas:
         resources.profile_table.grant_read_write_data(self.set_portfolio_function)
         resources.sub_table.grant_read_write_data(self.set_portfolio_function)
         resources.portfolio_table.grant_read_write_data(self.set_portfolio_function)
+        self.set_portfolio_function.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )
         # GET PORTFOLIO
         self.get_portfolio_function = _lambda.Function(
             scope,
@@ -194,3 +201,10 @@ class SudocoinsUserLambdas:
         resources.sub_table.grant_read_write_data(self.get_portfolio_function)
         resources.portfolio_table.grant_read_write_data(self.get_portfolio_function)
         resources.grant_read_index_data(self.get_portfolio_function, [resources.portfolio_table])
+        self.get_portfolio_function.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
+                actions=['dynamodb:Query']
+            )
+        )

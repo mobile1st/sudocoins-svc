@@ -9,7 +9,8 @@ dynamodb = boto3.resource('dynamodb')
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
-    input_json = json.loads(event.get('body', '{}'))
+    # input_json = json.loads(event.get('body', '{}'))
+    input_json = event
 
     user_id = input_json.get('sub')
     collection_code = input_json.get('collection_id')
@@ -20,15 +21,15 @@ def lambda_handler(event, context):
             ':pk': user_id,
             ':cid': collection_code
         }
-        response = dynamodb.Table('portfolio').update_item(
-            Key={
+        response = dynamodb.Table('portfolio').put_item(
+            Item={
                 'user_id': user_id, 'collection_code': collection_code
             },
-            UpdateExpression=update_expression,
-            ExpressionAttributeValues=attribute_values,
-            ProjectionExpression='collection_code',
-            ReturnValues='UPDATED_ALL'
-        )['Attributes']
+            ConditionExpression='attribute_not_exists(user_id) AND attribute_not_exists(collection_code)'
+
+        )
+
+        log.info(f'add response: {response}')
 
         update_expression = 'SET portfolio=:res'
         attribute_values = {
@@ -40,6 +41,8 @@ def lambda_handler(event, context):
             UpdateExpression=update_expression,
             ExpressionAttributeValues=attribute_values
         )['Attributes']
+
+        log.info(f'profile update response: {var}')
 
         return response
 
@@ -53,6 +56,8 @@ def lambda_handler(event, context):
             ReturnValues='UPDATED_ALL'
         )['Attributes']
 
+        log.info(f'delete response: {response}')
+
         update_expression = 'SET portfolio=:res'
         attribute_values = {
             ':res': response
@@ -62,6 +67,8 @@ def lambda_handler(event, context):
             UpdateExpression=update_expression,
             ExpressionAttributeValues=attribute_values
         )['Attributes']
+
+        log.info(f'profile update response: {var}')
 
         return response
 

@@ -41,11 +41,11 @@ def lambda_handler(event, context):
         try:
             profile = loadProfileByMetaAddress(publicAddress, signature, hash_message, context)
             log.debug(f'profile: {profile}')
-            # arts = get_metamask_arts(publicAddress)
+
         except Exception as e:
             log.exception(e)
             profile = {}
-            # arts = []
+
     try:
         config = getConfig()
 
@@ -56,7 +56,6 @@ def lambda_handler(event, context):
 
     return {
         "profile": profile,
-        "earn": config['earn'],
         "ethRate": config['ethRate']
     }
 
@@ -68,7 +67,11 @@ def set_log_context(event):
 
 def loadProfileByMetaAddress(publicAddress, signature, hash_message, context):
     subTable = dynamodb.Table('sub')
-    subResponse = subTable.get_item(Key={'sub': publicAddress}, ProjectionExpression='sub,portfolio')
+    subResponse = subTable.get_item(
+        Key={'sub': publicAddress},
+        ProjectionExpression='portfolio, #d',
+        ExpressionAttributeNames={'#d': 'sub'},
+    )
     log.info(f'subResponse: {subResponse}')
 
     log.info(f'msgHex: {hash_message}')
@@ -98,10 +101,7 @@ def loadProfileByMetaAddress(publicAddress, signature, hash_message, context):
         }
 
     else:
-        return {
-            'status': 404,
-            'message': 'User not found.'
-        }
+        return {}
 
 
 def getConfig():
