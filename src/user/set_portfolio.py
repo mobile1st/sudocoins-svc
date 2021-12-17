@@ -9,8 +9,8 @@ dynamodb = boto3.resource('dynamodb')
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
-    # input_json = json.loads(event.get('body', '{}'))
-    input_json = event
+    input_json = json.loads(event.get('body', '{}'))
+    # . input_json = event
 
     sub = input_json.get('sub')
     collection_code = input_json.get('collection_id')
@@ -62,7 +62,26 @@ def lambda_handler(event, context):
 
         except Exception as e:
             log.info(e)
-            return {}
+            update_expression = "ADD portfolio :i"
+            # 'SET portfolio = list_append(if_not_exists(portfolio, :el), :res)'
+            attribute_values = {":i": set([collection_code])}  # {':res': [collection_code],':el': []}
+
+            var = dynamodb.Table('sub').update_item(
+                Key={'sub': sub},
+                UpdateExpression=update_expression,
+                ExpressionAttributeValues=attribute_values,
+                ReturnValues="UPDATED_NEW"
+            )['Attributes']['portfolio']
+
+            collections = []
+            for i in var:
+                collections.append(i)
+
+            return {
+                "portfolio": collections
+
+            }
+
 
     elif input_json['action'] == "delete":
         response = dynamodb.Table('portfolio').delete_item(

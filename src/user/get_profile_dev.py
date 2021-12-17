@@ -67,11 +67,7 @@ def set_log_context(event):
 
 def loadProfileByMetaAddress(publicAddress, signature, hash_message, context):
     subTable = dynamodb.Table('sub')
-    subResponse = subTable.get_item(
-        Key={'sub': publicAddress},
-        ProjectionExpression='portfolio, #d',
-        ExpressionAttributeNames={'#d': 'sub'},
-    )
+    subResponse = subTable.get_item(Key={'sub': publicAddress})
     log.info(f'subResponse: {subResponse}')
 
     log.info(f'msgHex: {hash_message}')
@@ -185,5 +181,4 @@ def get_metamask_arts(public_address):
         art_objects.append(msg)
 
     return art_objects
-
 
