@@ -624,8 +624,8 @@ class SudocoinsArtLambdas:
         # INGEST OPENSEA2
         ingest_opensea2_function = _lambda.Function(
             scope,
-            'IngestOpenSea2V2',
-            function_name='IngestOpenSea2V2',
+            'IngestOpenSeaBackground',
+            function_name='IngestOpenSeaBackground',
             timeout=cdk.Duration.seconds(30),
             handler='art.events.ingest_opensea2.lambda_handler',
             **lambda_default_kwargs
@@ -652,8 +652,8 @@ class SudocoinsArtLambdas:
         # INGEST PROCESSOR2
         ingest_processor2_function = _lambda.Function(
             scope,
-            'IngestProcessor2V2',
-            function_name='IngestProcessor2V2',
+            'IngestProcessorBackground',
+            function_name='IngestProcessorBackground',
             timeout=cdk.Duration.seconds(30),
             handler='art.events.ingest_processor2.lambda_handler',
             **lambda_default_kwargs

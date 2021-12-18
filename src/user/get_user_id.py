@@ -23,8 +23,6 @@ def lambda_handler(event, context):
     }
 
 
-
-
 def set_log_context(event):
     global log
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
@@ -44,12 +42,15 @@ def get_user_id(public_address):
 
             user_id = str(uuid.uuid1())
             log.debug("completely new user with no email in cognito")
-            sub_table.put_item(
-                Item={
-                    "sub": public_address,
-                    "userId": user_id
-                }
+
+            update_expression = "SET userId=uid"
+            attribute_values = {":uid": user_id}
+            dynamodb.Table('sub').update_item(
+                Key={'sub': public_address},
+                UpdateExpression=update_expression,
+                ExpressionAttributeValues=attribute_values
             )
+
             return user_id
     else:
         user_id = str(uuid.uuid1())

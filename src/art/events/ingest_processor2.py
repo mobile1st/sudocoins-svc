@@ -237,6 +237,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         name = os.environ['db_user']
         password = os.environ['db_pw']
         db_name = os.environ['dn_name']
+
         conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
         with conn.cursor() as cur:
             #collection table

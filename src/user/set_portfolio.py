@@ -17,26 +17,16 @@ def lambda_handler(event, context):
 
     if input_json['action'] == "add":
         try:
-
-            update_expression = 'SET user_id =:pk, collection_id=:cid'
-            attribute_values = {
-                ':pk': sub,
-                ':cid': collection_code
-            }
-            response = dynamodb.Table('portfolio').put_item(
+            dynamodb.Table('portfolio').put_item(
                 Item={
                     'user_id': sub, 'collection_code': collection_code
                 },
                 ConditionExpression='attribute_not_exists(user_id) AND attribute_not_exists(collection_code)'
-
             )
             log.info("added")
-            # log.info(f'add response: {response}')
 
             update_expression = "ADD portfolio :i"
-            # 'SET portfolio = list_append(if_not_exists(portfolio, :el), :res)'
             attribute_values = {":i": set([collection_code])}  # {':res': [collection_code],':el': []}
-
             var = dynamodb.Table('sub').update_item(
                 Key={'sub': sub},
                 UpdateExpression=update_expression,
@@ -44,9 +34,7 @@ def lambda_handler(event, context):
                 ReturnValues="UPDATED_NEW"
             )['Attributes']['portfolio']
 
-            log.info("added to sub")
-            tmp = type(var)
-            log.info(f'profile update response: {tmp}')
+            log.info("portfolio added to sub table")
 
             collections = []
             for i in var:

@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     log.info(f'time_now: {time_now}')
     created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
     log.info(f'created: {created}')
-    # . created = "2021-11-26T07:16:58"
+    # .created = "2021-11-26T07:16:58"
 
     if created >= "2021-11-27T05:05:00":
         return
