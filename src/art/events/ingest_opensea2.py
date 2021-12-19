@@ -13,33 +13,37 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
-    created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
-    log.info(f'created: {created}')
-    # .created = "2021-11-26T07:16:58"
+    end_time = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
+    log.info(f'created: {end_time}')
 
+    '''
     if created >= "2021-11-27T05:05:00":
         return
-    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
-    log.info(f'difference: {difference}')
+    '''
+    # difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
+    # log.info(f'difference: {difference}')
+    """
     if difference < 20:
         return
+    """
 
-    end_time = (datetime.fromisoformat(created) - timedelta(minutes=5)).isoformat()
+    start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=5)).isoformat()
 
-    open_sea_response = call_open_sea(created, end_time)
+    open_sea_response = call_open_sea(start_time, end_time)
     length_response = len(open_sea_response)
     if length_response == 300:
         log.info('split and call again')
-        end_time_small = (datetime.fromisoformat(created) - timedelta(minutes=3)).isoformat()
-        end_time = (datetime.fromisoformat(created) - timedelta(minutes=6)).isoformat()
-        open_sea_response1 = call_open_sea(created, end_time_small)
-        open_sea_response2 = call_open_sea(end_time_small, end_time)
+        start_time_small = (datetime.fromisoformat(end_time) - timedelta(minutes=3)).isoformat()
+        start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=6)).isoformat()
+        open_sea_response1 = call_open_sea(start_time_small, end_time)
+        open_sea_response2 = call_open_sea(start_time, start_time_small)
         open_sea_response = open_sea_response1 + open_sea_response2
 
     count_eth = process_open_sea(open_sea_response)
     log.info(count_eth)
-    set_config(end_time)
+    set_config(start_time)
     log.info(f'end_time: {end_time}')
+    log.info(f'start_time: {start_time}')
 
     return
 
@@ -126,6 +130,7 @@ def process_open_sea(open_sea_response):
                         }
 
                         # . log.info(msg)
+
                         sns_client.publish(
                             TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
                             MessageStructure='string',
@@ -178,6 +183,7 @@ def process_open_sea(open_sea_response):
                     msg['seller'] = seller
 
                     # log.info(msg)
+
                     sns_client.publish(
                         TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
                         MessageStructure='string',
