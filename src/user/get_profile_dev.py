@@ -61,7 +61,7 @@ def lambda_handler(event, context):
     else:
         sub = None
     if "userId" in profile:
-        userId = None
+        userId = profile["userId"]
     else:
         userId = None
     if "portfolio" in profile:
