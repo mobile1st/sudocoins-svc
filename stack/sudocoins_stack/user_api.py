@@ -121,7 +121,7 @@ class SudocoinsUserApi:
         )
         user_api_v3.add_routes(
             path="/set-portfolio",
-            methods=[apigwv2.HttpMethod.GET],
+            methods=[apigwv2.HttpMethod.POST],
             integration=set_portfolio_integration
         )
         # GET PORTFOLIO
