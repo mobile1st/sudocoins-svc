@@ -152,11 +152,14 @@ def auto_add(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sa
 
     if art_record.get('blockchain') == 'Ethereum':
         blockchain_id = 1
+        currency_id = 1
+    elif art_record.get('blockchain') == 'polygon':
+        blockchain_id = 2
+        currency_id = 2
 
     if art_record.get('event_type') == 'successful':
         event_id = 1
 
-    currency_id = 1
 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
