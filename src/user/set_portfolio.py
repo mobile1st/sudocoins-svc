@@ -74,7 +74,7 @@ def lambda_handler(event, context):
     elif input_json['action'] == "delete":
         response = dynamodb.Table('portfolio').delete_item(
             Key={
-                'user_id': user_id,
+                'user_id': sub,
                 'collection_code': collection_code
             },
             ProjectionExpression='collection_code',
