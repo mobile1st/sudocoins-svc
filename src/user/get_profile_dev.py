@@ -53,12 +53,27 @@ def lambda_handler(event, context):
         log.exception(e)
 
     log.debug(f'profile: {profile}')
+    global sub
+    global userId
+    global portfolio
+    if profile["sub"]:
+        sub = profile["sub"]
+    else:
+        sub = None
+    if profile["userId"]:
+        userId = None
+    else:
+        userId = None
+    if profile["portfolio"]:
+        portfolio = formatObjec2Array(profile["portfolio"])
+    else:
+        portfolio = []
     
     return {
         "profile": {
-            "sub": profile["sub"],
-            "userId": profile["userId"],
-            "portfolio": formatObjec2Array(profile["portfolio"])
+            "sub": sub,
+            "userId": userId,
+            "portfolio": portfolio
         },
         "ethRate": config['ethRate']
     }
