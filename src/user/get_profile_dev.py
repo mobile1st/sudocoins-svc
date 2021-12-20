@@ -71,6 +71,7 @@ def loadProfileByMetaAddress(publicAddress, signature, hash_message, context):
     log.info(f'subResponse: {subResponse}')
 
     log.info(f'msgHex: {hash_message}')
+    log.info(f'====>signature: {signature}')
 
     r = int(signature[0:66], 16)
     s = int(add_0x_prefix(signature[66:130]), 16)
