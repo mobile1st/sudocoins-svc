@@ -56,15 +56,15 @@ def lambda_handler(event, context):
     global sub
     global userId
     global portfolio
-    if profile["sub"]:
+    if "sub" in profile:
         sub = profile["sub"]
     else:
         sub = None
-    if profile["userId"]:
+    if "userId" in profile:
         userId = None
     else:
         userId = None
-    if profile["portfolio"]:
+    if "portfolio" in profile:
         portfolio = formatObjec2Array(profile["portfolio"])
     else:
         portfolio = []
