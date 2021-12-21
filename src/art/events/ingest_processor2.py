@@ -25,11 +25,11 @@ def lambda_handler(event, context):
         log.info("open sea url doesn't exist")
         return
     try:
-        add(art_object)
-        log.info('status: success')
+        response = add(art_object)
+        if response is not None:
+            log.info('status: success')
     except Exception as e:
-        log.info('status: failure')
-        log.info(e)
+        log.info(f"status: failure - {art_id}")
 
     return
 
@@ -89,15 +89,12 @@ def add(art_object):
 
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     preview_url, art_url = get_urls(open_sea)
-    if art_url == "" and preview_url is None:
-        log.info("missing art_url and preview_url")
-        return
 
     eth_sale_price = eth_price(art_object)
 
-    get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
+    response = get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price)
 
-    return
+    return response
 
 
 def get_urls(open_sea):
@@ -117,6 +114,7 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
         return auto_add(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
 
     art_id = str(uuid.uuid1())
+    insert_record(contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
     return auto_add(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
 
 
@@ -160,7 +158,6 @@ def auto_add(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sa
     if art_record.get('event_type') == 'successful':
         event_id = 1
 
-
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
@@ -182,7 +179,7 @@ def auto_add(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sa
         password = os.environ['db_pw']
         db_name = os.environ['db_name']
 
-        conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=5)
+        conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
         with conn.cursor() as cur:
             # collection table
             collection_code = art_record['collection_id']
@@ -265,21 +262,31 @@ def auto_add(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sa
             else:
                 seller_id = result[0][0]
 
-            # insert event
             price = int(art_record['last_sale_price'])
             event_date = art_record['event_date']
+            sql = '''select * from nft.events where nft_id=''' + str(nft_id) + ''' and collection_id=''' + str(
+                collection_id) + ''' and event_date="''' + event_date + '''";'''
+            cur.execute(sql)
+            result = cur.fetchall()
+            if len(result) == 0:
 
-            row_values = (
-            collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, buyer_id, seller_id,
-            currency_id)
-            cur.execute(
-                'INSERT INTO `nft`.`events` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain_id`, `event_id`,`buyer_id`,`seller_id`, `currency`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
-                row_values)
-            conn.commit()
-            log.info("rds submitted")
+                row_values = (
+                    collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, buyer_id, seller_id,
+                    currency_id)
+                cur.execute(
+                    'INSERT INTO `nft`.`events` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain_id`, `event_id`,`buyer_id`,`seller_id`, `currency`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
+                    row_values)
+                conn.commit()
+                log.info("rds submitted")
+
+            else:
+                log.info("record already exists")
+
+        conn.close()
 
     except Exception as e:
-        log.info(e)
+        log.info(f"status: failure - {e}")
+        return None
 
     return art_record
 
@@ -292,7 +299,6 @@ def eth_price(art_object):
     else:
         symbol = symbol.get("symbol", "ETH")
 
-    log.info(f'symbol: {symbol}')
     if symbol != 'ETH':
         total_price = Decimal(art_object.get("sale_price", 0))
         eth_price = Decimal(art_object.get("payment_token", {}).get("eth_price", "1"))
@@ -302,6 +308,64 @@ def eth_price(art_object):
         eth_sale_price = int(art_object.get("sale_price", 0))
 
     return eth_sale_price
+
+
+def insert_record(contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price):
+    dynamodb = boto3.resource('dynamodb')
+    time_now = str(datetime.utcnow().isoformat())
+    art_id = str(uuid.uuid1())
+    art_record = {
+        'art_id': art_id,
+        "name": open_sea['name'],
+        'buy_url': buy_url,
+        'contractId#tokenId': contract_token_id,
+        'preview_url': preview_url,
+        'art_url': art_url,
+        "open_sea_data": open_sea,
+        "timestamp": time_now,
+        "recent_sk": time_now + "#" + art_id,
+        "click_count": 0,
+        "first_user": "ingest",
+        "sort_idx": 'true',
+        "process_status": "STREAM_TO_S3",
+        "event_date": art_object.get('created_date'),
+        "event_type": art_object.get('event_type'),
+        "blockchain": art_object.get('blockchain'),
+        "last_sale_price": eth_sale_price,
+        "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+        "collection_data": {
+            "name": art_object.get('asset', {}).get('collection', {}).get('name'),
+            "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
+            "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+            "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+            "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+            "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+            "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
+        },
+        "process_to_google_search": "TO_BE_INDEXED",
+        "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
+        "owner": art_object.get("owner", "unknown"),
+        "seller": art_object.get("seller", "unknown")
+    }
+
+    if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
+        c_name = ("-".join(art_record['collection_name'].split())).lower()
+        art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
+    else:
+        art_record['collection_id'] = art_record['collection_address']
+
+    if art_record['preview_url'] is None:
+        art_record['preview_url'] = art_record['art_url']
+
+    if 'name' in art_record and art_record['name'] is None:
+        name = art_record.get('collection_data', {}).get('name', "")
+        number = art_record.get("contractId#tokenId", "")
+        number = number.split('#')[1]
+        art_record['name'] = name + " #" + str(number)
+
+    if art_url != "" and preview_url != "":
+        dynamodb.Table('art').put_item(Item=art_record)
+        log.info("art added to art table")
 
 
 

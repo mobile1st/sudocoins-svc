@@ -68,7 +68,7 @@ def lambda_handler(event, context):
         portfolio = formatObjec2Array(profile["portfolio"])
     else:
         portfolio = []
-    
+
     return {
         "profile": {
             "sub": sub,
@@ -77,6 +77,7 @@ def lambda_handler(event, context):
         },
         "ethRate": config['ethRate']
     }
+
 
 def formatObjec2Array(obj):
     if isinstance(obj, set):
@@ -137,7 +138,6 @@ def getRate(config):
     rate = str(config['rate'])
 
     return rate
-
 
 
 def parseJson(jsonInput):

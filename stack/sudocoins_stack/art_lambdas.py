@@ -630,7 +630,7 @@ class SudocoinsArtLambdas:
             handler='art.events.ingest_opensea2.lambda_handler',
             **lambda_default_kwargs
         )
-
+        """
         ingest_opensea2_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
         ingest_opensea2_target = events_targets.LambdaFunction(handler=ingest_opensea2_function)
         events.Rule(
@@ -641,7 +641,7 @@ class SudocoinsArtLambdas:
             schedule=ingest_opensea2_schedule,
             targets=[ingest_opensea2_target]
         )
-
+        """
         resources.ingest_opensea2_topic.grant_publish(ingest_opensea2_function)
         resources.art_table.grant_read_write_data(ingest_opensea2_function)
         resources.config_table.grant_read_write_data(ingest_opensea2_function)

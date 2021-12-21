@@ -13,6 +13,7 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
+
     end_time = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
     log.info(f'created: {end_time}')
 
@@ -251,7 +252,7 @@ def process_open_sea(open_sea_response):
 
     log.info(f'final count: {count}')
     log.info(f'eth count: {count_eth}')
-    log.info(f'matic count: {count_eth}')
+    log.info(f'matic count: {count_matic}')
 
     return count_eth
 
