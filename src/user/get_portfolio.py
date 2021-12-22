@@ -21,8 +21,6 @@ def lambda_handler(event, context):
         IndexName='user_id-index',
         ProjectionExpression='collection_code')['Items']
 
-    log.info(collection_list)
-
     # get collection data for each collection
 
     key_list = []
@@ -33,10 +31,14 @@ def lambda_handler(event, context):
 
         key_list.append(tmp)
 
+    if len(key_list) == 0:
+        return
+
     query = {
         'Keys': key_list,
         'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data'
     }
+
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
     collections = response['Responses']['collections']

@@ -15,6 +15,9 @@ def lambda_handler(event, context):
 
     collection_id = body['collection_id']
 
+    if collection_id == "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---":
+        collection_id = "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---ジオメトリ-ハ-ケイサンサレマセン-by-samsy"
+
     try:
 
         res = dynamodb.Table('collections').get_item(
@@ -22,12 +25,10 @@ def lambda_handler(event, context):
             ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea")
 
         if 'Item' in res and 'collection_data' in res['Item']:
-
             return res['Item']
 
     except Exception as e:
         log.info(e)
-
 
     return {
         'collection_data': get_collection(collection_id)['collection_data']
@@ -40,7 +41,6 @@ def set_log_context(event):
 
 
 def get_collection(collection_id):
-
     data = dynamodb.Table('art').query(
         KeyConditionExpression=Key('collection_id').eq(collection_id),
         ScanIndexForward=False,

@@ -145,7 +145,7 @@ def lambda_handler(event, context):
 
 
     except Exception as e:
-        log.info(e)
+        log.info(f'status: failure - {e}')
 
     return
 

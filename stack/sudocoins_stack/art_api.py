@@ -246,7 +246,7 @@ class SudocoinsArtApi:
         )
         art_api_v3.add_routes(
             path='/get-upcoming',
-            methods=[apigwv2.HttpMethod.GET],
+            methods=[apigwv2.HttpMethod.POST],
             integration=get_upcoming_integration
         )
         # ADD UPCOMING

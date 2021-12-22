@@ -9,11 +9,13 @@ dynamodb = boto3.resource('dynamodb')
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
-    # . input_json = json.loads(event.get('body', '{}'))
-    input_json = event
+    input_json = json.loads(event.get('body', '{}'))
+    # . input_json = event
 
     sub = input_json.get('sub')
     collection_code = input_json.get('collection_id')
+
+    collection_code = collection_code.split("?")[0]
 
     if input_json['action'] == "add":
         try:

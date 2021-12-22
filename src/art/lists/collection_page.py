@@ -18,6 +18,10 @@ def lambda_handler(event, context):
         'rawQueryString'] == "collection-id=0x999e88075692bcee3dbc07e7e64cd32f39a1d3ab%3Awizards-&-dragons-game-(wnd)=":
         collection_id = "0x999e88075692bcee3dbc07e7e64cd32f39a1d3ab:wizards-&-dragons-game-(wnd)"
 
+    if event[
+        'rawQueryString'] == "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---":
+        collection_id = "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---ジオメトリ-ハ-ケイサンサレマセン-by-samsy"
+
     last_sale_price = get_lsp(collection_id)
     recent = get_recent(collection_id)
 
