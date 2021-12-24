@@ -51,15 +51,7 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_user_id_integration
         )
-        # UPDATE PROFILE
-        update_profile_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.update_profile_function
-        )
-        user_api_v3.add_routes(
-            path='/profile/update',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=update_profile_integration
-        )
+
         # USER VERIFY
         user_verify_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.user_verify_function
@@ -69,25 +61,6 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=user_verify_integration
         )
-        # CASH OUT
-        cash_out_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.cash_out_function
-        )
-        user_api_v3.add_routes(
-            path='/cash-out',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=cash_out_integration,
-            authorizer=resources.sudocoins_authorizer
-        )
-        # MORE HISTORY
-        more_history_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.more_history_function
-        )
-        user_api_v3.add_routes(
-            path='/more-history',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=more_history_integration
-        )
         # CONTACT US
         contact_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.contact_function
@@ -96,15 +69,6 @@ class SudocoinsUserApi:
             path='/contact',
             methods=[apigwv2.HttpMethod.POST],
             integration=contact_integration
-        )
-        # UPDATE COLORS
-        update_colors_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.update_colors_function
-        )
-        user_api_v3.add_routes(
-            path='/profile/colors',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=update_colors_integration
         )
         # GET TWITTER TOKEN
         get_twitter_token_integration = api_integrations.LambdaProxyIntegration(
