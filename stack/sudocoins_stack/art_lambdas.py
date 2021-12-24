@@ -34,14 +34,8 @@ class SudocoinsArtLambdas:
         )
         resources.art_table.grant_read_write_data(self.add_art_function)
         resources.art_uploads_table.grant_read_write_data(self.add_art_function)
-        resources.creators_table.grant_read_write_data(self.add_art_function)
         resources.art_processor_topic.grant_publish(self.add_art_function)
         resources.profile_table.grant_read_write_data(self.add_art_function)
-        resources.ledger_table.grant_read_write_data(self.add_art_function)
-        resources.grant_read_index_data(
-            self.add_art_function,
-            [resources.art_table, resources.art_uploads_table, resources.ledger_table]
-        )
         # INCREMENT VIEW COUNT
         self.increment_view_count_function = _lambda.Function(
             scope,
@@ -240,7 +234,6 @@ class SudocoinsArtLambdas:
         resources.art_processor_topic.grant_publish(ingest_processor_function)
         resources.add_search_topic.grant_publish(ingest_processor_function)
         resources.add_time_series_topic.grant_publish(ingest_processor_function)
-        resources.creators_table.grant_read_write_data(ingest_processor_function)
         resources.collections_table.grant_read_write_data(ingest_processor_function)
         # GET HEARTS
         self.get_hearts_function = _lambda.Function(
@@ -407,7 +400,6 @@ class SudocoinsArtLambdas:
                 self.add_time_series_function
             )
         )
-        resources.time_series_table.grant_read_write_data(self.add_time_series_function)
         resources.collections_table.grant_read_write_data(self.add_time_series_function)
         # COLLECTION PAGE
         self.collection_page_function = _lambda.Function(
@@ -669,7 +661,6 @@ class SudocoinsArtLambdas:
         )
         resources.add_search_topic.grant_publish(ingest_processor2_function)
         resources.add_time_series_topic.grant_publish(ingest_processor2_function)
-        resources.creators_table.grant_read_write_data(ingest_processor2_function)
         resources.collections_table.grant_read_write_data(ingest_processor2_function)
         # ADD TIME BACKGROUND
         self.add_time_series2_function = _lambda.Function(
