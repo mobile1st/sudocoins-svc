@@ -398,7 +398,6 @@ class SudocoinsArtLambdas:
             handler='art.events.add_time_series.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.art_table.grant_read_write_data(self.get_minted_function)
         resources.grant_read_index_data(
             self.get_minted_function,
             [resources.art_table]
@@ -672,6 +671,20 @@ class SudocoinsArtLambdas:
         resources.add_time_series_topic.grant_publish(ingest_processor2_function)
         resources.creators_table.grant_read_write_data(ingest_processor2_function)
         resources.collections_table.grant_read_write_data(ingest_processor2_function)
+        # ADD TIME BACKGROUND
+        self.add_time_series2_function = _lambda.Function(
+            scope,
+            'AddTimeSeriesBackground',
+            function_name='AddTimeSeriesBackground',
+            handler='art.events.add_time_series_2.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.add_time_series2_topic.add_subscription(
+            subs.LambdaSubscription(
+                self.add_time_series2_function
+            )
+        )
+        resources.collections_table.grant_read_write_data(self.add_time_series2_function)
 
 
 

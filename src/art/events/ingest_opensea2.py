@@ -28,14 +28,14 @@ def lambda_handler(event, context):
         return
     """
 
-    start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=5)).isoformat()
+    start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=4)).isoformat()
 
     open_sea_response = call_open_sea(start_time, end_time)
     length_response = len(open_sea_response)
     if length_response == 300:
         log.info('split and call again')
-        start_time_small = (datetime.fromisoformat(end_time) - timedelta(minutes=3)).isoformat()
-        start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=6)).isoformat()
+        start_time_small = (datetime.fromisoformat(end_time) - timedelta(minutes=2)).isoformat()
+        start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=4)).isoformat()
         open_sea_response1 = call_open_sea(start_time_small, end_time)
         open_sea_response2 = call_open_sea(start_time, start_time_small)
         open_sea_response = open_sea_response1 + open_sea_response2
