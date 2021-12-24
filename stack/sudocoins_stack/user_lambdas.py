@@ -30,7 +30,6 @@ class SudocoinsUserLambdas:
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
-        resources.transaction_topic.grant_publish(self.get_profile_function)
         resources.profile_table.grant_read_write_data(self.get_profile_function)
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
@@ -46,7 +45,6 @@ class SudocoinsUserLambdas:
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
-        resources.transaction_topic.grant_publish(self.get_profile_dev_function)
         resources.profile_table.grant_read_write_data(self.get_profile_dev_function)
         resources.sub_table.grant_read_write_data(self.get_profile_dev_function)
         resources.config_table.grant_read_data(self.get_profile_dev_function)
@@ -63,18 +61,6 @@ class SudocoinsUserLambdas:
             **lambda_default_kwargs
         )
         resources.sub_table.grant_read_write_data(self.get_user_id_function)
-        # UPDATE PROFILE
-        self.update_profile_function = _lambda.Function(
-            scope,
-            'UserUpdateProfileV2',
-            function_name='UserUpdateProfileV2',
-            handler='user.update_profile.lambda_handler',
-            description='Updates profile related attributes',
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_write_data(self.update_profile_function)
-        resources.grant_read_index_data(self.update_profile_function, [resources.profile_table])
-        resources.sub_table.grant_read_data(self.update_profile_function)
 
         # USER VERIFY
         self.user_verify_function = _lambda.Function(
@@ -87,45 +73,7 @@ class SudocoinsUserLambdas:
         )
         resources.profile_table.grant_read_write_data(self.user_verify_function)
         resources.verifications_table.grant_read_write_data(self.user_verify_function)
-        # CASH OUT
-        self.cash_out_function = _lambda.Function(
-            scope,
-            'UserCashOutV2',
-            function_name='UserCashOutV2',
-            handler='user.cash_out.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_write_data(self.cash_out_function)
-        resources.payouts_table.grant_read_write_data(self.cash_out_function)
-        resources.ledger_table.grant_read_write_data(self.cash_out_function)
-        resources.transaction_table.grant_read_write_data(self.cash_out_function)
-        resources.sub_table.grant_read_write_data(self.cash_out_function)
-        resources.grant_read_index_data(self.cash_out_function, [resources.transaction_table])
-        resources.grant_read_index_data(self.cash_out_function, [resources.ledger_table])
-        self.cash_out_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['*'],
-                actions=['sns:Publish']
-            )
-        )
-        resources.grant_read_index_data(self.cash_out_function, [resources.transaction_table, resources.ledger_table])
-        # MORE HISTORY
-        self.more_history_function = _lambda.Function(
-            scope,
-            'UserMoreHistoryV2',
-            function_name='UserMoreHistoryV2',
-            handler='user.more_history.lambda_handler',
-            description='loads more history for the user',
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_write_data(self.more_history_function)
-        resources.sub_table.grant_read_write_data(self.more_history_function)
-        resources.payouts_table.grant_read_write_data(self.more_history_function)
-        resources.ledger_table.grant_read_write_data(self.more_history_function)
-        resources.transaction_table.grant_read_write_data(self.more_history_function)
-        resources.grant_read_index_data(self.more_history_function, [resources.transaction_table])
-        resources.grant_read_index_data(self.more_history_function, [resources.ledger_table])
+
         # CONTACT US
         self.contact_function = _lambda.Function(
             scope,
@@ -142,24 +90,7 @@ class SudocoinsUserLambdas:
                 actions=['sns:Publish']
             )
         )
-        # UPDATE COLORS
-        self.update_colors_function = _lambda.Function(
-            scope,
-            'UserUpdateColorsV2',
-            function_name='UserUpdateColorsV2',
-            handler='user.user_colors.lambda_handler',
-            description='Updates custom gallery colors',
-            **lambda_default_kwargs
-        )
-        resources.profile_table.grant_read_write_data(self.update_colors_function)
-        resources.sub_table.grant_read_write_data(self.update_colors_function)
-        self.update_colors_function.role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=['arn:aws:dynamodb:us-west-2:977566059069:table/Profile/index/*'],
-                actions=['dynamodb:Query']
-            )
-        )
+
         # TWITTER AUTH TOKEN
         self.get_twitter_token_function = _lambda.Function(
             scope,
