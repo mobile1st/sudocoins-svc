@@ -36,7 +36,6 @@ class SudocoinsImportedResources:
         self.construct_tables(scope)
         self.construct_s3_buckets(scope)
         self.construct_topics(scope)
-        self.construct_queues(scope)
         self.init_cdn(scope)
         self.sudocoins_domain_name = self.custom_domain(scope)
         self.sudocoins_admin_authorizer = self.init_admin_authorizer(scope)
@@ -50,19 +49,9 @@ class SudocoinsImportedResources:
             zone_name='sudocoins.com'
         )
 
-    def construct_queues(self, scope):
-        self.end_transaction_queue = sqs.Queue.from_queue_arn(
-            scope,
-            'EndTransactionQueue',
-            'arn:aws:sqs:us-west-2:977566059069:EndTransaction.fifo'
-        )
 
     def construct_topics(self, scope):
-        self.transaction_topic = sns.Topic.from_topic_arn(
-            scope,
-            'TransactionTopic',
-            topic_arn='arn:aws:sns:us-west-2:977566059069:transaction-event'
-        )
+
         self.art_processor_topic = sns.Topic(
             scope,
             'ArtProcessorTopic',
@@ -124,13 +113,7 @@ class SudocoinsImportedResources:
         )
 
     def construct_tables(self, scope):
-        self.creators_table = dynamodb.Table(
-            scope,
-            'CreatorsTable',
-            table_name='creators',
-            partition_key=dynamodb.Attribute(name='address', type=dynamodb.AttributeType.STRING),
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
-        )
+
         self.ether_events_table = dynamodb.Table(
             scope,
             'EtherEventsTable',
@@ -162,9 +145,6 @@ class SudocoinsImportedResources:
 
 
     def import_tables(self, scope):
-        self.traffic_reports_table = self.import_table(scope, 'TrafficReports')
-        self.payouts_table = self.import_table(scope, 'Payouts')
-        self.ledger_table = self.import_table(scope, 'Ledger')
         self.transaction_table = self.import_table(scope, 'Transaction')
         self.config_table = self.import_table(scope, 'Config')
         self.contact_table = self.import_table(scope, 'Contact')
@@ -176,7 +156,6 @@ class SudocoinsImportedResources:
         self.ether_events_table = self.import_table(scope, 'ether_events')
         self.binance_events_table = self.import_table(scope, 'binance_events')
         self.search_table = self.import_table(scope, 'search')
-        self.time_series_table = self.import_table(scope, 'time_series')
         self.collections_table = self.import_table(scope, 'collections')
         self.chat_table = self.import_table(scope, 'chat')
         self.chat_connections_table = self.import_table(scope, 'chat_connections')
