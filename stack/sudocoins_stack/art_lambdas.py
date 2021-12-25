@@ -660,9 +660,9 @@ class SudocoinsArtLambdas:
             [resources.art_table]
         )
         resources.add_search_topic.grant_publish(ingest_processor2_function)
-        resources.add_time_series_topic.grant_publish(ingest_processor2_function)
+        resources.add_time_series2_topic.grant_publish(ingest_processor2_function)
         resources.collections_table.grant_read_write_data(ingest_processor2_function)
-        # ADD TIME BACKGROUND
+        # ADD TIME SERIES BACKGROUND
         self.add_time_series2_function = _lambda.Function(
             scope,
             'AddTimeSeriesBackground',
