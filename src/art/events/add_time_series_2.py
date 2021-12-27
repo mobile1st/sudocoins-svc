@@ -45,6 +45,8 @@ def lambda_handler(event, context):
                 collection_id) + ''' group by date(event_date);'''
             sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=''' + str(
                 collection_id) + ''' group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 14 day and collection_id =''' + str(
+                collection_id) + ''';'''
 
             log.info(f'sql: {sql}')
             log.info('about to execute')
@@ -66,9 +68,11 @@ def lambda_handler(event, context):
             statements.append(sql4)
             statements.append(sql5)
             statements.append(sql6)
+            statements.append(sql7)
             charts = []
             try:
                 for i in range(len(statements)):
+                    log.info(i)
                     cur.execute(statements[i])
                     result = cur.fetchall()
                     chart_data2 = []
@@ -101,6 +105,21 @@ def lambda_handler(event, context):
                                 "y": result[k][1]
                             }
                             chart_data2.append(point)
+
+                        elif i == 4:
+                            try:
+                                # sales scatter
+                                utcTime = datetime.strptime(str(result[k][0]), "%Y-%m-%d %H:%M:%S")
+                                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                                epochTime = int(epochTime)
+                                point = {
+                                    "x": epochTime,
+                                    "y": result[k][1] / (10 ** 18)
+                                }
+                                chart_data2.append(point)
+                            except Exception as e:
+                                log.info(f'status: failure - {e}')
+
                     charts.append(chart_data2)
                 log.info("more charts created")
 
@@ -131,7 +150,7 @@ def lambda_handler(event, context):
         log.info(f'more charts: {charts}')
 
         dynamodb = boto3.resource('dynamodb')
-
+        '''
         update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
@@ -178,7 +197,7 @@ def lambda_handler(event, context):
             ReturnValues="UPDATED_NEW"
         )
         log.info('data added to collection table')
-
+        '''
     except Exception as e:
         log.info(f'status: failure - {e}')
 

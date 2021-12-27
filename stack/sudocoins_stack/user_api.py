@@ -97,4 +97,13 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_portfolio_integration
         )
+        # IMPORT NFTs
+        import_nfts_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.import_nfts_function
+        )
+        user_api_v3.add_routes(
+            path="/import-nfts",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=import_nfts_integration
+        )
 

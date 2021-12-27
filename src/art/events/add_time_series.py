@@ -33,6 +33,8 @@ def lambda_handler(event, context):
                 sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql7 = '''select event_date, price as c from nft_events.open_sea_events where event_date >= now() - interval 17 day and collection_id ="''' + collection_id + '''" group by date(event_date);'''
+
             elif collection_id.find('"') != -1:
                 sql = """select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and collection_id='""" + collection_id + """' group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"""
                 sql2 = """select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 7 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
@@ -40,6 +42,8 @@ def lambda_handler(event, context):
                 sql4 = """select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
                 sql5 = """select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
                 sql6 = """select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
+                sql7 = """select event_date, price as c from nft_events.open_sea_events >= now() - interval 7 day and collection_id ='""" + collection_id + """' group by date(event_date);'"""
+
             else:
                 sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and  collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
                 sql2 = '''select date(event_date), min(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 7 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
@@ -47,6 +51,7 @@ def lambda_handler(event, context):
                 sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+                sql7 = '''select event_date, price as c from nft_events.open_sea_events where event_date >= now() - interval 7 day and collection_id ="''' + collection_id + '''" group by date(event_date);'''
 
             log.info(f'sql: {sql}')
             cur.execute(sql)
@@ -65,6 +70,7 @@ def lambda_handler(event, context):
             statements.append(sql4)
             statements.append(sql5)
             statements.append(sql6)
+            statements.append(sql7)
             charts = []
             try:
                 for i in range(len(statements)):
@@ -100,6 +106,19 @@ def lambda_handler(event, context):
                                 "y": result[k][1]
                             }
                             chart_data2.append(point)
+                        elif i == 4:
+                            try:
+                                #sales scatter
+                                utcTime = datetime.strptime(str(result[k][0]), "%Y-%m-%d %H:%M:%S")
+                                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                                epochTime = int(epochTime)
+                                point = {
+                                    "x": epochTime,
+                                    "y": result[k][1] / (10 ** 18)
+                                }
+                                chart_data2.append(point)
+                            except Exception as e:
+                                log.info(f'status: failure - {e}')
                     charts.append(chart_data2)
                 log.info("more charts created")
 

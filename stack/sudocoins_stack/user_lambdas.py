@@ -127,4 +127,17 @@ class SudocoinsUserLambdas:
         resources.portfolio_table.grant_read_write_data(self.get_portfolio_function)
         resources.collections_table.grant_read_write_data(self.get_portfolio_function)
         resources.grant_read_index_data(self.get_portfolio_function, [resources.portfolio_table])
+        # IMPORT NFTS
+        self.import_nfts_function = _lambda.Function(
+            scope,
+            'ImportNFTs',
+            function_name='ImportNFTs',
+            handler='user.import_nfts.lambda_handler',
+            description='Gets the user portfolio from Meta Mask',
+            **lambda_default_kwargs
+        )
+        resources.sub_table.grant_read_write_data(self.import_nfts_function)
+        resources.portfolio_table.grant_read_write_data(self.import_nfts_function)
+        resources.collections_table.grant_read_write_data(self.import_nfts_function)
+        resources.grant_read_index_data(self.import_nfts_function, [resources.portfolio_table])
 
