@@ -14,37 +14,31 @@ def lambda_handler(event, context):
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
 
-    end_time = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
-    log.info(f'created: {end_time}')
+    start_time = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
+    log.info(f'created: {start_time}')
 
-    '''
-    if created >= "2021-11-27T05:05:00":
-        return
-    '''
-    # difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
-    # log.info(f'difference: {difference}')
-    """
+    end_time = (datetime.fromisoformat(start_time) + timedelta(minutes=4)).isoformat()
+
+    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
+    log.info(f'difference: {difference}')
+
     if difference < 20:
         return
-    """
-
-    start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=4)).isoformat()
-
     open_sea_response = call_open_sea(start_time, end_time)
     length_response = len(open_sea_response)
     if length_response == 300:
         log.info('split and call again')
-        start_time_small = (datetime.fromisoformat(end_time) - timedelta(minutes=2)).isoformat()
-        start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=4)).isoformat()
-        open_sea_response1 = call_open_sea(start_time_small, end_time)
-        open_sea_response2 = call_open_sea(start_time, start_time_small)
+        middle_time = (datetime.fromisoformat(end_time) - timedelta(minutes=2)).isoformat()
+        # start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=4)).isoformat()
+        open_sea_response1 = call_open_sea(middle_time, end_time)
+        open_sea_response2 = call_open_sea(start_time, middle_time)
         open_sea_response = open_sea_response1 + open_sea_response2
 
     count_eth = process_open_sea(open_sea_response)
     log.info(count_eth)
-    set_config(start_time)
-    log.info(f'end_time: {end_time}')
+    set_config(end_time)
     log.info(f'start_time: {start_time}')
+    log.info(f'end_time: {end_time}')
 
     return
 
@@ -59,8 +53,10 @@ def call_open_sea(created, end_time):
     }
     conn.request("GET", path, headers=api_key)
     response = conn.getresponse()
+    # . log.info(f'response: {response}')
 
     response2 = response.read().decode('utf-8')
+    # . log.info(f'response2: {response2}')
 
     open_sea_response = json.loads(response2)
 
@@ -78,6 +74,7 @@ def set_config(end_time):
         },
         ReturnValues="ALL_NEW"
     )
+    log.info("config updated")
 
 
 def process_open_sea(open_sea_response):
@@ -87,7 +84,7 @@ def process_open_sea(open_sea_response):
     for i in open_sea_response:
         if i.get('asset') is None:
             try:
-                log.info(i)
+                # . log.info(i)
                 log.info("bundle")
                 asset_bundle = i.get('asset_bundle', {}).get('assets', [])
                 bundle_count = len(asset_bundle)
@@ -103,7 +100,7 @@ def process_open_sea(open_sea_response):
                     seller = i.get('transaction', {}).get('from_account', {}).get('address')
 
                 for k in asset_bundle:
-                    log.info(k)
+                    # . log.info(k)
                     open_sea_url = i.get('permalink', "")
                     if open_sea_url.find('matic') != -1:
                         created_date = i.get('transaction')

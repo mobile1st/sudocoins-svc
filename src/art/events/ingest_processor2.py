@@ -114,23 +114,31 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     if nft_id:
         try:
             update_nft(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
-            update_collection(art_object, eth_sale_price)
+            collection_id = insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
+                                       contract_token_id)
+            if collection_id is None:
+                log.info("collection_id is None")
+                return
+            update_collection(art_object, eth_sale_price, collection_id)
         except Exception as e:
             log.info(f"status: failure - {e}")
 
-        return insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
-                          contract_token_id)
+        return
 
     else:
         nft_id = str(uuid.uuid1())
         try:
             add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
-            update_collection(art_object, eth_sale_price)
+            collection_id = insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
+                                       contract_token_id)
+            if collection_id is None:
+                log.info("collection_id is None")
+                return
+            update_collection(art_object, eth_sale_price, collection_id)
         except Exception as e:
             log.info(f"status: failure - {e}")
 
-        return insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
-                          contract_token_id)
+        return
 
 
 def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id):
@@ -296,7 +304,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         conn.close()
         return None
 
-    return art_record
+    return collection_id
 
 
 def eth_price(art_object):
@@ -420,25 +428,26 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         return
 
 
-def update_collection(art_object, eth_sale_price):
+def update_collection(art_object, eth_sale_price, collection_id):
     collection_address = art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown")
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
-    collection_id = collection_address + ":" + c_name
+    collection_code = collection_address + ":" + c_name
 
     try:
         msg = {
             "last_sale_price": eth_sale_price,
             "collection_id": collection_id,
-            'art_object': art_object
+            'art_object': art_object,
+            'collection_code': collection_code
         }
-        '''
-        sns.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeriesTopic',
+
+        sns_client.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeries2Topic',
             MessageStructure='string',
             Message=json.dumps(msg)
         )
-        '''
+
         log.info(f"add time series published")
     except Exception as e:
         log.info(e)

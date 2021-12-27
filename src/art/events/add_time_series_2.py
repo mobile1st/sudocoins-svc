@@ -5,15 +5,16 @@ import statistics
 from datetime import datetime, timedelta
 from decimal import Decimal, getcontext
 import pymysql
+import os
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
 
-rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
-name = "admin"
-password = "RHV2CiqtjiZpsM11"
-db_name = "nft_events"
+rds_host = os.environ['db_host']
+name = os.environ['db_user']
+password = os.environ['db_pw']
+db_name = os.environ['db_name']
 port = 3306
 
 
@@ -23,36 +24,34 @@ def lambda_handler(event, context):
 
     collection_id = art['collection_id']
     art_object = art['art_object']
-    eth_sale_price = art['eth_sale_price']
+    eth_sale_price = art['last_sale_price']
+    collection_code = art['collection_code']
+
     log.info('about to connect')
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
     try:
         with conn.cursor() as cur:
-            if collection_id.find("'") != -1:
-                sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
-                sql2 = '''select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 7 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql3 = '''select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-            elif collection_id.find('"') != -1:
-                sql = """select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and collection_id='""" + collection_id + """' group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"""
-                sql2 = """select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 7 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
-                sql3 = """select date(event_date), min(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
-                sql4 = """select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
-                sql5 = """select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
-                sql6 = """select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
-            else:
-                sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and  collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
-                sql2 = '''select date(event_date), min(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 7 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql3 = '''select date(event_date), min(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
+
+            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=''' + str(
+                collection_id) + ''' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
+            sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=''' + str(
+                collection_id) + ''' group by date(event_date);'''
+            sql3 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=''' + str(
+                collection_id) + ''' group by date(event_date);'''
+            sql4 = '''select date(event_date), sum(price) from nft.events where event_date >= now() - interval 14 day and collection_id=''' + str(
+                collection_id) + ''' group by date(event_date);'''
+            sql5 = '''select date(event_date), avg(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=''' + str(
+                collection_id) + ''' group by date(event_date);'''
+            sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=''' + str(
+                collection_id) + ''' group by date(event_date);'''
 
             log.info(f'sql: {sql}')
+            log.info('about to execute')
             cur.execute(sql)
+            log.info('executed')
             result = cur.fetchall()
+            log.info('fetched')
             more_charts = result
             log.info('RDS queries for Floor, Median, and Max executed')
 
@@ -106,7 +105,7 @@ def lambda_handler(event, context):
                 log.info("more charts created")
 
             except Exception as e:
-                log.info(e)
+                log.info(f'status: failure - {e}')
 
         conn.close()
 
@@ -133,48 +132,49 @@ def lambda_handler(event, context):
 
         dynamodb = boto3.resource('dynamodb')
 
-        update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc"
-        update_expression2 = "sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
+        update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
+        update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
-                             "open_sea=:os "
+                             "open_sea=:os, rds_collection_id=:rdscollid"
         update_expression = update_expression1 + update_expression2
-
+        log.info('about to make expression attributes')
         exp_att1 = {
-                ':fl': mins,
-                ':me': med,
-                ':ma': maxs,
-                ':chd': floor_points,
-                ':mc': charts
-            }
+            ':fl': mins,
+            ':me': med,
+            ':ma': maxs,
+            ':chd': floor_points,
+            ':mc': charts,
+            ':rdscollid': collection_id
+        }
         ex_att2 = {
-                    ':start': 0,
-                    ':inc': 1,
-                    ':start2': 0,
-                    ':inc2': eth_sale_price,
-                    ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
-                    ':purl': art_object.get('asset', {}).get('collection', {}).get('image_url'),
-                    ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
-                    ':cd': art_object.get('collection_date', "0"),
-                    ":si": "true",
-                    ":os": art_object.get('asset', {}).get('collection', {}).get('slug', ""),
-                    ":colldata": {
-                        "name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                        "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
-                        "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
-                        "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
-                        "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
-                        "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
-                        "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
-                    }
-                }
+            ':start': 0,
+            ':inc': 1,
+            ':start2': 0,
+            ':inc2': eth_sale_price,
+            ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
+            ':purl': art_object.get('asset', {}).get('collection', {}).get('image_url'),
+            ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+            ':cd': art_object.get('collection_date', "0"),
+            ":si": "true",
+            ":os": art_object.get('asset', {}).get('collection', {}).get('slug', ""),
+            ":colldata": {
+                "name": art_object.get('asset', {}).get('collection', {}).get('name'),
+                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
+                "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+                "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+                "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+                "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+                "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
+            }
+        }
 
         ex_att2.update(exp_att1)
-
+        log.info('expression attributes merged')
         dynamodb.Table('collections').update_item(
-            Key={'collection_id': collection_id},
+            Key={'collection_id': collection_code},
             UpdateExpression=update_expression,
-            ExpressionAttributeValues={ex_att2},
+            ExpressionAttributeValues=ex_att2,
             ReturnValues="UPDATED_NEW"
         )
         log.info('data added to collection table')
