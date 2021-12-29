@@ -45,7 +45,7 @@ def lambda_handler(event, context):
                 collection_id) + ''' group by date(event_date);'''
             sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=''' + str(
                 collection_id) + ''' group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 14 day and collection_id =''' + str(
+            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 7 day and collection_id =''' + str(
                 collection_id) + ''';'''
 
             log.info(f'sql: {sql}')

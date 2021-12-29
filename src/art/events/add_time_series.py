@@ -33,7 +33,7 @@ def lambda_handler(event, context):
                 sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql7 = '''select event_date, price as c from nft_events.open_sea_events where event_date >= now() - interval 17 day and collection_id ="''' + collection_id + '''" group by date(event_date);'''
+                sql7 = '''select event_date, price as c from nft_events.open_sea_events where event_date >= now() - interval 7 day and collection_id ="''' + collection_id + '''" ;'''
 
             elif collection_id.find('"') != -1:
                 sql = """select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and collection_id='""" + collection_id + """' group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;"""
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
                 sql4 = """select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
                 sql5 = """select date(event_date), avg(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and price>0 and collection_id='""" + collection_id + """' group by date(event_date);"""
                 sql6 = """select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id='""" + collection_id + """' group by date(event_date);"""
-                sql7 = """select event_date, price as c from nft_events.open_sea_events >= now() - interval 7 day and collection_id ='""" + collection_id + """' group by date(event_date);'"""
+                sql7 = """select event_date, price as c from nft_events.open_sea_events >= now() - interval 7 day and collection_id ='""" + collection_id + """' ;'"""
 
             else:
                 sql = '''select t.art_id, t.price from nft_events.open_sea_events t inner join (select art_id, max(event_date) as MaxDate from nft_events.open_sea_events where price>0 and  collection_id="''' + collection_id + '''" group by art_id) tm on t.art_id = tm.art_id and t.event_date = tm.MaxDate where price>0;'''
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
                 sql4 = '''select date(event_date), sum(price) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql5 = '''select date(event_date), avg(price) from nft_events.open_sea_events where price>0 and created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
                 sql6 = '''select date(event_date), count(*) from nft_events.open_sea_events where created_date >= now() - interval 14 day and collection_id="''' + collection_id + '''" group by date(event_date);'''
-                sql7 = '''select event_date, price as c from nft_events.open_sea_events where event_date >= now() - interval 7 day and collection_id ="''' + collection_id + '''" group by date(event_date);'''
+                sql7 = '''select event_date, price as c from nft_events.open_sea_events where event_date >= now() - interval 7 day and collection_id ="''' + collection_id + '''" ;'''
 
             log.info(f'sql: {sql}')
             cur.execute(sql)
@@ -123,7 +123,7 @@ def lambda_handler(event, context):
                 log.info("more charts created")
 
             except Exception as e:
-                log.info(e)
+                log.info(f'status: failure - {e}')
 
         conn.close()
 

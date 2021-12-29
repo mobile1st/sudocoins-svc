@@ -21,14 +21,14 @@ def lambda_handler(event, context):
     if difference < 20:
         return
 
-    end_time = (datetime.fromisoformat(created) + timedelta(minutes=5)).isoformat()
+    end_time = (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat()
 
     open_sea_response = call_open_sea(created, end_time)
     length_response = len(open_sea_response)
     if length_response == 300:
         log.info('split and call again')
-        end_time_small = (datetime.fromisoformat(created) + timedelta(minutes=3)).isoformat()
-        end_time = (datetime.fromisoformat(created) + timedelta(minutes=6)).isoformat()
+        end_time_small = (datetime.fromisoformat(created) + timedelta(minutes=1)).isoformat()
+        end_time = (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat()
         open_sea_response1 = call_open_sea(created, end_time_small)
         open_sea_response2 = call_open_sea(end_time_small, end_time)
         open_sea_response = open_sea_response1 + open_sea_response2
