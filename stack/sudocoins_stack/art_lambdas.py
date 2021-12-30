@@ -676,6 +676,29 @@ class SudocoinsArtLambdas:
             )
         )
         resources.collections_table.grant_read_write_data(self.add_time_series2_function)
+        # SET SUDO_INDEX
+        sudo_index_function = _lambda.Function(
+            scope,
+            'SudoIndex',
+            function_name='SudoIndex',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.set_lists.sudo_index.lambda_handler',
+            **lambda_default_kwargs
+        )
+
+        sudo_index_schedule = events.Schedule.rate(cdk.Duration.minutes(30))
+        sudo_index_target = events_targets.LambdaFunction(handler=sudo_index_function)
+        events.Rule(
+            scope,
+            "SudoIndexRule",
+            description="Periodically sets Sudo Index",
+            enabled=True,
+            schedule=sudo_index_schedule,
+            targets=[sudo_index_target]
+        )
+
+        resources.config_table.grant_read_write_data(sudo_index_function)
+
 
 
 
