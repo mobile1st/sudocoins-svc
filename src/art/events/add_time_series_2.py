@@ -33,24 +33,17 @@ def lambda_handler(event, context):
     try:
         with conn.cursor() as cur:
 
-            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=''' + str(
-                collection_id) + ''' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
-            sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=''' + str(
-                collection_id) + ''' group by date(event_date);'''
-            sql3 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=''' + str(
-                collection_id) + ''' group by date(event_date);'''
-            sql4 = '''select date(event_date), sum(price) from nft.events where event_date >= now() - interval 14 day and collection_id=''' + str(
-                collection_id) + ''' group by date(event_date);'''
-            sql5 = '''select date(event_date), avg(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=''' + str(
-                collection_id) + ''' group by date(event_date);'''
-            sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=''' + str(
-                collection_id) + ''' group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 7 day and collection_id =''' + str(
-                collection_id) + ''';'''
+            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
+            sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
+            sql3 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
+            sql4 = '''select date(event_date), sum(price) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
+            sql5 = '''select date(event_date), avg(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
+            sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 7 day and collection_id=%s;'''
 
             log.info(f'sql: {sql}')
             log.info('about to execute')
-            cur.execute(sql)
+            cur.execute(sql, collection_id)
             log.info('executed')
             result = cur.fetchall()
             log.info('fetched')
@@ -58,7 +51,7 @@ def lambda_handler(event, context):
             log.info('RDS queries for Floor, Median, and Max executed')
 
             log.info(f'sql: {sql2}')
-            cur.execute(sql2)
+            cur.execute(sql2, collection_id)
             result2 = cur.fetchall()
             floor_chart = result2
             log.info('RDS query for Floor Charts executed')
@@ -73,7 +66,7 @@ def lambda_handler(event, context):
             try:
                 for i in range(len(statements)):
                     log.info(i)
-                    cur.execute(statements[i])
+                    cur.execute(statements[i], collection_id)
                     result = cur.fetchall()
                     chart_data2 = []
                     for k in range(len(result)):

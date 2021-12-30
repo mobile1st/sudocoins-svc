@@ -208,13 +208,9 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             log.info("cur established")
             # collection table
             collection_code = art_record['collection_id']
-            if collection_code.find("'") != -1:
-                sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" limit 1;'''
-            elif collection_code.find('"') != -1:
-                sql = """select id from nft.collections where collection_code='""" + collection_code + """' limit 1;"""
-            else:
-                sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" limit 1;'''
-            cur.execute(sql)
+
+            sql = '''select id from nft.collections where collection_code=%s limit 1;'''
+            cur.execute(sql, collection_code)
             result = cur.fetchall()
 
             if len(result) == 0:
@@ -226,13 +222,9 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 cur.execute(
                     'INSERT INTO `nft`.`collections` (`collection_code`, `collection_name`, `avatar`, `collection_address`,`created_date`, `blockchain_id`) VALUES (%s, %s, %s, %s, %s,%s)',
                     row_values)
-                if collection_code.find("'") != -1:
-                    sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" limit 1;'''
-                elif collection_code.find('"') != -1:
-                    sql = """select id from nft.collections where collection_code='""" + collection_code + """' limit 1;"""
-                else:
-                    sql = '''select id from nft.collections where collection_code="''' + collection_code + '''" limit 1;'''
-                cur.execute(sql)
+
+                sql = '''select id from nft.collections where collection_code=%s limit 1;'''
+                cur.execute(sql,collection_code)
                 result = cur.fetchall()
                 collection_id = result[0][0]
             else:
@@ -240,47 +232,47 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             # nft
             nft_code = art_record['art_id']
             token_id = int(art_record.get('contractId#tokenId').split('#')[1])
-            sql = '''select id from nft.nfts where art_code="''' + nft_code + '''" limit 1;'''
-            cur.execute(sql)
+            sql = '''select id from nft.nfts where art_code=%s limit 1;'''
+            cur.execute(sql, nft_code)
             result = cur.fetchall()
             if len(result) == 0:
                 row_values = (nft_code, collection_id, token_id, art_record.get("preview_url"))
                 cur.execute(
                     'INSERT INTO `nft`.`nfts` (`art_code`, `collection_id`, `token_id`, `avatar`) VALUES (%s,%s,%s,%s)',
                     row_values)
-                sql = '''select id from nft.nfts where art_code="''' + nft_code + '''" limit 1;'''
-                cur.execute(sql)
+                sql = '''select id from nft.nfts where art_code=%s limit 1;'''
+                cur.execute(sql, nft_code)
                 result = cur.fetchall()
                 nft_id = result[0][0]
             else:
                 nft_id = result[0][0]
             # buyer
             public_key = art_record['owner']
-            sql = '''select id from nft.users where public_key="''' + public_key + '''" limit 1;'''
-            cur.execute(sql)
+            sql = '''select id from nft.users where public_key=%s limit 1;'''
+            cur.execute(sql, public_key)
             result = cur.fetchall()
             if len(result) == 0:
                 row_values = (public_key)
                 cur.execute(
                     'INSERT INTO `nft`.`users` (`public_key`) VALUES (%s)',
                     row_values)
-                sql = '''select id from nft.users where public_key="''' + public_key + '''" limit 1;'''
-                cur.execute(sql)
+                sql = '''select id from nft.users where public_key=%s limit 1;'''
+                cur.execute(sql,public_key)
                 result = cur.fetchall()
                 buyer_id = result[0][0]
             else:
                 buyer_id = result[0][0]
             # seller
             public_key = art_record['seller']
-            sql = '''select id from nft.users where public_key="''' + public_key + '''" limit 1;'''
-            cur.execute(sql)
+            sql = '''select id from nft.users where public_key=%s limit 1;'''
+            cur.execute(sql,public_key)
             result = cur.fetchall()
             if len(result) == 0:
                 row_values = (public_key)
                 cur.execute(
                     'INSERT INTO `nft`.`users` (`public_key`) VALUES (%s)', row_values)
-                sql = '''select id from nft.users where public_key="''' + public_key + '''" limit 1;'''
-                cur.execute(sql)
+                sql = '''select id from nft.users where public_key=%s limit 1;'''
+                cur.execute(sql, public_key)
                 result = cur.fetchall()
                 seller_id = result[0][0]
             else:
