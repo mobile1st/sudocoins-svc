@@ -21,10 +21,11 @@ def lambda_handler(event, context):
         'Keys': key_list,
         'ProjectionExpression': 'collections'
     }
-    log.info(query)
+    # log.info(query)
 
     response = dynamodb.batch_get_item(RequestItems={'search': query})
-    log.info(response)
+    # log.info(response)
+    # log.info(response['Responses']['search'])
     if len(response['Responses']['search']) == 0:
         return {
             'arts': []
@@ -32,13 +33,24 @@ def lambda_handler(event, context):
 
     collections = set([])
     for k in response['Responses']['search']:
+        # log.info(k)
         tmp_set = k['collections']
         collections.update(tmp_set)
 
-    log.info(collections)
+    try:
+        result = set(response['Responses']['search'][0]['collections'])
+        log.info(result)
+        check_list = list(set(l['collections']) for l in response['Responses']['search'][1:])
+        for s in check_list:
+            result = result.intersection(s)
+
+    except e:
+        print(e)
+
+    # log.info(collections)
 
     return {
-        'arts': get_collection_data(collections)
+        'arts': get_collection_data(result)
     }
 
 
@@ -62,10 +74,7 @@ def get_collection_data(collections):
         key_list.append({"collection_id": i})
 
     for k in [key_list[x:x + 100] for x in range(0, len(key_list), 100)]:
-        query = {
-            'Keys': k,
-            'ProjectionExpression': 'collection_id, sale_count, sales_volume, collection_name, preview_url'
-        }
+        query = {'Keys': k}
         log.info(query)
 
         response = dynamodb.batch_get_item(RequestItems={'collections': query})
