@@ -30,7 +30,7 @@ def lambda_handler(event, context):
     points = []
 
     with conn.cursor() as cur:
-        sql = '''select t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s and event_date >= %s - interval 14 day group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
+        sql = '''select t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>1000000000000000000 and collection_id=%s and event_date >= %s - interval 14 day group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
         log.info(f'sql: {sql}')
 
         for i in collections:
