@@ -54,7 +54,6 @@ def lambda_handler(event, context):
 
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     with conn.cursor() as cur:
-        time_now = str(datetime.utcnow().isoformat())
         row_values = (event_date, sudo_index)
         cur.execute('INSERT INTO nft.sudo_index (`event_date`,`price`) VALUES (%s, %s)', row_values)
 
