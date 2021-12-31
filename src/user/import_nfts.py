@@ -30,7 +30,7 @@ def set_log_context(event):
 
 
 def get_metamask_arts(public_address):
-    if public_address == "0xE215e189d81Bb81bc3A11D1b15Ad556bb55e7645":
+    if public_address.lower() == "0xe215e189d81bb81bc3a11d1b15ad556bb55e7645":
         collections = ["0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d:bored-ape-yacht-club","0x50f5474724e0ee42d9a4e711ccfb275809fd6d4a:the-sandbox", "0x7a3b97a7400e44dadd929431a3640e4fc47daebd:apes-in-space-nft", "0x364c828ee171616a39897688a831c2499ad972ec:sappy-seals","0xa3aee8bce55beea1951ef834b99f3ac60d1abeeb:veefriends"]
         key_list = []
         for i in collections:
