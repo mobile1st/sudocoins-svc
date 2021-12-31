@@ -13,6 +13,7 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
+    #input_json=event
     input_json = json.loads(event.get('body', '{}'))
     public_key = input_json['sub']
 
@@ -53,7 +54,7 @@ def get_metamask_arts(public_address):
         return collections
     else:
         try:
-            path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + "0"
+            path = "/api/v1/assets?owner="+public_address+"&order_direction=desc&offset=0&limit=50"
             log.info(f'path: {path}')
             conn = http.client.HTTPSConnection("api.opensea.io")
             api_key = {
@@ -70,8 +71,7 @@ def get_metamask_arts(public_address):
             try:
                 count = 50
                 while len(open_sea_response) >= 50:
-                    path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + str(count)
-                    log.info(f'path: {path}')
+                    path = "/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + str(count)
                     conn = http.client.HTTPSConnection("api.opensea.io")
                     conn.request("GET", path)
                     response = conn.getresponse()
@@ -83,7 +83,7 @@ def get_metamask_arts(public_address):
                 collections = []
                 for i in nfts:
                     collection_address = i.get('asset_contract', {}).get('address', "unknown")
-                    collection_name = i.get('asset', {}).get('collection', {}).get('name')
+                    collection_name = i.get('collection', {}).get('name')
                     c_name = ("-".join(collection_name.split())).lower()
                     collection_code = collection_address + ":" + c_name
                     if collection_code in collections:
