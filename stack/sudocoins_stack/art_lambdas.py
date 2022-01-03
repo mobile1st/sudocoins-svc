@@ -716,7 +716,7 @@ class SudocoinsArtLambdas:
         set_top_nfts_target = events_targets.LambdaFunction(handler=set_top_nfts_function)
         events.Rule(
             scope,
-            "SetTrendingRule",
+            "SetTopNFTs",
             description="Periodically refreshes trending nfts",
             enabled=True,
             schedule=set_top_nfts_schedule,
