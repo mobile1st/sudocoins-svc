@@ -698,6 +698,30 @@ class SudocoinsArtLambdas:
         )
 
         resources.config_table.grant_read_write_data(sudo_index_function)
+        # SET TOP NFTS
+        set_top_nfts_function = _lambda.Function(
+            scope,
+            'SetTopNFTS',
+            function_name='SetTopNFTS',
+            handler='art.set_lists.set_top_nfts.lambda_handler',
+            timeout=cdk.Duration.seconds(420),
+            memory_size=4800,
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset('../src'),
+            log_retention=logs.RetentionDays.THREE_MONTHS
+        )
+        resources.config_table.grant_read_write_data(set_top_nfts_function)
+        resources.grant_read_index_data(set_top_nfts_function, [resources.art_table])
+        set_top_nfts_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_top_nfts_target = events_targets.LambdaFunction(handler=set_top_nfts_function)
+        events.Rule(
+            scope,
+            "SetTrendingRule",
+            description="Periodically refreshes trending nfts",
+            enabled=True,
+            schedule=set_top_nfts_schedule,
+            targets=[set_top_nfts_target]
+        )
 
 
 

@@ -148,7 +148,7 @@ def lambda_handler(event, context):
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
-                             "open_sea=:os, rds_collection_id=:rdscollid"
+                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc"
         update_expression = update_expression1 + update_expression2
         log.info('about to make expression attributes')
         exp_att1 = {
@@ -157,7 +157,8 @@ def lambda_handler(event, context):
             ':ma': maxs,
             ':chd': floor_points,
             ':mc': charts,
-            ':rdscollid': collection_id
+            ':rdscollid': collection_id,
+            ':bc: art_object.get('blockchain')
         }
         ex_att2 = {
             ':start': 0,
