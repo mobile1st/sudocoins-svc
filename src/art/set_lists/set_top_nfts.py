@@ -16,6 +16,8 @@ port = 3306
 
 
 def lambda_handler(event, context):
+    return
+
     nfts_hour, nfts_day, nfts_week, buyers_hour, buyers_day, buyers_week = get_trending()
 
     set_config(nfts_hour, nfts_day, nfts_week, buyers_hour, buyers_day, buyers_week)
@@ -73,11 +75,11 @@ def get_trending():
     try:
         with conn.cursor() as cur:
 
-            sql = '''select nf.art_code, max(price) as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 7 day group by ev.nft_id order by a desc limit 250;'''
-            sql2 = '''select nf.art_code, max(price) as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 1 day group by ev.nft_id order by a desc limit 250;'''
-            sql3 = '''select nf.art_code, max(price) as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 1 hour group by ev.nft_id order by a desc limit 250;'''
+            sql = '''select nf.art_code, max(price) as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 7 day and blockchain_id = 1 group by ev.nft_id order by a desc limit 250;'''
+            sql2 = '''select nf.art_code, max(price) as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 1 day and blockchain_id = 1 group by ev.nft_id order by a desc limit 250;'''
+            sql3 = '''select nf.art_code, max(price) as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 1 hour and blockchain_id = 1 group by ev.nft_id order by a desc limit 250;'''
 
-            statements = [sql,sql2,sql3]
+            statements = [sql, sql2, sql3]
             times = [week, day, hour]
 
             nfts = []
@@ -104,7 +106,7 @@ def get_trending():
                     nfts.append(result)
             except Exception as e:
                 log.info(f'status: failure - {e}')
-            
+
             '''
 
     except Exception as e:

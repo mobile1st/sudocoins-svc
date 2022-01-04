@@ -170,7 +170,7 @@ def process_open_sea(open_sea_response):
                         count_eth += 1
 
             except Exception as e:
-                log.info(e)
+                log.info(f'status: failure - {e}')
                 count += 1
         else:
             try:
@@ -243,7 +243,7 @@ def process_open_sea(open_sea_response):
                     count_eth += 1
 
             except Exception as e:
-                log.info(f'art error: {e}')
+                log.info(f'status: failure - {e}')
                 log.info(f'art event: {i}')
                 count += 1
 
