@@ -2,8 +2,6 @@ import boto3
 from util import sudocoins_logger
 from art.art import Art
 from boto3.dynamodb.conditions import Key
-from datetime import datetime
-import operator
 import json
 from datetime import datetime, timedelta
 

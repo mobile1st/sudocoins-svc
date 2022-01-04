@@ -285,5 +285,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=get_trades_delta_integration
         )
+        # GET NEWS
+        get_news_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_news_function
+        )
+        art_api_v3.add_routes(
+            path='/get-news',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_news_integration
+        )
 
 
