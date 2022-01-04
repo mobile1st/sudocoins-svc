@@ -743,7 +743,7 @@ class SudocoinsArtLambdas:
             targets=[rss_feed_target]
         )
         # GET NEWS
-        get_news_function = _lambda.Function(
+        self.get_news_function = _lambda.Function(
             scope,
             'GetNews',
             function_name='GetNews',
@@ -751,8 +751,8 @@ class SudocoinsArtLambdas:
             handler='art.lists.get_news.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.news_table.grant_read_write_data(get_news_function)
-        resources.grant_read_index_data(get_news_function, [resources.news_table])
+        resources.news_table.grant_read_write_data(self.get_news_function)
+        resources.grant_read_index_data(self.get_news_function, [resources.news_table])
 
 
 
