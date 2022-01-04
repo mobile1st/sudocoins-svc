@@ -32,7 +32,7 @@ def get_recent(art_id, collection_id):
         FilterExpression='art_id  <> :art_value',
         ExpressionAttributeValues={':art_value': art_id},
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, description, collection_id, collection_data, collection_name'
+        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, description, collection_id, collection_data, collection_name, blockchain'
     )
 
     uploads = data['Items']

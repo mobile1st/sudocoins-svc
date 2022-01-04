@@ -88,11 +88,27 @@ def get_trending():
                     nfts.append(result)
             except Exception as e:
                 log.info(f'status: failure - {e}')
+            '''
+            sql = "select public_key, sum(price), avatar as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 7 day group by ev.nft_id order by a desc limit 250;"
+            sql2 = "select public_key, sum(price), avatar as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 1 day group by ev.nft_id order by a desc limit 250;"
+            sql3 = "select public_key, sum(price), avatar as a from nft.events ev inner join nft.nfts nf on ev.nft_id = nf.id where ev.event_date >= %s - interval 1 hour group by ev.nft_id order by a desc limit 250;"
+
+            statements = [sql, sql2, sql3]
+            times = [week, day, hour]
+
+            nfts = []
+            try:
+                for i in range(len(statements)):
+                    cur.execute(statements[i], times[i])
+                    result = cur.fetchall()
+                    nfts.append(result)
+            except Exception as e:
+                log.info(f'status: failure - {e}')
+            
+            '''
 
     except Exception as e:
         log.info(f'status: failure - {e}')
-
-
 
     nfts_week = []
     nfts_day = []

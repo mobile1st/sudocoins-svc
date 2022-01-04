@@ -100,7 +100,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, blockchain",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
@@ -172,7 +172,7 @@ class Art:
         for i in [art_keys[x:x + 100] for x in range(0, len(art_keys), 100)]:
             query = {
                 'Keys': i,
-                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, last_sale_price, #T, collection_data, collection_address, open_sea_data.description, description, collection_id',
+                'ProjectionExpression': 'art_id, click_count, art_url, recent_sk, preview_url, #N, mime_type, cdn_url, last_sale_price, #T, collection_data, collection_address, open_sea_data.description, description, collection_id, blockchain',
                 'ExpressionAttributeNames': {'#N': 'name', '#T': 'contractId#tokenId'}
             }
             response = self.dynamodb.batch_get_item(RequestItems={'art': query})

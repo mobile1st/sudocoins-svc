@@ -722,6 +722,25 @@ class SudocoinsArtLambdas:
             schedule=set_top_nfts_schedule,
             targets=[set_top_nfts_target]
         )
+        # READ RSS
+        read_rss_function = _lambda.Function(
+            scope,
+            'ReadRSS',
+            function_name='ReadRSS',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.set_lists.read_rss.lambda_handler',
+        )
+        resources.news_table.grant_read_write_data(read_rss_function)
+        rss_feed_schedule = events.Schedule.rate(cdk.Duration.minutes(30))
+        rss_feed_target = events_targets.LambdaFunction(handler=read_rss_function)
+        events.Rule(
+            scope,
+            "Reed RSS",
+            description="Periodically reads rss feeds",
+            enabled=True,
+            schedule=rss_feed_schedule,
+            targets=[rss_feed_target]
+        )
 
 
 

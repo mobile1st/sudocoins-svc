@@ -56,70 +56,77 @@ def lambda_handler(event, context):
             floor_chart = result2
             log.info('RDS query for Floor Charts executed')
 
-            statements = []
-            statements.append(sql3)
-            statements.append(sql4)
-            statements.append(sql5)
-            statements.append(sql6)
+            statements = [sql3, sql4, sql5, sql6]
             statements.append(sql7)
+
+            results = []
+
+            ('RDS query for More Charts about to execute')
+            for i in range(len(statements)):
+                log.info(f'chart: {i} start')
+                cur.execute(statements[i], collection_id)
+                log.info(f'chart: {i} executed')
+                result = cur.fetchall()
+                log.info(f'chart: {i} fetched')
+                results.append(result)
+
+            conn.close()
+
+        try:
             charts = []
-            try:
-                for i in range(len(statements)):
-                    log.info(i)
-                    cur.execute(statements[i], collection_id)
-                    result = cur.fetchall()
-                    chart_data2 = []
-                    for k in range(len(result)):
-                        if i == 0:
-                            # floor chart
-                            point = {
-                                "x": str(result[k][0]),
-                                "y": result[k][1] / (10 ** 18)
-                            }
-                            chart_data2.append(point)
-                        elif i == 1:
-                            # sum chart
-                            point = {
-                                "x": str(result[k][0]),
-                                "y": result[k][1] / (10 ** 18)
-                            }
-                            chart_data2.append(point)
-                        elif i == 2:
-                            # avg chart
-                            point = {
-                                "x": str(result[k][0]),
-                                "y": result[k][1] / (10 ** 18)
-                            }
-                            chart_data2.append(point)
-                        elif i == 3:
-                            # trades chart
-                            point = {
-                                "x": str(result[k][0]),
-                                "y": result[k][1]
-                            }
-                            chart_data2.append(point)
+            for i in range(len(results)):
+                chart_points = []
+                for k in results[i]:
+                    if i == 0:
+                        # floor chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 1:
+                        # sum chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 2:
+                        # avg chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 3:
+                        # trades chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1]
+                        }
+                        chart_points.append(point)
 
-                        elif i == 4:
-                            try:
-                                # sales scatter
-                                utcTime = datetime.strptime(str(result[k][0]), "%Y-%m-%d %H:%M:%S")
-                                epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                                epochTime = int(epochTime)
-                                point = {
-                                    "x": epochTime,
-                                    "y": result[k][1] / (10 ** 18)
-                                }
-                                chart_data2.append(point)
-                            except Exception as e:
-                                log.info(f'status: failure - {e}')
+                    elif i == 4:
+                        try:
+                            # sales scatter
+                            utcTime = datetime.strptime(str(k[0]), "%Y-%m-%d %H:%M:%S")
 
-                    charts.append(chart_data2)
-                log.info("more charts created")
+                            epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                            epochTime = int(epochTime)
+                            point = {
+                                "x": epochTime,
+                                "y": k[1] / (10 ** 18)
+                            }
+                            chart_points.append(point)
+                        except Exception as e:
+                            log.info(f'status: failure - {e}')
+                            log.info(str(k[0]))
 
-            except Exception as e:
-                log.info(f'status: failure - {e}')
+                charts.append(chart_points)
+            log.info("more charts created")
 
-        conn.close()
+        except Exception as e:
+            log.info(f'status: failure - {e}')
 
         values1 = {}
         for k in more_charts:
@@ -143,7 +150,7 @@ def lambda_handler(event, context):
         log.info(f'more charts: {charts}')
 
         dynamodb = boto3.resource('dynamodb')
-        '''
+
         update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
@@ -158,7 +165,7 @@ def lambda_handler(event, context):
             ':chd': floor_points,
             ':mc': charts,
             ':rdscollid': collection_id,
-            ':bc: art_object.get('blockchain')
+            ':bc': art_object.get('blockchain')
         }
         ex_att2 = {
             ':start': 0,
@@ -191,7 +198,7 @@ def lambda_handler(event, context):
             ReturnValues="UPDATED_NEW"
         )
         log.info('data added to collection table')
-        '''
+
     except Exception as e:
         log.info(f'status: failure - {e}')
 

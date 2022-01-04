@@ -35,7 +35,7 @@ def recently_bought(owner_address):
         ScanIndexForward=False,
         IndexName='owner-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, open_sea_data.description, description, collection_id, #o, collection_data'
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, open_sea_data.description, description, collection_id, #o, collection_data, blockchain'
     )
 
     uploads = data['Items']
@@ -46,7 +46,7 @@ def recently_bought(owner_address):
             ScanIndexForward=False,
             IndexName='owner-recent_sk-index',
             ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, open_sea_data.description, description, collection_id, #o, collection_data',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, open_sea_data.description, description, collection_id, #o, collection_data, blockchain',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
@@ -80,7 +80,7 @@ def high_price(owner_address):
         ScanIndexForward=False,
         IndexName='owner-last_sale_price-index',
         ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, #o'
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, #o, blockchain'
     )
 
     uploads = data['Items']
@@ -91,7 +91,7 @@ def high_price(owner_address):
             ScanIndexForward=False,
             IndexName='owner-last_sale_price-index',
             ExpressionAttributeNames={'#n': 'name', '#o': 'owner'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id, #o',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id, #o, blockchain',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
@@ -125,7 +125,7 @@ def recently_sold(owner_address):
         ScanIndexForward=False,
         IndexName='seller-recent_sk-index',
         ExpressionAttributeNames={'#n': 'name', '#o': 'seller'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, #o'
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, #o, blockchain'
     )
 
     uploads = data['Items']
@@ -136,7 +136,7 @@ def recently_sold(owner_address):
             ScanIndexForward=False,
             IndexName='seller-recent_sk-index',
             ExpressionAttributeNames={'#n': 'name', '#o': 'seller'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id, #o',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id, #o, blockchain',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])

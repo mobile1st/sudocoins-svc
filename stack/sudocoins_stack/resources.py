@@ -161,6 +161,7 @@ class SudocoinsImportedResources:
         self.chat_connections_table = self.import_table(scope, 'chat_connections')
         self.upcoming_table = self.import_table(scope, 'upcoming')
         self.portfolio_table = self.import_table(scope, 'portfolio')
+        self.news_table = self.import_table(scope, 'news')
 
     def import_table(self, scope, table_name):
         return dynamodb.Table.from_table_arn(

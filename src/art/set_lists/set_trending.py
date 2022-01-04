@@ -8,15 +8,15 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day, buyers_half, buyers_hour = get_trending()
+    arts_hour, arts_half_day, arts_day, buyers_day, buyers_half, buyers_hour = get_trending()
 
-    set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day,
+    set_config(arts_hour, arts_half_day, arts_day, buyers_day,
                buyers_half, buyers_hour)
 
     return
 
 
-def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_hour, collections_half, buyers_day,
+def set_config(arts_hour, arts_half_day, arts_day, buyers_day,
                buyers_half, buyers_hour):
     config_table = dynamodb.Table('Config')
 
@@ -38,15 +38,7 @@ def set_config(arts_hour, arts_half_day, arts_day, collections_day, collections_
         },
         ReturnValues="ALL_NEW"
     )
-    config_table.update_item(
-        Key={'configKey': 'Leaderboard'},
-        UpdateExpression="set collections=:create, collections_hour=:create2, collections_half=:create3",
-        ExpressionAttributeValues={
-            ":create": collections_day,
-            ":create2": collections_hour,
-            ":create3": collections_half
-        }
-    )
+
     config_table.update_item(
         Key={'configKey': 'TopBuyers'},
         UpdateExpression="set buyers_day=:buy, buyers_hour=:buy2, buyers_half=:buy3",
@@ -98,10 +90,6 @@ def get_trending():
     half_day = []
     day = []
 
-    artists = {}
-    artists2 = {}
-    artists3 = {}
-
     owners = {}
     owners2 = {}
     owners3 = {}
@@ -122,27 +110,6 @@ def get_trending():
                     owners2[i['owner']]['preview_url'] = i.get('preview_url')
                     owners2[i['owner']]['owner_address'] = i.get('owner')
 
-                if i['collection_id'] in artists2:
-                    artists2[i['collection_id']]['score'] += i.get('last_sale_price')
-                else:
-                    artists2[i['collection_id']] = {}
-                    artists2[i['collection_id']]['score'] = i.get('last_sale_price')
-                    artists2[i['collection_id']]['avatar'] = i.get('preview_url')
-                    artists2[i['collection_id']]['collection_id'] = i.get('collection_id')
-
-                    artists2[i['collection_id']]['data'] = {}
-                    artists2[i['collection_id']]['data']['address'] = i.get('collection_address')
-                    artists2[i['collection_id']]['data']['profile_img_url'] = i.get('preview_url')
-                    artists2[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
-
-                    artists2[i['collection_id']]['art1'] = i.get('art_id')
-                    artists2[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
-                                                                                            i['collection_name'])
-                    artists2[i['collection_id']]['collection_address'] = i.get('collection_address')
-                    if artists2[i['collection_id']]['collection_address'] == 'unknown':
-                        artists2[i['collection_id']]['collection_address'] = \
-                            i['open_sea_data']['asset']['asset_contract']['address']
-
             if i['event_date'] > (datetime.fromisoformat(created) - timedelta(days=1)).isoformat():
                 half_day.append(i['art_id'])
 
@@ -154,27 +121,6 @@ def get_trending():
                     owners3[i['owner']]['preview_url'] = i.get('preview_url')
                     owners3[i['owner']]['owner_address'] = i.get('owner')
 
-                if i['collection_id'] in artists3:
-                    artists3[i['collection_id']]['score'] += i.get('last_sale_price')
-                else:
-                    artists3[i['collection_id']] = {}
-                    artists3[i['collection_id']]['score'] = i.get('last_sale_price')
-                    artists3[i['collection_id']]['avatar'] = i.get('preview_url')
-                    artists3[i['collection_id']]['collection_id'] = i.get('collection_id')
-
-                    artists3[i['collection_id']]['data'] = {}
-                    artists3[i['collection_id']]['data']['address'] = i.get('collection_address')
-                    artists3[i['collection_id']]['data']['profile_img_url'] = i.get('preview_url')
-                    artists3[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
-
-                    artists3[i['collection_id']]['art1'] = i.get('art_id')
-                    artists3[i['collection_id']]['name'] = i.get('collection_data', {}).get('name',
-                                                                                            i['collection_name'])
-                    artists3[i['collection_id']]['collection_address'] = i.get('collection_address')
-                    if artists3[i['collection_id']]['collection_address'] == 'unknown':
-                        artists3[i['collection_id']]['collection_address'] = \
-                            i['open_sea_data']['asset']['asset_contract']['address']
-
             day.append(i['art_id'])
 
             if i['owner'] in owners:
@@ -185,41 +131,15 @@ def get_trending():
                 owners[i['owner']]['preview_url'] = i.get('preview_url')
                 owners[i['owner']]['owner_address'] = i.get('owner')
 
-            if i['collection_id'] in artists:
-                artists[i['collection_id']]['score'] += i.get('last_sale_price')
-            else:
-                artists[i['collection_id']] = {}
-                artists[i['collection_id']]['score'] = i.get('last_sale_price')
-                artists[i['collection_id']]['avatar'] = i.get('preview_url')
-                artists[i['collection_id']]['collection_id'] = i.get('collection_id')
 
-                artists[i['collection_id']]['data'] = {}
-                artists[i['collection_id']]['data']['address'] = i.get('collection_address')
-                artists[i['collection_id']]['data']['profile_img_url'] = i.get('preview_url')
-                artists[i['collection_id']]['data']['user'] = i.get('open_sea_data', {}).get('creator')
-
-                artists[i['collection_id']]['art1'] = i.get('art_id')
-                artists[i['collection_id']]['name'] = i.get('collection_data', {}).get('name', i['collection_name'])
-                artists[i['collection_id']]['collection_address'] = i.get('collection_address')
-                if artists[i['collection_id']]['collection_address'] == 'unknown':
-                    artists[i['collection_id']]['collection_address'] = i['open_sea_data']['asset']['asset_contract'][
-                        'address']
 
         except Exception as e:
             log.info(e)
             log.info(i['art_id'])
             continue
 
-    collections_day = sorted(artists.values(), key=lambda x: x['score'], reverse=True)
-    collections_hour = sorted(artists2.values(), key=lambda x: x['score'], reverse=True)
-    collections_half = sorted(artists3.values(), key=lambda x: x['score'], reverse=True)
-
     buyers_day = sorted(owners.values(), key=lambda x: x['score'], reverse=True)
     buyers_hour = sorted(owners2.values(), key=lambda x: x['score'], reverse=True)
     buyers_half = sorted(owners3.values(), key=lambda x: x['score'], reverse=True)
 
-    return hour[0:250], half_day[0:250], day[0:250], collections_day[0:75], collections_hour[0:75], collections_half[
-                                                                                                      0:75], buyers_day[
-                                                                                                              1:150], buyers_half[
-                                                                                                                      1:150], buyers_hour[
-                                                                                                                              1:150]
+    return hour[0:250], half_day[0:250], day[0:250], buyers_day[1:150], buyers_half[1:150], buyers_hour[1:150]

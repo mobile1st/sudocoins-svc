@@ -43,7 +43,7 @@ def get_recent(collection_id):
         ScanIndexForward=False,
         IndexName='collection_id-event_date-index',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, description, collection_id, collection_data, collection_name'
+        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, description, collection_id, collection_data, collection_name, blockchain'
     )
 
     uploads = data['Items']
@@ -54,7 +54,7 @@ def get_recent(collection_id):
             ScanIndexForward=False,
             IndexName='collection_id-event_date-index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, collection_address, description, collection_id, collection_data, collection_name',
+            ProjectionExpression='art_url, art_id, list_price, preview_url, #n, tags, last_sale_price, collection_address, description, collection_id, collection_data, collection_name, blockchain',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
@@ -91,7 +91,7 @@ def get_lsp(collection_id):
         ScanIndexForward=False,
         IndexName='collection_id-last_sale_price-index',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id'
+        ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, blockchain'
     )
 
     uploads = data['Items']
@@ -102,7 +102,7 @@ def get_lsp(collection_id):
             ScanIndexForward=False,
             IndexName='collection_id-last_sale_price-index',
             ExpressionAttributeNames={'#n': 'name'},
-            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id',
+            ProjectionExpression='click_count, art_url, art_id, preview_url, #n, tags, last_sale_price, collection_address, collection_data, open_sea_data.description, description, collection_id, blockchain',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )
         uploads.extend(data['Items'])
