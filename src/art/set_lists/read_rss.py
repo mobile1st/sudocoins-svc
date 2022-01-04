@@ -49,6 +49,7 @@ def add_news(news_results):
             msg['pubDate'] = date
             msg['link'] = i.get('link')
             msg['title'] = i.get('title')
+            msg['approved'] = 'true'
 
             dynamodb.Table('news').put_item(Item=msg)
         except Exception as e:

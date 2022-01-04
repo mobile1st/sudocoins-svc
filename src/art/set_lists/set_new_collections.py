@@ -28,7 +28,7 @@ def get_new():
     record = dynamodb.Table('collections').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
         IndexName='collection_date-index',
-        ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date, chart_data",
+        ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date, chart_data, blockchain",
 
     )
     data = record['Items']
@@ -36,7 +36,7 @@ def get_new():
         record = dynamodb.Table('collections').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
             IndexName='collection_date-index',
-            ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date, chart_data",
+            ProjectionExpression="collection_id, sales_volume, preview_url, collection_name, collection_date, chart_data, blockchain",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])

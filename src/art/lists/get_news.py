@@ -9,7 +9,8 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
 
-    timestamp = str(datetime.today().strftime('%Y-%m-%d'))
+    timestamp = str(datetime.utcnow().isoformat())
+    log.info("timestamp")
 
     news = dynamodb.Table('news').query(
         KeyConditionExpression=Key("approved").eq('true') & Key("pubDate").lt(timestamp),

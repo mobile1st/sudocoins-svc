@@ -22,7 +22,7 @@ def lambda_handler(event, context):
 
         res = dynamodb.Table('collections').get_item(
             Key={'collection_id': collection_id},
-            ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea")
+            ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain")
 
         if 'Item' in res and 'collection_data' in res['Item']:
             return res['Item']
@@ -46,7 +46,7 @@ def get_collection(collection_id):
         ScanIndexForward=False,
         Limit=1,
         IndexName='collection_id-event_date-index',
-        ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum'
+        ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, blockchain'
     )
 
     collection_data = data['Items'][0]
