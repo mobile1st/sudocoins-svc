@@ -729,6 +729,7 @@ class SudocoinsArtLambdas:
             function_name='ReadRSS',
             timeout=cdk.Duration.seconds(30),
             handler='art.set_lists.read_rss.lambda_handler',
+            **lambda_default_kwargs
         )
         resources.news_table.grant_read_write_data(read_rss_function)
         rss_feed_schedule = events.Schedule.rate(cdk.Duration.minutes(30))
