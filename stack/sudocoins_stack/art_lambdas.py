@@ -95,31 +95,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_trending_function)
-        # SET TRENDING
-        set_trending_function = _lambda.Function(
-            scope,
-            'ArtSetTrendingV2',
-            function_name='ArtSetTrendingV2',
-            handler='art.set_lists.set_trending.lambda_handler',
-            timeout=cdk.Duration.seconds(420),
-            memory_size=4800,
-            runtime=_lambda.Runtime.PYTHON_3_8,
-            code=_lambda.Code.asset('../src'),
-            log_retention=logs.RetentionDays.THREE_MONTHS
-        )
-        resources.art_table.grant_read_data(set_trending_function)
-        resources.config_table.grant_read_write_data(set_trending_function)
-        resources.grant_read_index_data(set_trending_function, [resources.art_table])
-        set_trending_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
-        set_trending_target = events_targets.LambdaFunction(handler=set_trending_function)
-        events.Rule(
-            scope,
-            "SetTrendingRule",
-            description="Periodically refreshes trending arts sorted by click counts",
-            enabled=True,
-            schedule=set_trending_schedule,
-            targets=[set_trending_target]
-        )
         # GET USER ARTS
         self.get_user_arts_function = _lambda.Function(
             scope,

@@ -34,7 +34,7 @@ def set_config(nfts_hour, nfts_day, nfts_week, buyers_hour, buyers_day, buyers_w
 
     config_table.update_item(
         Key={
-            'configKey': 'TrendingNFTs'
+            'configKey': 'TrendingArt'
         },
         UpdateExpression="set art=:art, trending_hour=:hour, trending_half_day=:hday, trending_day=:day",
         ExpressionAttributeValues={
@@ -47,7 +47,7 @@ def set_config(nfts_hour, nfts_day, nfts_week, buyers_hour, buyers_day, buyers_w
     )
 
     config_table.update_item(
-        Key={'configKey': 'TopBuyers2'},
+        Key={'configKey': 'TopBuyers'},
         UpdateExpression="set buyers_day=:buy, buyers_hour=:buy2, buyers_half=:buy3",
         ExpressionAttributeValues={
             ":buy": buyers_day,
@@ -131,6 +131,8 @@ def get_trending():
     buyers_list = [buyers_week, buyers_day, buyers_hour]
     for i in range(len(buyers)):
         for k in buyers[i]:
+            if k[0] == "0x0000000000000000000000000000000000000000":
+                continue
             map = {
                 "score": k[1],
                 "preview_url": k[2],
