@@ -73,9 +73,9 @@ def set_config(day, day3, day7):
         },
         UpdateExpression="set day1=:day, day3=:day3, day7=:day7",
         ExpressionAttributeValues={
-            ":day": day,
-            ":day3": day3,
-            ":day7": day7
+            ":day": day[0:250],
+            ":day3": day3[0:250],
+            ":day7": day7[0:250]
         },
         ReturnValues="ALL_NEW"
     )
