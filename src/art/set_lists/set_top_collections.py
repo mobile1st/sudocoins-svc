@@ -2,14 +2,15 @@ import sys
 import pymysql
 import boto3
 from util import sudocoins_logger
+import os
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
-rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
-name = "admin"
-password = "RHV2CiqtjiZpsM11"
-db_name = "nft_events"
+rds_host = os.environ['db_host']
+name = os.environ['db_user']
+password = os.environ['db_pw']
+db_name = os.environ['db_name']
 port = 3306
 conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
 
@@ -39,7 +40,7 @@ def lambda_handler(event, context):
 
 def get_collections(time_period):
     with conn.cursor() as cur:
-        sql = "select collection_id, sum(price) as a, count(*) as b, count(distinct buyer) as c from nft_events.open_sea_events where created_date >= now() - interval 1 " + time_period + " group by collection_id order by a desc limit 100;"
+        sql = "select coll.collection_code, sum(price) as a, count(*) as b, count(distinct buyer_id) as c from nft.events ev INNER JOIN nft.collections coll on ev.collection_id=coll.id where event_date >= now() - interval 1 " + time_period + " group by coll.collection_code order by a desc limit 100;"
         cur.execute(sql)
         result = cur.fetchall()
 

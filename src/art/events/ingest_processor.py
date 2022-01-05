@@ -19,7 +19,6 @@ sns = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'payload: {art_object}')
     if art_object['open_sea_url'] is None:
@@ -123,7 +122,8 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     contract_token_id = str(contract_id) + "#" + str(token_id)
     art_id = art.get_id(contract_token_id)
     if art_id:
-        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
+        return update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
+                          contract_token_id)
 
     return auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
 
@@ -136,6 +136,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     collection_id = collection_address + ":" + c_name
 
     if art_url != "" and preview_url is not None:
+        '''
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
             UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
@@ -166,12 +167,13 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             },
             ExpressionAttributeNames={'#n': 'name', '#o': 'owner'}
         )
+        '''
         log.info("art record updated")
         log.info(f"art_id: {art_id}")
     else:
         log.info("missing art_url and preview_url")
         return
-
+    '''
     try:
         msg = {
             "collection_id": collection_id
@@ -184,6 +186,7 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         log.info(f"add time series published")
     except Exception as e:
         log.info(e)
+
 
     try:
         dynamodb = boto3.resource('dynamodb')
@@ -221,6 +224,8 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     except Exception as e:
         log.info(e)
 
+    '''
+
     try:
         rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
         name = "admin"
@@ -241,7 +246,8 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             seller = art_object.get("seller")
             event_type = 'successful'
             row_values = (
-            art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type, buyer, seller, collection_address)
+                art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type,
+                buyer, seller, collection_address)
             cur.execute(
                 'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`,`collection_address`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
                 row_values)
@@ -250,7 +256,6 @@ def update_art(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
     except Exception as e:
         log.info(e)
-
 
     return
 
@@ -329,7 +334,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         art_record['name'] = name + " #" + str(number)
 
     if art_url != "" and preview_url != "":
-        dynamodb.Table('art').put_item(Item=art_record)
+        # dynamodb.Table('art').put_item(Item=art_record)
         log.info("art added to art table")
 
     try:
@@ -369,7 +374,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         log.info(f"add search message published")
     except Exception as e:
         log.info(e)
-
+    '''
     try:
         msg = {
             "event_date": art_object.get('created_date'),
@@ -386,6 +391,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
         log.info(f"add time series published")
     except Exception as e:
         log.info(e)
+
 
     try:
         dynamodb.Table('collections').update_item(
@@ -414,6 +420,7 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
 
     except Exception as e:
         log.info(e)
+    '''
 
     try:
         rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
@@ -435,7 +442,9 @@ def auto_add(contract_token_id, art_url, preview_url, buy_url, open_sea, art_obj
             buyer = art_record['owner']
             seller = art_record['seller']
             contract_address = art_record['collection_address']
-            row_values = (art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type, buyer, seller, contract_address)
+            row_values = (
+            art_id, price, collection_id, collection_name, contract_token, event_date, time, blockchain, event_type,
+            buyer, seller, contract_address)
             cur.execute(
                 'INSERT INTO `nft_events`.`open_sea_events` (`art_id`, `price`, `collection_id`, `collection_name`,`contract_token_id`, `event_date`, `created_date`, `blockchain`, `event_type`,`buyer`,`seller`,`collection_address`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
                 row_values)

@@ -2,15 +2,18 @@ import sys
 import pymysql
 import boto3
 from util import sudocoins_logger
+import os
+
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
-rds_host = "rds-proxy.proxy-ccnnpquqy2qq.us-west-2.rds.amazonaws.com"
-name = "admin"
-password = "RHV2CiqtjiZpsM11"
-db_name = "nft_events"
+rds_host = os.environ['db_host']
+name = os.environ['db_user']
+password = os.environ['db_pw']
+db_name = os.environ['db_name']
 port = 3306
+
 conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
 
 
@@ -36,7 +39,7 @@ def lambda_handler(event, context):
 
 def get_collections():
     with conn.cursor() as cur:
-        sql = "SELECT distinct t1.collection_id, t2.day2, t1.day,  round(((t1.day-t2.day2)/t2.day2*100),1) AS a FROM (SELECT collection_id, COUNT(*) AS day FROM nft_events.open_sea_events where event_date >= now() - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS day2 FROM nft_events.open_sea_events where event_date >= now() - interval 2 day and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id where t2.day2 > 10 order by a desc limit 100;"
+        sql = "SELECT distinct co.collection_code, t2.day2, t1.day, round(((t1.day-t2.day2)/t2.day2*100),1) AS a FROM (SELECT collection_id, COUNT(*) AS day FROM nft.events where event_date >= now() - interval 1 day and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS day2 FROM nft.events where event_date >= now() - interval 2 day and blockchain_id=1 and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.day2 > 10 order by a desc limit 100;"
         cur.execute(sql)
         result = cur.fetchall()
 
