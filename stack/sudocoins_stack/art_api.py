@@ -294,5 +294,32 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_news_integration
         )
+        # GET Floor DELTA
+        get_floor_delta_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_floor_delta_function
+        )
+        art_api_v3.add_routes(
+            path='/floor-delta',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_floor_delta_integration
+        )
+        # GET Median DELTA
+        get_median_delta_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_median_delta_function
+        )
+        art_api_v3.add_routes(
+            path='/median-delta',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_median_delta_integration
+        )
+        # GET Volume DELTA
+        get_volume_delta_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_volume_delta_function
+        )
+        art_api_v3.add_routes(
+            path='/volume-delta',
+            methods=[apigwv2.HttpMethod.POST],
+            integration=get_volume_delta_integration
+        )
 
 

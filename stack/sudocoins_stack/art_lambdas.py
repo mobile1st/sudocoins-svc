@@ -558,7 +558,7 @@ class SudocoinsArtLambdas:
         )
         resources.collections_table.grant_read_data(set_trades_delta_function)
         resources.config_table.grant_read_write_data(set_trades_delta_function)
-        set_trades_delta_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
+        set_trades_delta_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
         set_trades_delta_target = events_targets.LambdaFunction(handler=set_trades_delta_function)
         events.Rule(
             scope,
@@ -709,6 +709,102 @@ class SudocoinsArtLambdas:
         )
         resources.news_table.grant_read_write_data(self.get_news_function)
         resources.grant_read_index_data(self.get_news_function, [resources.news_table])
+        # GET Floor DELTA
+        self.get_floor_delta_function = _lambda.Function(
+            scope,
+            'GetFloorDelta',
+            function_name='GetFloorDelta',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.lists.get_floor_delta.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.get_floor_delta_function)
+        # SET Floor DELTA
+        set_floor_delta_function = _lambda.Function(
+            scope,
+            'SetFloorDelta',
+            function_name='SetFloorDelta',
+            handler='art.set_lists.floor_delta.lambda_handler',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset('../src'),
+            log_retention=logs.RetentionDays.THREE_MONTHS
+        )
+        resources.collections_table.grant_read_data(set_floor_delta_function)
+        resources.config_table.grant_read_write_data(set_floor_delta_function)
+        set_floor_delta_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_floor_delta_target = events_targets.LambdaFunction(handler=set_floor_delta_function)
+        events.Rule(
+            scope,
+            "SetFloorDeltaRule",
+            description="Periodically sets floor delta",
+            enabled=True,
+            schedule=set_floor_delta_schedule,
+            targets=[set_floor_delta_target]
+        )
+        # GET Median DELTA
+        self.get_median_delta_function = _lambda.Function(
+            scope,
+            'GetMedianDelta',
+            function_name='GetMedianDelta',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.lists.get_median_delta.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.get_median_delta_function)
+        # SET Median DELTA
+        set_median_delta_function = _lambda.Function(
+            scope,
+            'SetMedianDelta',
+            function_name='SetMedianDelta',
+            handler='art.set_lists.median_delta.lambda_handler',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset('../src'),
+            log_retention=logs.RetentionDays.THREE_MONTHS
+        )
+        resources.collections_table.grant_read_data(set_median_delta_function)
+        resources.config_table.grant_read_write_data(set_median_delta_function)
+        set_median_delta_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_median_delta_target = events_targets.LambdaFunction(handler=set_median_delta_function)
+        events.Rule(
+            scope,
+            "SetMedianDeltaRule",
+            description="Periodically sets median delta",
+            enabled=True,
+            schedule=set_median_delta_schedule,
+            targets=[set_median_delta_target]
+        )
+        # GET Volume DELTA
+        self.get_volume_delta_function = _lambda.Function(
+            scope,
+            'GetVolumeDelta',
+            function_name='GetVolumeDelta',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.lists.get_volume_delta.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.get_volume_delta_function)
+        # SET Volume DELTA
+        set_volume_delta_function = _lambda.Function(
+            scope,
+            'SetVolumeDelta',
+            function_name='SetVolumeDelta',
+            handler='art.set_lists.volume_delta.lambda_handler',
+            runtime=_lambda.Runtime.PYTHON_3_8,
+            code=_lambda.Code.asset('../src'),
+            log_retention=logs.RetentionDays.THREE_MONTHS
+        )
+        resources.collections_table.grant_read_data(set_volume_delta_function)
+        resources.config_table.grant_read_write_data(set_volume_delta_function)
+        set_volume_delta_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        set_volume_delta_target = events_targets.LambdaFunction(handler=set_volume_delta_function)
+        events.Rule(
+            scope,
+            "SetVolumeDeltaRule",
+            description="Periodically sets volume delta",
+            enabled=True,
+            schedule=set_volume_delta_schedule,
+            targets=[set_volume_delta_target]
+        )
 
 
 
