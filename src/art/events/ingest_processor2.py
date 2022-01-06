@@ -484,3 +484,4 @@ def update_collection(art_object, eth_sale_price, collection_id):
 
 
 
+
