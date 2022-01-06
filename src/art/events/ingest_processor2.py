@@ -224,7 +224,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                     row_values)
 
                 sql = '''select id from nft.collections where collection_code=%s limit 1;'''
-                cur.execute(sql,collection_code)
+                cur.execute(sql, collection_code)
                 result = cur.fetchall()
                 collection_id = result[0][0]
             else:
@@ -257,7 +257,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                     'INSERT INTO `nft`.`users` (`public_key`) VALUES (%s)',
                     row_values)
                 sql = '''select id from nft.users where public_key=%s limit 1;'''
-                cur.execute(sql,public_key)
+                cur.execute(sql, public_key)
                 result = cur.fetchall()
                 buyer_id = result[0][0]
             else:
@@ -265,7 +265,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             # seller
             public_key = art_record['seller']
             sql = '''select id from nft.users where public_key=%s limit 1;'''
-            cur.execute(sql,public_key)
+            cur.execute(sql, public_key)
             result = cur.fetchall()
             if len(result) == 0:
                 row_values = (public_key)
@@ -374,6 +374,44 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         dynamodb.Table('art').put_item(Item=art_record)
         log.info("art added to art table")
 
+    try:
+
+        sns.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
+            MessageStructure='string',
+            MessageAttributes={
+                'art_id': {
+                    'DataType': 'String',
+                    'StringValue': nft_id
+                },
+                'art_url': {
+                    'DataType': 'String',
+                    'StringValue': art_url
+                },
+                'process': {
+                    'DataType': 'String',
+                    'StringValue': "STREAM_TO_S3"
+                }
+            },
+            Message=json.dumps(art_record)
+        )
+    except Exception as e:
+        log.info(f"open_sea {open_sea}")
+        log.info(f"status: failure - {e}")
+
+    try:
+        msg = {
+            "collection_id": art_record.get('collection_id', "")
+        }
+        sns.publish(
+            TopicArn='arn:aws:sns:us-west-2:977566059069:AddSearchTopic',
+            MessageStructure='string',
+            Message=json.dumps(msg)
+        )
+        log.info(f"add search message published")
+    except Exception as e:
+        log.info(f"status: failure - {e}")
+
 
 def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id):
     dynamodb = boto3.resource('dynamodb')
@@ -442,7 +480,7 @@ def update_collection(art_object, eth_sale_price, collection_id):
 
         log.info(f"add time series published")
     except Exception as e:
-        log.info(e)
+        log.info(f"status: failure - {e}")
 
 
 
