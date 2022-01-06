@@ -29,7 +29,7 @@ class Art:
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, mime_type, cdn_url, "
                                  "last_sale_price, list_price, description, collection_id, collection_data, "
-                                 "collection_name, #T",
+                                 "collection_name, #T, blockchain",
             ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'})
         try:
             if 'Item' in art:
