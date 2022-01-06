@@ -4,12 +4,12 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    floor_delta = get_config()
+    #floor_delta = get_config()
 
     return {
-        'day': floor_delta['day'],
-        'hour': floor_delta['hour'],
-        'week': floor_delta['week']
+        'day': [],#floor_delta['day'],
+        'hour': [],#floor_delta['hour'],
+        'week': []#floor_delta['week']
     }
 
 

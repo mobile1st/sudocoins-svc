@@ -7,7 +7,9 @@ def lambda_handler(event, context):
     trades_delta = get_config()
 
     return {
-        'day': trades_delta['day']
+        'day': trades_delta['day'],
+        'hour': [],#trades_delta['hour'],
+        'week': []#trades_delta['week']
     }
 
 

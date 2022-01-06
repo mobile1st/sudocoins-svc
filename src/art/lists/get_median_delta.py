@@ -4,12 +4,12 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-    median_delta = get_config()
+    #median_delta = get_config()
 
     return {
-        'day': median_delta['day'],
-        'hour': median_delta['hour'],
-        'week': median_delta['week']
+        'day': [],#median_delta['day'],
+        'hour': [],#median_delta['hour'],
+        'week': []#median_delta['week']
     }
 
 
