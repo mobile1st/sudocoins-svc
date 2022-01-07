@@ -1,5 +1,4 @@
 import boto3
-from util import sudocoins_logger
 import json
 from art.art import Art
 from util import sudocoins_logger
