@@ -1,9 +1,7 @@
-import sys
 import pymysql
 import boto3
 from util import sudocoins_logger
 import os
-
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -18,28 +16,38 @@ conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_
 
 
 def lambda_handler(event, context):
-
-    day = get_collections()
+    hour = get_collections("hour")
+    day = get_collections("day")
+    week = get_collections("week")
 
     config_table = dynamodb.Table('Config')
+
     config_table.update_item(
         Key={
             'configKey': 'TradesDelta'
         },
-        UpdateExpression="set #d=:d",
+        UpdateExpression="set #d=:d, #h=:h, #w=:w",
         ExpressionAttributeValues={
-            ":d": day
+            ":d": day,
+            ":h": hour,
+            ":w": week
+
         },
         ReturnValues="ALL_NEW",
-        ExpressionAttributeNames={'#d': 'day'}
+        ExpressionAttributeNames={'#d': 'day', '#h': 'hour', '#w': 'week'}
     )
 
-    return
+    return {
+        "day": day,
+        "hour": hour,
+        "week": week
+    }
 
 
-def get_collections():
+def get_collections(period):
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.day2, t1.day, round(((t1.day-t2.day2)/t2.day2*100),1) AS a FROM (SELECT collection_id, COUNT(*) AS day FROM nft.events where event_date >= now() - interval 1 day and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS day2 FROM nft.events where event_date >= now() - interval 2 day and blockchain_id=1 and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.day2 > 10 order by a desc limit 100;"
+        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_date >= now() - interval 1 " + period + " and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_date >= now() - interval 2 " + period + " and event_date <= now() - interval 1 " + period + " and blockchain_id=1 GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.count2 > 10 order by delta desc limit 100;"
+
         cur.execute(sql)
         result = cur.fetchall()
 

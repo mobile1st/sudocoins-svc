@@ -8,8 +8,8 @@ def lambda_handler(event, context):
 
     return {
         'day': trades_delta['day'],
-        'hour': [],#trades_delta['hour'],
-        'week': []#trades_delta['week']
+        'hour': trades_delta['hour'],
+        'week':trades_delta['week']
     }
 
 

@@ -6,7 +6,6 @@ import os
 import statistics
 from decimal import Decimal, getcontext
 
-
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 
@@ -24,6 +23,8 @@ def lambda_handler(event, context):
     day = get_collections("day")
     week = get_collections("week")
 
+    '''
+
     config_table = dynamodb.Table('Config')
     config_table.update_item(
         Key={
@@ -39,6 +40,7 @@ def lambda_handler(event, context):
         ReturnValues="ALL_NEW",
         ExpressionAttributeNames={'#d': 'day', '#h': 'hour', '#w': 'week'}
     )
+    '''
 
     return
 
@@ -46,13 +48,14 @@ def lambda_handler(event, context):
 def get_collections(period):
     results = []
     with conn.cursor() as cur:
-        sql = "SELECT co.collection_code, price FROM nft.events ev inner join nft.collections coll on ev.collection_id = co.id where event_date >= now() - interval 1 %s and blockchain_id=1"
-        sql2 = "SELECT co.collection_code, price FROM nft.events ev inner join nft.collections coll on ev.collection_id = co.id where event_date >= now() - interval 2 %s and event_date <= now() - interval 1 %s and blockchain_id=1"
+        sql = "SELECT coll.collection_code, price FROM nft.events ev inner join nft.collections coll on ev.collection_id = coll.id where event_date >= now() - interval 1 " + period + " and ev.blockchain_id=1;"
+        sql2 = "SELECT coll.collection_code, price FROM nft.events ev inner join nft.collections coll on ev.collection_id = coll.id where event_date >= now() - interval 2 " + period + " and event_date <= now() - interval 1 " + period + " and ev.blockchain_id=1;"
 
-        cur.execute(sql, period)
+        cur.execute(sql)
         result = cur.fetchall()
         results.append(result)
-        cur.execute(sql2, (period, period))
+
+        cur.execute(sql2)
         result2 = cur.fetchall()
         results.append(result2)
         conn.close()
@@ -62,14 +65,16 @@ def get_collections(period):
         if i[0] not in collections1:
             collections1[i[0]] = [i[1]]
         else:
-            collections1[i[0]] = collections1[i[0]] = [i[1]] + [i[1]]
+            log.info("hi")
+            collections1[i[0]] = collections1[i[0]] + [i[1]]
 
     collections2 = {}
     for i in results[0]:
         if i[0] not in collections2:
             collections2[i[0]] = [i[1]]
         else:
-            collections2[i[0]] = collections2[i[0]] = [i[1]] + [i[1]]
+            log.info("hi")
+            collections2[i[0]] = collections2[i[0]] + [i[1]]
 
     collection_medians1 = {}
     for i in collections1.keys():
@@ -81,19 +86,20 @@ def get_collections(period):
         median = statistics.median(collections2[i])
         collection_medians2[i] = median
 
-
     collection_list = []
     for i in collection_medians1:
         if i in collection_medians2:
+            if collection_medians1[i] == 0 or collection_medians2[i] == 0:
+                continue
             tmp = {
                 "collection_id": i,
                 "period2": collection_medians2[i],
                 "period1": collection_medians1[i],
-                "delta": Decimal((collection_medians1[i] - collection_medians2[i])/collection_medians2[i] * 100)
+                "delta": Decimal((collection_medians1[i] - collection_medians2[i]) / collection_medians2[i] * 100)
             }
             collection_list.append(tmp)
 
-    #sort collection list so it's ranked high to low for median change.
+    # sort collection list so it's ranked high to low for median change.
 
     dynamodb = boto3.resource('dynamodb')
 

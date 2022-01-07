@@ -43,9 +43,9 @@ def lambda_handler(event, context):
 
 def get_collections(period):
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.floor2, t1.floor1, round(((t1.floor1-t2.floor2)/t2.floor2*100),1) AS delta FROM (SELECT collection_id, min(price) AS count1 FROM nft.events where event_date >= now() - interval 1 %s and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, min(price) AS count2 FROM nft.events where event_date >= now() - interval 2 %s and event_date <= now() - interval 1 %s and blockchain_id=1 GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id order by delta desc limit 100;"
+        sql = "SELECT distinct co.collection_code, t2.floor2, t1.floor1, round(((t1.floor1-t2.floor2)/t2.floor2*100),1) AS delta FROM (SELECT collection_id, min(price) AS floor1 FROM nft.events where event_date >= now() - interval 1 "+period+" and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, min(price) AS floor2 FROM nft.events where event_date >= now() - interval 2 "+period+" and event_date <= now() - interval 1 "+period+" and blockchain_id=1 GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id order by delta desc limit 100;"
 
-        cur.execute(sql, (period, period, period))
+        cur.execute(sql)
         result = cur.fetchall()
 
     collection_list = []
