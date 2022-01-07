@@ -26,7 +26,7 @@ def lambda_handler(event, context):
         dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update'])
     log.info(f'created: {event_date}')
 
-    conn = pymysql.connect(host=rds_host2, user=name, password=password, database=db_name, connect_timeout=15)
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     points = []
 
     with conn.cursor() as cur:

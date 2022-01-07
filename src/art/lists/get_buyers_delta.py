@@ -15,5 +15,5 @@ def lambda_handler(event, context):
 
 def get_config():
     return dynamodb.Table('Config').get_item(
-        Key={'configKey': 'VolumeDelta'}
+        Key={'configKey': 'BuyersDelta'}
     )['Item']

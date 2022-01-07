@@ -11,38 +11,41 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
-    created = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest_start_time'})['Item']['last_update']
-    log.info(f'created: {created}')
-    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(created)).total_seconds() / 60
+
+    start_time = dynamodb.Table('Config').get_item(Key={'configKey': 'listings'})['Item']['last_update']
+    log.info(f'created: {start_time}')
+
+    end_time = (datetime.fromisoformat(start_time) + timedelta(minutes=2)).isoformat()
+
+    difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
     log.info(f'difference: {difference}')
+
     if difference < 20:
         return
 
-    end_time = (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat()
+    open_sea_response = call_open_sea(start_time, end_time)
 
-    open_sea_response = call_open_sea(created, end_time)
     length_response = len(open_sea_response)
     if length_response == 300:
         log.info('split and call again')
-        end_time_small = (datetime.fromisoformat(created) + timedelta(minutes=1)).isoformat()
-        end_time = (datetime.fromisoformat(created) + timedelta(minutes=2)).isoformat()
-        open_sea_response1 = call_open_sea(created, end_time_small)
-        open_sea_response2 = call_open_sea(end_time_small, end_time)
+        middle_time = (datetime.fromisoformat(end_time) - timedelta(minutes=1)).isoformat()
+        open_sea_response1 = call_open_sea(middle_time, end_time)
+        open_sea_response2 = call_open_sea(start_time, middle_time)
         open_sea_response = open_sea_response1 + open_sea_response2
 
     count_eth = process_open_sea(open_sea_response)
     log.info(count_eth)
     set_config(end_time)
+    log.info(f'start_time: {start_time}')
     log.info(f'end_time: {end_time}')
 
     return
 
 
 def call_open_sea(created, end_time):
-    path = "/api/v1/events?event_type=successful&only_opensea=false&offset=0&limit=300&occurred_after=" \
+    path = "/api/v1/events?event_type=created&only_opensea=false&offset=0&limit=300&occurred_after=" \
            + created + "&occurred_before=" + end_time
     log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
@@ -51,10 +54,12 @@ def call_open_sea(created, end_time):
     }
     conn.request("GET", path, headers=api_key)
     response = conn.getresponse()
+    # . log.info(f'response: {response}')
 
-    response2 = response.read().decode('utf-8')
+    decoded_response = response.read().decode('utf-8')
+    # . log.info(f'response2: {response2}')
 
-    open_sea_response = json.loads(response2)
+    open_sea_response = json.loads(decoded_response)
 
     return open_sea_response['asset_events']
 
@@ -62,7 +67,7 @@ def call_open_sea(created, end_time):
 def set_config(end_time):
     dynamodb.Table('Config').update_item(
         Key={
-            'configKey': 'ingest_start_time'
+            'configKey': 'ingest2'
         },
         UpdateExpression="set last_update=:lu",
         ExpressionAttributeValues={
@@ -70,16 +75,24 @@ def set_config(end_time):
         },
         ReturnValues="ALL_NEW"
     )
+    log.info("config updated")
 
 
 def process_open_sea(open_sea_response):
     count = 0
     count_eth = 0
+    count_matic = 0
     for i in open_sea_response:
         if i.get('asset') is None:
             try:
-
+                # . log.info(i)
                 log.info("bundle")
+
+                listing_price = i.get('starting_price')
+                listing_time = i.get('listing_time')
+                if listing_time is None:
+                    listing_time = i.get('created_date')
+
                 asset_bundle = i.get('asset_bundle', {}).get('assets', [])
                 bundle_count = len(asset_bundle)
                 price_per = int(i.get('total_price')) / bundle_count
@@ -94,12 +107,44 @@ def process_open_sea(open_sea_response):
                     seller = i.get('transaction', {}).get('from_account', {}).get('address')
 
                 for k in asset_bundle:
-                    log.info(k)
+                    # . log.info(k)
                     open_sea_url = i.get('permalink', "")
                     if open_sea_url.find('matic') != -1:
-                        continue
+                        created_date = i.get('transaction')
+                        if created_date is not None:
+                            created_date = created_date.get('timestamp')
+                            if created_date is None:
+                                created_date = i.get('created_date', "")
+                        else:
+                            created_date = i.get('created_date', "")
+
+                        msg = {
+                            "blockchain": "polygon",
+                            "payment_token": payment_token,
+                            "event_type": event_type,
+                            "open_sea_url": k.get('permalink'),
+                            "sale_price": price_per,
+                            "created_date": created_date,
+                            "asset": k,
+                            "owner": winner_account,
+                            "collection_date": k.get('collection', {}).get('created_date'),
+                            "seller": seller
+                        }
+
+                        sns_client.publish(
+                            TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
+                            MessageStructure='string',
+                            Message=json.dumps(msg)
+                        )
+                        log.info("bundle asset published")
+
+                        count_matic += 1
+                        count += 1
+
                     elif open_sea_url.find('klaytn') != -1:
+                        count += 1
                         continue
+
                     else:
                         created_date = i.get('transaction')
                         if created_date is not None:
@@ -121,10 +166,8 @@ def process_open_sea(open_sea_response):
                             "collection_date": k.get('collection', {}).get('created_date'),
                             "seller": seller
                         }
-
-                        #. log.info(msg)
                         sns_client.publish(
-                            TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
+                            TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
                             MessageStructure='string',
                             Message=json.dumps(msg)
                         )
@@ -135,26 +178,48 @@ def process_open_sea(open_sea_response):
 
             except Exception as e:
                 log.info(e)
+                count += 1
         else:
             try:
                 open_sea_url = i.get('asset', {}).get('permalink', "")
+
+
+                listing_price = i.get('starting_price')
+                listing_time = i.get('listing_time')
+                if listing_time is None:
+                    listing_time = i.get('created_date')
+
+
                 if open_sea_url.find('matic') != -1:
-                    # log.info('matic')
+
+                    msg = {
+                        "blockchain": "polygon",
+                        "payment_token": i.get('payment_token'),
+                        "event_type": i.get('event_type'),
+                        "open_sea_url": i.get('asset', {}).get('permalink'),
+                        "listing_price": i.get('total_price'),
+                        "listing_time": created_date,
+                        "asset": i.get('asset'),
+                        "owner": i.get('winner_account', {}).get('address', ""),
+                        "collection_date": i.get('asset', {}).get('collection', {}).get('created_date')
+                    }
+                    if i.get('seller') is None:
+                        seller = "unknown"
+                    else:
+                        seller = i.get('seller', {}).get('address', "")
+                    msg['seller'] = seller
+                    sns_client.publish(
+                        TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
+                        MessageStructure='string',
+                        Message=json.dumps(msg)
+                    )
                     count += 1
-                    continue
+                    count_matic += 1
+
                 elif open_sea_url.find('klaytn') != -1:
-                    # log.info('klaytn')
                     count += 1
                     continue
                 else:
-                    # log.info('ethereum')
-                    created_date = i.get('transaction')
-                    if created_date is not None:
-                        created_date = created_date.get('timestamp')
-                        if created_date is None:
-                            created_date = i.get('created_date', "")
-                    else:
-                        created_date = i.get('created_date', "")
 
                     msg = {
                         "blockchain": "Ethereum",
@@ -167,22 +232,19 @@ def process_open_sea(open_sea_response):
                         "owner": i.get('winner_account', {}).get('address', ""),
                         "collection_date": i.get('asset', {}).get('collection', {}).get('created_date')
                     }
-
                     if i.get('seller') is None:
                         seller = "unknown"
                     else:
                         seller = i.get('seller', {}).get('address', "")
                     msg['seller'] = seller
-
-                    # log.info(msg)
                     sns_client.publish(
-                        TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSeaTopic',
+                        TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
                         MessageStructure='string',
                         Message=json.dumps(msg)
                     )
-
                     count += 1
                     count_eth += 1
+
             except Exception as e:
                 log.info(f'art error: {e}')
                 log.info(f'art event: {i}')
@@ -190,6 +252,9 @@ def process_open_sea(open_sea_response):
 
     log.info(f'final count: {count}')
     log.info(f'eth count: {count_eth}')
+    log.info(f'matic count: {count_matic}')
 
     return count_eth
+
+
 
