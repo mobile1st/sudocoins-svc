@@ -131,3 +131,5 @@ def get_collections(period):
                 continue
 
     return collection_list
+
+
