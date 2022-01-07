@@ -161,54 +161,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.update_tags_function)
-        # INGEST OPENSEA
-        ingest_opensea_function = _lambda.Function(
-            scope,
-            'IngestOpenSeaV2',
-            function_name='IngestOpenSeaV2',
-            timeout=cdk.Duration.seconds(30),
-            handler='art.events.ingest_opensea.lambda_handler',
-            **lambda_default_kwargs
-        )
-        ingest_opensea_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
-        ingest_opensea_target = events_targets.LambdaFunction(handler=ingest_opensea_function)
-        events.Rule(
-             scope,
-             "IngestOpenseaRule",
-             description="Periodically refreshes trending arts sorted by click counts",
-             enabled=True,
-             schedule=ingest_opensea_schedule,
-             targets=[ingest_opensea_target]
-         )
-        resources.ingest_opensea_topic.grant_publish(ingest_opensea_function)
-        resources.art_table.grant_read_write_data(ingest_opensea_function)
-        resources.config_table.grant_read_write_data(ingest_opensea_function)
-        resources.grant_read_index_data(
-            ingest_opensea_function,
-            [resources.art_table]
-        )
-        # INGEST PROCESSOR
-        ingest_processor_function = _lambda.Function(
-            scope,
-            'IngestProcessorV2',
-            function_name='IngestProcessorV2',
-            timeout=cdk.Duration.seconds(30),
-            handler='art.events.ingest_processor.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.ingest_opensea_topic.add_subscription(
-            subs.LambdaSubscription(
-                ingest_processor_function
-            )
-        )
-        resources.art_table.grant_read_write_data(ingest_processor_function)
-        resources.grant_read_index_data(
-            ingest_processor_function,
-            [resources.art_table]
-        )
-        resources.art_processor_topic.grant_publish(ingest_processor_function)
-        resources.add_search_topic.grant_publish(ingest_processor_function)
-        resources.collections_table.grant_read_write_data(ingest_processor_function)
         # GET HEARTS
         self.get_hearts_function = _lambda.Function(
             scope,

@@ -58,12 +58,6 @@ class SudocoinsImportedResources:
             display_name='ArtProcessor',
             topic_name='ArtProcessor'
         )
-        self.ingest_opensea_topic = sns.Topic(
-            scope,
-            'IngestOpenSeaTopic',
-            display_name='IngestOpenSeaTopic',
-            topic_name='IngestOpenSeaTopic'
-        )
         self.ingest_opensea2_topic = sns.Topic(
             scope,
             'IngestOpenSea2Topic',
