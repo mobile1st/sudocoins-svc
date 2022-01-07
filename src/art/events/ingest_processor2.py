@@ -15,6 +15,7 @@ dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
 ledger = Ledger(dynamodb)
 art = Art(dynamodb)
+sns = boto3.client("sns")
 
 
 def lambda_handler(event, context):
