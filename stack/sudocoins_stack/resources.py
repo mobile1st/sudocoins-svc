@@ -70,12 +70,6 @@ class SudocoinsImportedResources:
             display_name='AddSearchTopic',
             topic_name='AddSearchTopic'
         )
-        self.get_meta_mask_topic = sns.Topic(
-            scope,
-            'GetMetaMaskTopic',
-            display_name='GetMetaMaskTopic',
-            topic_name='GetMetaMaskTopic'
-        )
         self.add_time_series2_topic = sns.Topic(
             scope,
             'AddTimeSeries2Topic',

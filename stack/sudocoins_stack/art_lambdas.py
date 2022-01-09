@@ -282,20 +282,7 @@ class SudocoinsArtLambdas:
             self.collection_name_function,
             [resources.art_table]
         )
-        # DELETE ART
-        self.delete_art_function = _lambda.Function(
-            scope,
-            'DeleteArtV2',
-            function_name='DeleteArtV2',
-            handler='art.delete_art.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.art_table.grant_read_write_data(self.delete_art_function)
-        resources.sub_table.grant_read_data(self.delete_art_function)
-        resources.grant_read_index_data(
-            self.delete_art_function,
-            [resources.art_table]
-        )
+
         # GET MINTED
         self.get_minted_function = _lambda.Function(
             scope,
@@ -346,26 +333,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_buyers_function)
-        # GET META MASK
-        get_meta_mask_function = _lambda.Function(
-            scope,
-            'GetMetaMaskV2',
-            function_name='GetMetaMaskV2',
-            handler='art.get_mm_arts.lambda_handler',
-            timeout=cdk.Duration.seconds(300),
-            **lambda_default_kwargs
-        )
-        resources.get_meta_mask_topic.add_subscription(
-            subs.LambdaSubscription(
-                get_meta_mask_function
-            )
-        )
-        resources.art_table.grant_read_write_data(get_meta_mask_function)
-        resources.grant_read_index_data(
-            get_meta_mask_function,
-            [resources.art_table]
-        )
-        resources.art_processor_topic.grant_publish(get_meta_mask_function)
+
         # SET NEW COLLECTIONS
         set_new_collections_function = _lambda.Function(
             scope,

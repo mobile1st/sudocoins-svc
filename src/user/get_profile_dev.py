@@ -22,19 +22,6 @@ def lambda_handler(event, context):
 
     publicAddress, signature, hash_message = parseJson(jsonInput)
 
-    try:
-        msg = {
-            "public_address": publicAddress
-        }
-        sns_client.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:GetMetaMaskTopic',
-            MessageStructure='string',
-            Message=json.dumps(msg)
-        )
-        log.info(f"meta mask message added")
-    except Exception as e:
-        log.info(e)
-
     global profile
 
     if publicAddress != "":
@@ -155,55 +142,4 @@ def parseJson(jsonInput):
         hash_message = ''
 
     return publicAddress, signature, hash_message
-
-
-def get_metamask_arts(public_address):
-    path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + "0"
-    log.info(f'path: {path}')
-    conn = http.client.HTTPSConnection("api.opensea.io")
-    conn.request("GET", path)
-    response = conn.getresponse()
-    response2 = response.read().decode('utf-8')
-    open_sea_response = json.loads(response2)['assets']
-
-    arts = []
-    arts = arts + open_sea_response
-
-    count = 50
-    while len(open_sea_response) >= 50:
-        path = "https://api.opensea.io/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + str(count)
-        log.info(f'path: {path}')
-        conn = http.client.HTTPSConnection("api.opensea.io")
-        conn.request("GET", path)
-        response = conn.getresponse()
-        response2 = response.read().decode('utf-8')
-        open_sea_response = json.loads(response2)['assets']
-        count += 50
-        arts = arts + open_sea_response
-
-    art_objects = []
-    for i in arts:
-        contract = i.get("asset_contract", {}).get("address", "")
-        token = i.get("id", "")
-        contract_token = contract + "#" + str(token)
-
-        msg = {
-            "art_url": i.get("image_url", ""),
-            "preview_url": i.get("image_preview_url", ""),
-            "name": i.get("name", ""),
-            "description": i.get("description", ""),
-            "collection_address": i.get("asset_contract", {}).get("address", ""),
-            "collection_name": i.get("collection", {}).get("name", ""),
-            "contractId#tokenId": contract_token
-        }
-
-        if i['last_sale'] is not None:
-            msg['last_sale_price'] = i.get('last_sale', {}).get('total_price')
-
-        if i['sell_orders'] is not None and len(i['sell_orders']) > 0:
-            msg['list_price'] = i.get('sell_orders')[0]['current_price']
-
-        art_objects.append(msg)
-
-    return art_objects
 
