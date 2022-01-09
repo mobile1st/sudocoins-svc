@@ -14,6 +14,9 @@ art = Art(dynamodb)
 
 def lambda_handler(event, context):
     event = json.loads(event['Records'][0]['Sns']['Message'])
+    if event['public_address'] is None:
+        log.info(f"public_address {event['public_address']}")
+        return
     set_log_context(event)
     #  sub = event['event']
     log.info(f"public_address {event['public_address']}")

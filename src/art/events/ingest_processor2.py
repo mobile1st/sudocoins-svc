@@ -94,7 +94,6 @@ def add(art_object):
         "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
         "creator": art_object.get('asset', {}).get('asset_contract'),
         "permalink": art_object.get('open_sea_url'),
-        "asset": art_object.get('asset'),
         "token_metadata": art_object.get('asset', {}).get('token_metadata')
     }
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')

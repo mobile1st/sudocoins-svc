@@ -103,6 +103,7 @@ def process_open_sea(open_sea_response):
                     # . log.info(k)
                     open_sea_url = i.get('permalink', "")
                     if open_sea_url.find('matic') != -1:
+                        continue
                         created_date = i.get('transaction')
                         if created_date is not None:
                             created_date = created_date.get('timestamp')
@@ -176,6 +177,7 @@ def process_open_sea(open_sea_response):
             try:
                 open_sea_url = i.get('asset', {}).get('permalink', "")
                 if open_sea_url.find('matic') != -1:
+                    continue
                     created_date = i.get('transaction')
                     if created_date is not None:
                         created_date = created_date.get('timestamp')
