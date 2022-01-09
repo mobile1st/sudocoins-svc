@@ -804,7 +804,7 @@ class SudocoinsArtLambdas:
         new_listings_target = events_targets.LambdaFunction(handler=new_listings_function)
         events.Rule(
             scope,
-            "IngestOpensea2Rule",
+            "NewListingsRule",
             description="Periodically add and updates listings",
             enabled=True,
             schedule=new_listings_schedule,
