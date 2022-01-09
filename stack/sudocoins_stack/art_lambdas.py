@@ -790,6 +790,51 @@ class SudocoinsArtLambdas:
             schedule=set_buyers_delta_schedule,
             targets=[set_buyers_delta_target]
         )
+        # NEW LISTINGS
+        new_listings_function = _lambda.Function(
+            scope,
+            'NewListings',
+            function_name='NewListings',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.events.new_listings.lambda_handler',
+            **lambda_default_kwargs
+        )
+
+        new_listings_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
+        new_listings_target = events_targets.LambdaFunction(handler=new_listings_function)
+        events.Rule(
+            scope,
+            "IngestOpensea2Rule",
+            description="Periodically add and updates listings",
+            enabled=True,
+            schedule=new_listings_schedule,
+            targets=[new_listings_target]
+        )
+
+        resources.listings_topic.grant_publish(new_listings_function)
+        resources.config_table.grant_read_write_data(new_listings_function)
+        # LISTINGS PROCESSOR
+        listings_processor_function = _lambda.Function(
+            scope,
+            'ListingsProcessor',
+            function_name='ListingsProcessor',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.events.listings_processor2.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.listings_topic.add_subscription(
+            subs.LambdaSubscription(
+                listings_processor_function
+            )
+        )
+        resources.art_table.grant_read_write_data(listings_processor_function)
+        resources.grant_read_index_data(
+            listings_processor_function,
+            [resources.art_table]
+        )
+        resources.collections_table.grant_read_write_data(listings_processor_function)
+
+
 
 
 
