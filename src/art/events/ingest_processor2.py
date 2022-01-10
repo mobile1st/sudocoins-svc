@@ -2,7 +2,6 @@ import boto3
 import json
 from art.art import Art
 from util import sudocoins_logger
-from art.ledger import Ledger
 from decimal import Decimal, getcontext
 import pymysql
 from datetime import datetime
@@ -12,7 +11,6 @@ import os
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
-ledger = Ledger(dynamodb)
 art = Art(dynamodb)
 sns = boto3.client("sns")
 

@@ -2,6 +2,7 @@ import pymysql
 import boto3
 from util import sudocoins_logger
 import os
+from datetime import datetime
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -45,10 +46,13 @@ def lambda_handler(event, context):
 
 
 def get_collections(period):
+    dynamodb = boto3.resource('dynamodb')
+    start_time = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
+    date_object = datetime.fromisoformat(start_time)
+    log.info(f'created: {start_time}')
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_date >= now() - interval 1 " + period + " and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_date >= now() - interval 2 " + period + " and event_date <= now() - interval 1 " + period + " and blockchain_id=1 GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.count2 > 10 order by delta desc limit 100;"
-
-        cur.execute(sql)
+        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_date >= %s - interval 1 " + period + " and blockchain_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_date >= %s - interval 2 " + period + " and event_date <= %s - interval 1 " + period + " and blockchain_id=1 GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.count2 > 10 order by delta desc limit 100;"
+        cur.execute(sql, (date_object, date_object, date_object))
         result = cur.fetchall()
 
     collection_list = []
