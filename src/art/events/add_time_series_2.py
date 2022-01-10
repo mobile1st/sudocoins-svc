@@ -26,6 +26,7 @@ def lambda_handler(event, context):
     art_object = art['art_object']
     eth_sale_price = art['last_sale_price']
     collection_code = art['collection_code']
+    collection_url = art['collection_url']
 
     log.info('about to connect')
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
@@ -155,11 +156,12 @@ def lambda_handler(event, context):
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
-                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc"
+                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl"
         update_expression = update_expression1 + update_expression2
         log.info('about to make expression attributes')
         exp_att1 = {
             ':fl': mins,
+            ':curl': collection_url,
             ':me': med,
             ':ma': maxs,
             ':chd': floor_points,
