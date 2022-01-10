@@ -1,4 +1,4 @@
-import sys
+from datetime import datetime
 import pymysql
 import boto3
 from util import sudocoins_logger
@@ -41,18 +41,22 @@ def lambda_handler(event, context):
 
 
 def get_collections(period):
+    dynamodb = boto3.resource('dynamodb')
+    start_time = dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update']
+    date_object = datetime.fromisoformat(start_time)
+    log.info(f'created: {start_time}')
     results = []
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
     with conn.cursor() as cur:
-        sql = "select co.collection_code, ev.price from nft.events ev inner join nft.collections co on ev.collection_id = co.id where event_date >= now() - interval 1 " + str(
+        sql = "select co.collection_code, ev.price from nft.events ev inner join nft.collections co on ev.collection_id = co.id where event_date >= %s - interval 1 " + str(
             period) + " and ev.blockchain_id=1 and price>0;"
-        sql2 = "select co.collection_code, ev.price from nft.events ev inner join nft.collections co on ev.collection_id = co.id where event_date >= now() - interval 2 " + str(
-            period) + " and event_date <= now() - interval 1 " + period + " and ev.blockchain_id=1 and price>0;"
+        sql2 = "select co.collection_code, ev.price from nft.events ev inner join nft.collections co on ev.collection_id = co.id where event_date >= %s - interval 2 " + str(
+            period) + " and event_date <= %s - interval 1 " + period + " and ev.blockchain_id=1 and price>0;"
 
-        cur.execute(sql)
+        cur.execute(sql, date_object)
         result = cur.fetchall()
         results.append(result)
-        cur.execute(sql2)
+        cur.execute(sql2, (date_object,date_object))
         result2 = cur.fetchall()
         results.append(result2)
         conn.close()
