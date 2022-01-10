@@ -12,6 +12,7 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
+    return
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
     start_time = dynamodb.Table('Config').get_item(Key={'configKey': 'listings'})['Item']['last_update']

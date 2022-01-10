@@ -787,7 +787,7 @@ class SudocoinsArtLambdas:
             'ListingsProcessor',
             function_name='ListingsProcessor',
             timeout=cdk.Duration.seconds(30),
-            handler='art.events.listings_processor2.lambda_handler',
+            handler='art.events.process_listings.lambda_handler',
             **lambda_default_kwargs
         )
         resources.listings_topic.add_subscription(
