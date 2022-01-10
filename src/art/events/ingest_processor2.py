@@ -355,6 +355,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
+        art_record['collection_url'] = c_name
     else:
         art_record['collection_id'] = art_record['collection_address']
 
@@ -416,15 +417,17 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
     collection_id = collection_address + ":" + c_name
+    collection_url = c_name
 
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
             UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
                              "last_sale_price=:lsp, event_date=:ed, #n=:na, collection_address=:ca, collection_data=:cd,"
-                             "collection_name=:cn, #o=:ow, collection_id=:cid, seller=:se",
+                             "collection_name=:cn, #o=:ow, collection_id=:cid, seller=:se, collection_url=:curl",
             ExpressionAttributeValues={
                 ':art': art_url,
+                ':curl': collection_url,
                 ':buy': buy_url,
                 ':pre': preview_url,
                 ':open': open_sea,
@@ -460,13 +463,15 @@ def update_collection(art_object, eth_sale_price, collection_id):
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
     collection_code = collection_address + ":" + c_name
+    collection_url = c_name
 
     try:
         msg = {
             "last_sale_price": eth_sale_price,
             "collection_id": collection_id,
             'art_object': art_object,
-            'collection_code': collection_code
+            'collection_code': collection_code,
+            'collection_url': collection_url
         }
 
         sns_client.publish(
