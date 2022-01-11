@@ -355,6 +355,14 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
+
+        remove_chars = [',', '&', '+', '.', '!', '(', ')', '`']
+        replace_chars = [' ', '#', '/', '-', ':', '--']
+        collection_url = art_record['collection_name'].lower()
+        for i in remove_chars:
+            collection_url = collection_url.replace(i, '')
+        for i in replace_chars:
+            collection_url = collection_url.replace(i, '-')
         art_record['collection_url'] = c_name
     else:
         art_record['collection_id'] = art_record['collection_address']
@@ -417,7 +425,15 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
     collection_id = collection_address + ":" + c_name
-    collection_url = c_name
+
+    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`']
+    replace_chars = [' ', '#', '/', '-', ':', '--']
+    collection_url = collection_name.lower()
+    for i in remove_chars:
+        collection_url = collection_url.replace(i, '')
+    for i in replace_chars:
+        collection_url = collection_url.replace(i, '-')
+
 
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
