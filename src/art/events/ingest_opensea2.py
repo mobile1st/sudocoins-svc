@@ -87,7 +87,6 @@ def process_open_sea(open_sea_response):
                 # . log.info(i)
                 log.info("bundle")
                 asset_bundle = i.get('asset_bundle', {}).get('assets', [])
-                slug = i.get('collection_slug')
                 bundle_count = len(asset_bundle)
                 price_per = int(i.get('total_price')) / bundle_count
                 payment_token = i.get('payment_token')
@@ -128,8 +127,7 @@ def process_open_sea(open_sea_response):
                             "asset": k,
                             "owner": winner_account,
                             "collection_date": k.get('collection', {}).get('created_date'),
-                            "seller": seller,
-                            "slug": slug
+                            "seller": seller
                         }
                         sns_client.publish(
                             TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
@@ -147,7 +145,6 @@ def process_open_sea(open_sea_response):
         else:
             try:
                 open_sea_url = i.get('asset', {}).get('permalink', "")
-                slug = i.get('collection_slug')
                 if open_sea_url.find('matic') != -1:
                     continue
 
@@ -171,8 +168,7 @@ def process_open_sea(open_sea_response):
                         "created_date": created_date,
                         "asset": i.get('asset'),
                         "owner": i.get('winner_account', {}).get('address', ""),
-                        "collection_date": i.get('asset', {}).get('collection', {}).get('created_date'),
-                        'slug': slug
+                        "collection_date": i.get('asset', {}).get('collection', {}).get('created_date')
                     }
                     if i.get('seller') is None:
                         seller = "unknown"
