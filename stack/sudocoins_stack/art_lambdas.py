@@ -280,7 +280,7 @@ class SudocoinsArtLambdas:
         resources.collections_table.grant_read_write_data(self.collection_name_function)
         resources.grant_read_index_data(
             self.collection_name_function,
-            [resources.art_table]
+            [resources.art_table, resources.collections_table]
         )
 
         # GET MINTED
@@ -309,7 +309,7 @@ class SudocoinsArtLambdas:
         resources.collections_table.grant_read_write_data(self.collection_page_function)
         resources.grant_read_index_data(
             self.collection_page_function,
-            [resources.art_table]
+            [resources.art_table, resources.collections_table]
         )
         # TOP BUYERS PAGE
         self.top_buyers_page_function = _lambda.Function(
