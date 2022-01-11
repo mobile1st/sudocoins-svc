@@ -479,7 +479,14 @@ def update_collection(art_object, eth_sale_price, collection_id):
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
     collection_code = collection_address + ":" + c_name
-    collection_url = c_name
+
+    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`']
+    replace_chars = [' ', '#', '/', '-', ':', '--']
+    collection_url = collection_name.lower()
+    for i in remove_chars:
+        collection_url = collection_url.replace(i, '')
+    for i in replace_chars:
+        collection_url = collection_url.replace(i, '-')
 
     try:
         msg = {
