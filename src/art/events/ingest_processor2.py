@@ -356,8 +356,8 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
 
-        remove_chars = [',', '&', '+', '.', '!', '(', ')', '`']
-        replace_chars = [' ', '#', '/', '-', ':', '--']
+        remove_chars = [',', '&', '+', '.', '!', '(', ')', '`', '"', "'", "@"]
+        replace_chars = [' ', '#', '/', '-', ':', '--', "|"]
         collection_url = art_record['collection_name'].lower()
         for i in remove_chars:
             collection_url = collection_url.replace(i, '')
@@ -426,8 +426,8 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     c_name = ("-".join(collection_name.split())).lower()
     collection_id = collection_address + ":" + c_name
 
-    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`']
-    replace_chars = [' ', '#', '/', '-', ':', '--']
+    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`', '"', "'"]
+    replace_chars = [' ', '#', '/', '-', ':', '--', "|"]
     collection_url = collection_name.lower()
     for i in remove_chars:
         collection_url = collection_url.replace(i, '')
@@ -480,8 +480,8 @@ def update_collection(art_object, eth_sale_price, collection_id):
     c_name = ("-".join(collection_name.split())).lower()
     collection_code = collection_address + ":" + c_name
 
-    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`']
-    replace_chars = [' ', '#', '/', '-', ':', '--']
+    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`', '"', "'"]
+    replace_chars = [' ', '#', '/', '-', ':', '--', "|"]
     collection_url = collection_name.lower()
     for i in remove_chars:
         collection_url = collection_url.replace(i, '')
