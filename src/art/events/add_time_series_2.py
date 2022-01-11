@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal, getcontext
 import pymysql
 import os
+import http.client
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -152,11 +153,18 @@ def lambda_handler(event, context):
 
         dynamodb = boto3.resource('dynamodb')
 
+        try:
+            summary_stats = call_open_sea(art_object.get('asset', {}).get('collection', {}).get('slug', ""))
+        except Exception as e:
+            log.info(f'status - failure: {e}')
+            summary_stats = {}
+
+
         update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
-                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl"
+                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, summary_stats=:sumstats"
         update_expression = update_expression1 + update_expression2
         log.info('about to make expression attributes')
         exp_att1 = {
@@ -167,7 +175,8 @@ def lambda_handler(event, context):
             ':chd': floor_points,
             ':mc': charts,
             ':rdscollid': collection_id,
-            ':bc': art_object.get('blockchain')
+            ':bc': art_object.get('blockchain'),
+            ':sumstats': summary_stats
         }
         ex_att2 = {
             ':start': 0,
@@ -205,5 +214,24 @@ def lambda_handler(event, context):
         log.info(f'status: failure - {e}')
 
     return
+
+
+def call_open_sea(slug):
+    path = "/api/v1/collection/"+slug+"/stats"
+    log.info(f'path: {path}')
+    conn = http.client.HTTPSConnection("api.opensea.io")
+    api_key = {
+        "X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"
+    }
+    conn.request("GET", path, headers=api_key)
+    response = conn.getresponse()
+    # . log.info(f'response: {response}')
+
+    response2 = response.read().decode('utf-8')
+    # . log.info(f'response2: {response2}')
+
+    open_sea_response = json.loads(response2)
+
+    return open_sea_response['stats']
 
 

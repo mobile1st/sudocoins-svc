@@ -12,13 +12,12 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(event)
-    query_params = event['queryStringParameters']
+    query_params = event.get('queryStringParameters')
     collection_id = query_params.get('collection-id')
-
     body = json.loads(event['body'])
     collection_url = body.get('collection_url')
     if collection_id is None and collection_url is not None:
-        data = dynamodb.Table('art').query(
+        data = dynamodb.Table('collections').query(
             KeyConditionExpression=Key('collection_url').eq(collection_url),
             ScanIndexForward=False,
             Limit=1,
@@ -27,14 +26,6 @@ def lambda_handler(event, context):
         )
 
         collection_id = data['Items'][0]['collection_id']
-
-    if event[
-        'rawQueryString'] == "collection-id=0x999e88075692bcee3dbc07e7e64cd32f39a1d3ab%3Awizards-&-dragons-game-(wnd)=":
-        collection_id = "0x999e88075692bcee3dbc07e7e64cd32f39a1d3ab:wizards-&-dragons-game-(wnd)"
-
-    if event[
-        'rawQueryString'] == "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---":
-        collection_id = "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---ジオメトリ-ハ-ケイサンサレマセン-by-samsy"
 
     last_sale_price = get_lsp(collection_id)
     recent = get_recent(collection_id)

@@ -31,12 +31,12 @@ def lambda_handler(event, context):
                 return res['Item']
 
         else:
-            data = dynamodb.Table('art').query(
+            data = dynamodb.Table('collections').query(
                 KeyConditionExpression=Key('collection_url').eq(collection_url),
                 ScanIndexForward=False,
                 Limit=1,
                 IndexName='collection_url-index',
-                ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain'
+                ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain, summary_stats'
             )
 
             collection_data = data['Items'][0]
