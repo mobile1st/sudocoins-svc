@@ -17,15 +17,12 @@ def lambda_handler(event, context):
     collection_url = body.get('collection_url')
 
 
-    if collection_id == "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---":
-        collection_id = "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270:jiometory-no-compute---ジオメトリ-ハ-ケイサンサレマセン-by-samsy"
-
     try:
         if collection_id is not None:
 
             res = dynamodb.Table('collections').get_item(
                 Key={'collection_id': collection_id},
-                ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain")
+                ProjectionExpression="collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain, daily_data")
 
             if 'Item' in res and 'collection_data' in res['Item']:
                 return res['Item']
@@ -36,7 +33,7 @@ def lambda_handler(event, context):
                 ScanIndexForward=False,
                 Limit=1,
                 IndexName='collection_url-index',
-                ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain, summary_stats'
+                ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain, daily_data'
             )
 
             collection_data = data['Items'][0]
