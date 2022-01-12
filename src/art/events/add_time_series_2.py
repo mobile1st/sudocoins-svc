@@ -210,6 +210,13 @@ def lambda_handler(event, context):
     except Exception as e:
         log.info(f'status: failure - {e}')
 
+    try:
+        weekly_data, monthly_data = get_week_month(collection_id)
+        log.info('success')
+        log.info(weekly_data, monthly_data)
+    except Exception as e:
+        log.info(f'issue: {e}')
+
     return
 
 
@@ -284,5 +291,95 @@ def get_day(collection_id):
 
     except Exception as e:
         log.info(f'status: failure - {e}')
+
+
+def get_week_month(collection_id):
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
+    try:
+        with conn.cursor() as cur:
+
+            floor = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - internal 7 day and price>0 and collection_id=%s group by date(event_date);'''
+            ceiling = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - internal 7 day and price>0 and collection_id=%s group by date(event_date);'''
+            volume = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - internal 7 day and collection_id=%s group by date(event_date);'''
+            trades = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - internal 7 day and collection_id=%s and price>0  group by date(event_date);'''
+            buyers = '''select date(event_date), count(distinct buyer_id) from nft.events where event_date >= curdate() - internal 7 day and collection_id=%s group by date(event_date);'''
+            avg_per_day = '''select count(*) / (6 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - internal 7 day and collection_id=%s and price>0;'''
+
+            floor2 = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - internal 30 day and price>0 and collection_id=%s group by date(event_date);'''
+            ceiling2 = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - internal 30 day and price>0 and collection_id=%s group by date(event_date);'''
+            volume2 = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - internal 30 day and collection_id=%s group by date(event_date);'''
+            trades2 = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - internal 30 day and collection_id=%s and price>0  group by date(event_date);'''
+            buyers2 = '''select date(event_date), count(distinct buyer_id) from nft.events where event_date >= curdate() - internal 30 day and collection_id=%s group by date(event_date);'''
+            avg_per_day2 = '''select count(*) / (6 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - internal 30 day and collection_id=%s and price>0;'''
+
+            floor_points = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
+            ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
+            volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
+            trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
+            buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
+
+            results = []
+            statements = [floor, ceiling, volume, trades, buyers, avg_per_day, floor2, ceiling2, volume2, trades2, buyers2, avg_per_day2, floor_points, ceiling_points,
+                          volume_points, trades_points, buyers_points]
+            for i in statements:
+                cur.execute(i, collection_id)
+                tmp = cur.fetchall()
+                results.append(tmp)
+
+            conn.close()
+
+        weekly_data = {
+            "floor": results[0][0][1] / (10 ** 18),
+            "ceiling": results[1][0][1] / (10 ** 18),
+            "volume": results[2][0][1] / (10 ** 18),
+            "trades": results[3][0][1],
+            "buyers": results[4][0][1],
+            "avg_per_hour": results[5][0][0]
+        }
+        monthly_data = {
+            "floor": results[6][0][1] / (10 ** 18),
+            "ceiling": results[7][0][1] / (10 ** 18),
+            "volume": results[8][0][1] / (10 ** 18),
+            "trades": results[9][0][1],
+            "buyers": results[10][0][1],
+            "avg_per_hour": results[11][0][0]
+        }
+
+
+        try:
+            charts = []
+            for i in range(12, 17):
+                chart_points = []
+                for k in results[i]:
+                    log.info(k)
+                    if i in [12, 13, 14]:
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    else:
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1]
+                        }
+                        chart_points.append(point)
+                charts.append(chart_points)
+
+            monthly_data['floor_points'] = charts[0]
+            monthly_data['ceiling_points'] = charts[1]
+            monthly_data['volume_points'] = charts[0]
+            monthly_data['trades_points'] = charts[0]
+            monthly_data['buyers_points'] = charts[0]
+
+        except Exception as e:
+            log.info(f'status: failure - {e}')
+
+        return weekly_data, monthly_data
+
+    except Exception as e:
+        log.info(f'status: failure - {e}')
+
 
 
