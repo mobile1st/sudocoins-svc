@@ -299,25 +299,25 @@ def get_week_month(collection_id):
     try:
         with conn.cursor() as cur:
 
-            floor = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
-            ceiling = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
-            volume = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 7 day and collection_id=%s group by date(event_date);'''
-            trades = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 7 day and collection_id=%s and price>0  group by date(event_date);'''
-            buyers = '''select date(event_date), count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 7 day and collection_id=%s group by date(event_date);'''
-            avg_per_day = '''select count(*) / (6 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - interval 7 day and collection_id=%s and price>0;'''
+            floor = '''select min(price) from nft.events where event_date >= curdate() - interval 6 day and price>0 and collection_id=%s ;'''
+            ceiling = '''select max(price) from nft.events where event_date >= curdate() - interval 6 day and price>0 and collection_id=%s ;'''
+            volume = '''select sum(price) from nft.events where event_date >= curdate() - interval 6 day and collection_id=%s ;'''
+            trades = '''select count(*) from nft.events where event_date >= curdate() - interval 6 day and collection_id=%s and price>0  ;'''
+            buyers = '''select count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 6 day and collection_id=%s ;'''
+            avg_per_day = '''select count(*) / (6 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - interval 6 day and collection_id=%s and price>0;'''
 
-            floor2 = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 30 day and price>0 and collection_id=%s group by date(event_date);'''
-            ceiling2 = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and price>0 and collection_id=%s group by date(event_date);'''
-            volume2 = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
-            trades2 = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price>0  group by date(event_date);'''
-            buyers2 = '''select date(event_date), count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
-            avg_per_day2 = '''select count(*) / (6 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price>0;'''
+            floor2 = '''select min(price) from nft.events where event_date >= curdate() - interval 30 day and price>0 and collection_id=%s ;'''
+            ceiling2 = '''select max(price) from nft.events where event_date >= curdate() - interval 30 day and price>0 and collection_id=%s ;'''
+            volume2 = '''select sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s ;'''
+            trades2 = '''select count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price>0 ;'''
+            buyers2 = '''select count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s ;'''
+            avg_per_day2 = '''select count(*) / (30 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price>0;'''
 
-            floor_points = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
-            ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
-            volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
-            trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
-            buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s group by date(event_date);'''
+            floor_points = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
 
             results = []
             statements = [floor, ceiling, volume, trades, buyers, avg_per_day, floor2, ceiling2, volume2, trades2, buyers2, avg_per_day2, floor_points, ceiling_points,
@@ -330,19 +330,19 @@ def get_week_month(collection_id):
             conn.close()
 
         weekly_data = {
-            "floor": results[0][0][1] / (10 ** 18),
-            "ceiling": results[1][0][1] / (10 ** 18),
-            "volume": results[2][0][1] / (10 ** 18),
-            "trades": results[3][0][1],
-            "buyers": results[4][0][1],
+            "floor": results[0][0][0] / (10 ** 18),
+            "ceiling": results[1][0][0] / (10 ** 18),
+            "volume": results[2][0][0] / (10 ** 18),
+            "trades": results[3][0][0],
+            "buyers": results[4][0][0],
             "avg_per_hour": results[5][0][0]
         }
         monthly_data = {
-            "floor": results[6][0][1] / (10 ** 18),
-            "ceiling": results[7][0][1] / (10 ** 18),
-            "volume": results[8][0][1] / (10 ** 18),
-            "trades": results[9][0][1],
-            "buyers": results[10][0][1],
+            "floor": results[6][0][0] / (10 ** 18),
+            "ceiling": results[7][0][0] / (10 ** 18),
+            "volume": results[8][0][0] / (10 ** 18),
+            "trades": results[9][0][0],
+            "buyers": results[10][0][0],
             "avg_per_hour": results[11][0][0]
         }
 
