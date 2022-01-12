@@ -12,10 +12,15 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(event)
-    query_params = event.get('queryStringParameters')
-    collection_id = query_params.get('collection-id')
-    body = json.loads(event['body'])
-    collection_url = body.get('collection_url')
+    if 'queryStringParameters' in event:
+        query_params = event.get('queryStringParameters')
+        collection_id = query_params.get('collection-id')
+        collection_url = None
+    else:
+        body = json.loads(event['body'])
+        #body = event['body']
+        collection_url = body.get('collection_url')
+        collection_id = None
     if collection_id is None and collection_url is not None:
         data = dynamodb.Table('collections').query(
             KeyConditionExpression=Key('collection_url').eq(collection_url),

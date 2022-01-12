@@ -153,18 +153,13 @@ def lambda_handler(event, context):
 
         dynamodb = boto3.resource('dynamodb')
 
-        try:
-            summary_stats = call_open_sea(art_object.get('asset', {}).get('collection', {}).get('slug', ""))
-        except Exception as e:
-            log.info(f'status - failure: {e}')
-            summary_stats = {}
 
 
         update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
-                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, summary_stats=:sumstats"
+                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl"
         update_expression = update_expression1 + update_expression2
         log.info('about to make expression attributes')
         exp_att1 = {
@@ -175,8 +170,7 @@ def lambda_handler(event, context):
             ':chd': floor_points,
             ':mc': charts,
             ':rdscollid': collection_id,
-            ':bc': art_object.get('blockchain'),
-            ':sumstats': summary_stats
+            ':bc': art_object.get('blockchain')
         }
         ex_att2 = {
             ':start': 0,

@@ -499,7 +499,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
 
-        ingest_opensea2_schedule = events.Schedule.rate(cdk.Duration.minutes(1))
+        ingest_opensea2_schedule = events.Schedule.rate(cdk.Duration.minutes(2))
         ingest_opensea2_target = events_targets.LambdaFunction(handler=ingest_opensea2_function)
         events.Rule(
             scope,
