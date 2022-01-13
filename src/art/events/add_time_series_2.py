@@ -41,7 +41,7 @@ def lambda_handler(event, context):
             sql5 = '''select date(event_date), avg(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
 
             sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 7 day and collection_id=%s;'''
+            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s;'''
 
             log.info(f'sql: {sql}')
             cur.execute(sql, collection_id)
@@ -60,11 +60,8 @@ def lambda_handler(event, context):
             results = []
 
             for i in range(len(statements)):
-                log.info(f'chart: {i} start')
                 cur.execute(statements[i], collection_id)
-                log.info(f'chart: {i} executed')
                 result = cur.fetchall()
-                log.info(f'chart: {i} fetched')
                 results.append(result)
 
             conn.close()
@@ -152,8 +149,14 @@ def lambda_handler(event, context):
 
     try:
         daily_data = get_day(collection_id)
-        log.info('success')
+        log.info('success daily')
         log.info(daily_data)
+    except Exception as e:
+        log.info(f'issue: {e}')
+
+    try:
+        weekly_data, monthly_data = get_week_month(collection_id)
+        log.info('success weekly and monthly')
     except Exception as e:
         log.info(f'issue: {e}')
 
@@ -162,7 +165,7 @@ def lambda_handler(event, context):
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
-                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, daily_data=:daily"
+                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, daily_data=:daily, weekly_data=:weekly, monthly_data=:monthly"
         update_expression = update_expression1 + update_expression2
         log.info('about to make expression attributes')
         exp_att1 = {
@@ -174,7 +177,9 @@ def lambda_handler(event, context):
             ':mc': charts,
             ':rdscollid': collection_id,
             ':bc': art_object.get('blockchain'),
-            ':daily': daily_data
+            ':daily': daily_data,
+            ':weekly': weekly_data,
+            ':monthly': monthly_data
         }
         ex_att2 = {
             ':start': 0,
@@ -210,13 +215,6 @@ def lambda_handler(event, context):
     except Exception as e:
         log.info(f'status: failure - {e}')
 
-    try:
-        weekly_data, monthly_data = get_week_month(collection_id)
-        log.info('success')
-        log.info(weekly_data, monthly_data)
-    except Exception as e:
-        log.info(f'issue: {e}')
-
     return
 
 
@@ -248,6 +246,13 @@ def get_day(collection_id):
                 results.append(tmp)
 
             conn.close()
+        log.info("0")
+        log.info(results[0])
+        log.info(results[1])
+        log.info(results[2])
+        log.info(results[3])
+        log.info(results[4])
+        log.info(results[5])
 
         daily_data = {
             "floor": results[0][0][1] / (10 ** 18),
@@ -257,13 +262,12 @@ def get_day(collection_id):
             "buyers": results[4][0][1],
             "avg_per_hour": results[5][0][0]
         }
-
+        log.info("1")
         try:
             charts = []
             for i in range(6, 11):
                 chart_points = []
                 for k in results[i]:
-                    log.info(k)
                     if i in [6, 7, 8]:
                         point = {
                             "x": str(k[0]) + "-" + str(k[1]) + "-" + str(k[2]) + " " + str(k[3]) + ":00:00",
@@ -280,17 +284,19 @@ def get_day(collection_id):
 
             daily_data['floor_points'] = charts[0]
             daily_data['ceiling_points'] = charts[1]
-            daily_data['volume_points'] = charts[0]
-            daily_data['trades_points'] = charts[0]
-            daily_data['buyers_points'] = charts[0]
+            daily_data['volume_points'] = charts[2]
+            daily_data['trades_points'] = charts[3]
+            daily_data['buyers_points'] = charts[4]
 
         except Exception as e:
             log.info(f'status: failure - {e}')
+            log.info(f'collection_id - {collection_id}')
 
         return daily_data
 
     except Exception as e:
         log.info(f'status: failure - {e}')
+        log.info(f'collection_id - {collection_id}')
 
 
 def get_week_month(collection_id):
@@ -320,7 +326,8 @@ def get_week_month(collection_id):
             buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
 
             results = []
-            statements = [floor, ceiling, volume, trades, buyers, avg_per_day, floor2, ceiling2, volume2, trades2, buyers2, avg_per_day2, floor_points, ceiling_points,
+            statements = [floor, ceiling, volume, trades, buyers, avg_per_day, floor2, ceiling2, volume2, trades2,
+                          buyers2, avg_per_day2, floor_points, ceiling_points,
                           volume_points, trades_points, buyers_points]
             for i in statements:
                 cur.execute(i, collection_id)
@@ -335,7 +342,7 @@ def get_week_month(collection_id):
             "volume": results[2][0][0] / (10 ** 18),
             "trades": results[3][0][0],
             "buyers": results[4][0][0],
-            "avg_per_hour": results[5][0][0]
+            "avg_per_day": results[5][0][0]
         }
         monthly_data = {
             "floor": results[6][0][0] / (10 ** 18),
@@ -343,16 +350,14 @@ def get_week_month(collection_id):
             "volume": results[8][0][0] / (10 ** 18),
             "trades": results[9][0][0],
             "buyers": results[10][0][0],
-            "avg_per_hour": results[11][0][0]
+            "avg_per_day": results[11][0][0]
         }
-
 
         try:
             charts = []
             for i in range(12, 17):
                 chart_points = []
                 for k in results[i]:
-                    log.info(k)
                     if i in [12, 13, 14]:
                         point = {
                             "x": str(k[0]),
@@ -369,13 +374,15 @@ def get_week_month(collection_id):
 
             monthly_data['floor_points'] = charts[0]
             monthly_data['ceiling_points'] = charts[1]
-            monthly_data['volume_points'] = charts[0]
-            monthly_data['trades_points'] = charts[0]
-            monthly_data['buyers_points'] = charts[0]
+            monthly_data['volume_points'] = charts[2]
+            monthly_data['trades_points'] = charts[3]
+            monthly_data['buyers_points'] = charts[4]
 
         except Exception as e:
             log.info(f'status: failure - {e}')
 
+        log.info(f'weekly - {weekly_data}')
+        log.info(f'monthly failure - {monthly_data}')
         return weekly_data, monthly_data
 
     except Exception as e:

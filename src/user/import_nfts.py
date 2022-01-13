@@ -103,7 +103,7 @@ def get_metamask_arts(public_address):
 
                 query = {
                     'Keys': key_list,
-                    'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data'
+                    'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url'
                 }
 
                 response = dynamodb.batch_get_item(RequestItems={'collections': query})
