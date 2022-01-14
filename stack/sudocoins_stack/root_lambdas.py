@@ -33,8 +33,7 @@ class SudocoinsRootLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.social_share_function)
-        resources.art_uploads_table.grant_read_write_data(self.social_share_function)
-        resources.grant_read_index_data(self.social_share_function, [resources.art_table, resources.art_uploads_table])
+        resources.grant_read_index_data(self.social_share_function, [resources.art_table])
         # TEST
         pyvips_layer = _lambda.LayerVersion.from_layer_version_arn(
             scope,
