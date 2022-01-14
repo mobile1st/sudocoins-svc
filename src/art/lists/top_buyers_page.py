@@ -15,12 +15,11 @@ def lambda_handler(event, context):
 
     last_sale_price = high_price(owner_address)
     recent = recently_bought(owner_address)
-    sold = recently_sold(owner_address)
 
     return {
         'last_sale_price': last_sale_price,
         'recent': recent,
-        'recently_sold': sold
+        'recently_sold': []
     }
 
 
