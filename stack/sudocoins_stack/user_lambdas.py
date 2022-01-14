@@ -66,7 +66,6 @@ class SudocoinsUserLambdas:
             description='Verifies user with google recaptcha',
             **lambda_default_kwargs
         )
-        resources.verifications_table.grant_read_write_data(self.user_verify_function)
 
         # CONTACT US
         self.contact_function = _lambda.Function(
