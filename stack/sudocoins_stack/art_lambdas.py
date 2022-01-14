@@ -777,6 +777,31 @@ class SudocoinsArtLambdas:
             [resources.art_table]
         )
         resources.collections_table.grant_read_write_data(listings_processor_function)
+        # GET OS STATS
+        get_os_stats_function = _lambda.Function(
+            scope,
+            'GetosStats',
+            function_name='GetosStats',
+            timeout=cdk.Duration.seconds(300),
+            handler='art.events.get_os_stats.lambda_handler',
+            **lambda_default_kwargs
+        )
+
+        get_os_stats_schedule = events.Schedule.rate(cdk.Duration.minutes(25))
+        get_os_stats_target = events_targets.LambdaFunction(handler=get_os_stats_function)
+        events.Rule(
+            scope,
+            "GetosStatsRule",
+            description="Periodically refreshes trending arts sorted by click counts",
+            enabled=True,
+            schedule=get_os_stats_schedule,
+            targets=[get_os_stats_target]
+        )
+        resources.collections_table.grant_read_write_data(get_os_stats_function)
+        resources.grant_read_index_data(
+            get_os_stats_function,
+            [resources.collections_table]
+        )
 
 
 
