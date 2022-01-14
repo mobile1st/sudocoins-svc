@@ -60,15 +60,7 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_trending_integration
         )
-        # GET USER ARTS
-        get_user_arts_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.get_user_arts_function
-        )
-        art_api_v3.add_routes(
-            path='/user/{userId}',
-            methods=[apigwv2.HttpMethod.GET],
-            integration=get_user_arts_integration
-        )
+
         # GET SHARED ART
         get_shared_art_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_shared_art_function
