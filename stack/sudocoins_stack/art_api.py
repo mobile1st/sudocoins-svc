@@ -24,15 +24,6 @@ class SudocoinsArtApi:
             ),
             cors_preflight=cors_preflight
         )
-        # ADD ART
-        add_art_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.add_art_function
-        )
-        art_api_v3.add_routes(
-            path='/',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=add_art_integration
-        )
         # ART SOURCE REDIRECT
         art_source_redirect_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.art_source_redirect_function

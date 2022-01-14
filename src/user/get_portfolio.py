@@ -42,6 +42,7 @@ def lambda_handler(event, context):
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
     collections = response['Responses']['collections']
+    collections['portfolio'] = collections
 
     return collections
 

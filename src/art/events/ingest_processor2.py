@@ -328,8 +328,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         "open_sea_data": open_sea,
         "timestamp": time_now,
         "recent_sk": time_now + "#" + nft_id,
-        "click_count": 0,
-        "first_user": "ingest",
+        "token_id": contract_token_id.split("#")[1],
         "sort_idx": 'true',
         "process_status": "STREAM_TO_S3",
         "event_date": art_object.get('created_date'),
@@ -434,21 +433,20 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     for i in replace_chars:
         collection_url = collection_url.replace(i, '-')
 
-
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
             UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
-                             "last_sale_price=:lsp, event_date=:ed, #n=:na, collection_address=:ca, collection_data=:cd,"
-                             "collection_name=:cn, #o=:ow, collection_id=:cid, seller=:se, collection_url=:curl",
+                             "last_sale_price=:lsp, #n=:na, collection_address=:ca, collection_data=:cd,"
+                             "collection_name=:cn, collection_id=:cid, collection_url=:curl, token_id=:tok",
             ExpressionAttributeValues={
                 ':art': art_url,
                 ':curl': collection_url,
                 ':buy': buy_url,
                 ':pre': preview_url,
+                ':tok': contract_token_id.split("#")[1],
                 ':open': open_sea,
                 ':lsp': eth_sale_price,
-                ":ed": art_object.get('created_date'),
                 ":na": open_sea.get('name'),
                 ":ca": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
                 ":cd": {
@@ -461,11 +459,10 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                     "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
                 },
                 ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
-                ":ow": art_object.get("owner", "unknown"),
                 ":cid": collection_id,
-                ":se": art_object.get("seller", "unknown")
+
             },
-            ExpressionAttributeNames={'#n': 'name', '#o': 'owner'}
+            ExpressionAttributeNames={'#n': 'name'}
         )
         log.info("art record updated")
         log.info(f"art_id: {art_id}")

@@ -23,19 +23,7 @@ class SudocoinsArtLambdas:
     def __init__(self,
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources):
-        # ADD ART
-        self.add_art_function = _lambda.Function(
-            scope,
-            'ArtAddV2',
-            function_name='ArtAddV2',
-            handler='art.add_art.lambda_handler',
-            timeout=cdk.Duration.seconds(5),
-            **lambda_default_kwargs
-        )
-        resources.art_table.grant_read_write_data(self.add_art_function)
-        resources.art_uploads_table.grant_read_write_data(self.add_art_function)
-        resources.art_processor_topic.grant_publish(self.add_art_function)
-        resources.profile_table.grant_read_write_data(self.add_art_function)
+
         # INCREMENT VIEW COUNT
         self.increment_view_count_function = _lambda.Function(
             scope,
