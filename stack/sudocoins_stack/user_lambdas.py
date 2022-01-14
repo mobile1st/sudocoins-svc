@@ -30,10 +30,8 @@ class SudocoinsUserLambdas:
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
-        resources.profile_table.grant_read_write_data(self.get_profile_function)
         resources.sub_table.grant_read_write_data(self.get_profile_function)
         resources.config_table.grant_read_data(self.get_profile_function)
-        resources.grant_read_index_data(self.get_profile_function, [resources.profile_table])
 
         # GET PROFILE DEV
         self.get_profile_dev_function = _lambda.Function(
@@ -45,10 +43,8 @@ class SudocoinsUserLambdas:
             description='Gets all data for displaying the profil page',
             **lambda_default_kwargs
         )
-        resources.profile_table.grant_read_write_data(self.get_profile_dev_function)
         resources.sub_table.grant_read_write_data(self.get_profile_dev_function)
         resources.config_table.grant_read_data(self.get_profile_dev_function)
-        resources.grant_read_index_data(self.get_profile_dev_function, [resources.profile_table])
 
         # GET USERID FOR META USER
         self.get_user_id_function = _lambda.Function(
@@ -70,7 +66,6 @@ class SudocoinsUserLambdas:
             description='Verifies user with google recaptcha',
             **lambda_default_kwargs
         )
-        resources.profile_table.grant_read_write_data(self.user_verify_function)
         resources.verifications_table.grant_read_write_data(self.user_verify_function)
 
         # CONTACT US
@@ -108,7 +103,6 @@ class SudocoinsUserLambdas:
             description='Sets the user portfolio',
             **lambda_default_kwargs
         )
-        resources.profile_table.grant_read_write_data(self.set_portfolio_function)
         resources.sub_table.grant_read_write_data(self.set_portfolio_function)
         resources.portfolio_table.grant_read_write_data(self.set_portfolio_function)
 
@@ -121,7 +115,6 @@ class SudocoinsUserLambdas:
             description='Gets the user portfolio',
             **lambda_default_kwargs
         )
-        resources.profile_table.grant_read_write_data(self.get_portfolio_function)
         resources.sub_table.grant_read_write_data(self.get_portfolio_function)
         resources.portfolio_table.grant_read_write_data(self.get_portfolio_function)
         resources.collections_table.grant_read_write_data(self.get_portfolio_function)
