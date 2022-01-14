@@ -42,8 +42,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_data(self.get_shared_art_function)
-        resources.art_uploads_table.grant_read_data(self.get_shared_art_function)
-        #  resources.art_counter_queue.grant_send_messages(self.get_shared_art_function)
+
         resources.grant_read_index_data(self.get_shared_art_function, [resources.art_table])
         # ART SOURCE REDIRECT
         self.art_source_redirect_function = _lambda.Function(
@@ -54,7 +53,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.art_source_redirect_function)
-        resources.art_uploads_table.grant_read_write_data(self.art_source_redirect_function)
+
         # GET ARTS
         self.get_arts_function = _lambda.Function(
             scope,
@@ -83,17 +82,6 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_trending_function)
-        # GET USER ARTS
-        self.get_user_arts_function = _lambda.Function(
-            scope,
-            'ArtGetUserArtsV2',
-            function_name='ArtGetUserArtsV2',
-            handler='art.lists.get_user_arts.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.art_uploads_table.grant_read_data(self.get_user_arts_function)
-        resources.grant_read_index_data(self.get_user_arts_function, [resources.art_table, resources.art_uploads_table])
-        resources.art_table.grant_read_data(self.get_user_arts_function)
         # GET PREVIEW
         self.get_preview_function = _lambda.Function(
             scope,
@@ -104,8 +92,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.art_table.grant_read_write_data(self.get_preview_function)
-        resources.art_uploads_table.grant_read_write_data(self.get_preview_function)
-        resources.grant_read_index_data(self.get_preview_function, [resources.art_table, resources.art_uploads_table])
+        resources.grant_read_index_data(self.get_preview_function, [resources.art_table])
         # ART SEARCH
         self.art_search_function = _lambda.Function(
             scope,
