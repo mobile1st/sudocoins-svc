@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal, getcontext
 import pymysql
 import os
-import http.client
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -160,11 +159,13 @@ def lambda_handler(event, context):
     except Exception as e:
         log.info(f'issue: {e}')
 
+    last_update = "false"
+
     try:
         update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
         update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                              "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
-                             "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, " \
+                             "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
                              "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, daily_data=:daily, weekly_data=:weekly, monthly_data=:monthly"
         update_expression = update_expression1 + update_expression2
         log.info('about to make expression attributes')
@@ -174,6 +175,7 @@ def lambda_handler(event, context):
             ':me': med,
             ':ma': maxs,
             ':chd': floor_points,
+            ':lasup': last_update,
             ':mc': charts,
             ':rdscollid': collection_id,
             ':bc': art_object.get('blockchain'),
