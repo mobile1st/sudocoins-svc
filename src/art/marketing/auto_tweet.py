@@ -71,7 +71,7 @@ def get_art():
                         message = name_split[0] + " " + name_split[1] + " " + token_id + " sells for "
                         usd_price = "${:,.2f}".format(
                             round(((Decimal(art['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
-                        tweet = message + usd_price + " #NFT " + art['buy_url']
+                        tweet = message + usd_price + " #NFT " + 'https://app.sudocoins.com/art/social/'+art['art_id']
                         msg = {
                             "art_id": i,
                             "message": tweet,
@@ -104,7 +104,7 @@ def get_art():
                 message = name + " sells for"
                 #  of the " + art['collection_data']['name'] + " collection
                 usd_price = "${:,.2f}".format(round(((Decimal(i['last_sale_price']) / (10 ** 18)) / eth_rate), 2))
-                tweet = message + " " + usd_price + " #NFT " + art['buy_url']
+                tweet = message + " " + usd_price + " #NFT " + 'https://app.sudocoins.com/art/social/'+art['art_id']
                 msg = {
                     "art_id": i['art_id'],
                     "message": tweet,
