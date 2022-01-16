@@ -107,7 +107,7 @@ def get_preview_html(art, url):
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@sudocoins" />
             <meta property="og:title" content="{title}" />
-            <meta property="og:description" content="Mint NFTs for free with SUDO" />
+            <meta property="og:description" content="Track your NFT portfolio with SUDO" />
             <meta property="og:image" content="{url}" />
         </head>
         <body>
