@@ -41,7 +41,8 @@ def lambda_handler(event, context):
                 "num_owners": str(stats['num_owners']),
                 "count": str(stats['count']),
                 'total_volume': str(stats['total_volume']),
-                'total_sales': str(stats['total_sales'])
+                'total_sales': str(stats['total_sales']),
+                '7d_volume': str(stats['seven_day_volume'])
 
             }
             update_expression = "SET last_update=:lu, open_sea_stats=:oss"

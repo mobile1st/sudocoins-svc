@@ -36,7 +36,7 @@ def lambda_handler(event, context):
 
     query = {
         'Keys': key_list,
-        'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url'
+        'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url, open_sea_stats'
     }
 
     response = dynamodb.batch_get_item(RequestItems={'collections': query})

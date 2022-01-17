@@ -3,6 +3,7 @@ import boto3
 from util import sudocoins_logger
 import os
 from datetime import datetime
+from decimal import Decimal, getcontext
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -54,9 +55,11 @@ def get_collections(time_period):
         tmp = {
             "collection_id": i[0],
             "sales_volume": i[1],
+            "volume": (Decimal(i[1]) / (10 ** 18)).quantize(Decimal('1.000')),
             "trades": i[2],
             "buyers": i[3]
         }
+
         collection_list.append(tmp)
 
     dynamodb = boto3.resource('dynamodb')
