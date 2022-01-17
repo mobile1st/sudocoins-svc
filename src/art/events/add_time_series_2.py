@@ -25,7 +25,6 @@ def lambda_handler(event, context):
     art_object = art['art_object']
     eth_sale_price = art['last_sale_price']
     collection_code = art['collection_code']
-    collection_url = art['collection_url']
 
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
@@ -171,7 +170,7 @@ def lambda_handler(event, context):
         log.info('about to make expression attributes')
         exp_att1 = {
             ':fl': mins,
-            ':curl': collection_url,
+            ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
             ':me': med,
             ':ma': maxs,
             ':chd': floor_points,

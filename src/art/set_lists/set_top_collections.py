@@ -71,7 +71,7 @@ def get_collections(time_period):
 
     query = {
         'Keys': key_list,
-        'ProjectionExpression': 'collection_id, preview_url, collection_name, chart_data, collection_url'
+        'ProjectionExpression': 'collection_id, preview_url, collection_name, chart_data, collection_url, open_sea_stats'
     }
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
