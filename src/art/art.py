@@ -45,53 +45,6 @@ class Art:
 
         return self.__use_cdn_url(art['Item'] if art.get('Item') else None)
 
-    def add(self, contract_token_id, art_url, preview_url, buy_url, open_sea, user_id):
-        time_now = str(datetime.utcnow().isoformat())
-        art_id = str(uuid.uuid1())
-        log.info(f"art.add {art_id} {open_sea}")
-        art_record = {
-            'art_id': art_id,
-            "name": open_sea['name'],
-            'buy_url': buy_url,
-            'contractId#tokenId': contract_token_id,
-            'preview_url': preview_url,
-            'art_url': art_url,
-            "open_sea_data": open_sea,
-            "timestamp": time_now,
-            "recent_sk": time_now + "#" + art_id,
-            "click_count": 0,
-            "first_user": user_id,
-            "sort_idx": 'true',
-            "process_status": "STREAM_TO_S3",
-            "event_date": "0",
-            "event_type": "manually added",
-            "blockchain": "Ethereum",
-            "last_sale_price": 0,
-            "process_to_google_search": "TO_BE_INDEXED"
-        }
-
-
-        self.art_table.put_item(Item=art_record)
-        self.sns.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
-            MessageStructure='string',
-            MessageAttributes={
-                'art_id': {
-                    'DataType': 'String',
-                    'StringValue': art_id
-                },
-                'art_url': {
-                    'DataType': 'String',
-                    'StringValue': art_url
-                },
-                'process': {
-                    'DataType': 'String',
-                    'StringValue': "STREAM_TO_S3"
-                }
-            },
-            Message=json.dumps(art_record)
-        )
-        return art_record
 
     def get_recent(self, count, timestamp):
         log.info(f"art.get_recent {count} {timestamp}")

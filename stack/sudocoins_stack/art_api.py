@@ -304,5 +304,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_buyers_delta_integration
         )
+        # GET ETH RATE
+        get_ethrate_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_ethrate_function
+        )
+        art_api_v3.add_routes(
+            path='/get-eth-rate',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_ethrate_integration
+        )
 
 

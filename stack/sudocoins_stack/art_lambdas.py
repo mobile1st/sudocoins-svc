@@ -802,6 +802,15 @@ class SudocoinsArtLambdas:
             get_os_stats_function,
             [resources.collections_table]
         )
+        # GET ETH RATE
+        self.get_ethrate_function = _lambda.Function(
+            scope,
+            'GetEthRate',
+            function_name='GetEthRate',
+            handler='art.getEthRate.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_data(self.get_ethrate_function)
 
 
 
