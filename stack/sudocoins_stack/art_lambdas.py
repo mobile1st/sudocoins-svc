@@ -807,7 +807,7 @@ class SudocoinsArtLambdas:
             scope,
             'GetEthRate',
             function_name='GetEthRate',
-            handler='art.user.getEthRate.lambda_handler',
+            handler='art.getEthRate.lambda_handler',
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_ethrate_function)

@@ -24,6 +24,7 @@ class Art:
         return art_object['Items'][0]['art_id'] if art_object['Count'] > 0 else None
 
     def get(self, art_id):
+        dynamodb = boto3.resource('dynamodb')
         log.info(f"art.get {art_id}")
         art = self.art_table.get_item(
             Key={'art_id': art_id},
@@ -39,6 +40,28 @@ class Art:
                     number = number.split('#')[1]
                     art['Item']['name'] = name + " #" + str(number)
                     del art['Item']['contractId#tokenId']
+            else:
+                art = dynamodb.Table('art').query(
+                    KeyConditionExpression=Key("collection_item_url").eq(art_id),
+                    IndexName='',
+                    ProjectionExpression="art_id, preview_url, art_url, #n, mime_type, cdn_url, "
+                                         "last_sale_price, list_price, description, collection_id, collection_data, "
+                                         "collection_name, #T, blockchain",
+                    ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'})
+
+                if not art.get('Items'):
+                    return None
+
+                art = art.get('Items')[0]
+                if 'name' in art and art['name'] is None:
+                    name = art.get('collection_data', {}).get('name', "")
+                    number = art.get("contractId#tokenId", "")
+                    number = number.split('#')[1]
+                    art['name'] = name + " #" + str(number)
+                    del art['contractId#tokenId']
+
+                return self.__use_cdn_url(art)
+
 
         except Exception as e:
             log.info(e)
@@ -151,23 +174,5 @@ class Art:
 
         return result
 
-
-    def get_minted(self, count, timestamp):
-        log.info(f"art.get_minted {count} {timestamp}")
-        res = self.art_table.query(
-            KeyConditionExpression=Key("event_type").eq('mint') & Key("recent_sk").lt(timestamp),
-            ScanIndexForward=False,
-            Limit=count,
-            IndexName='event_type-recent_sk-index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, list_price, description, collection_id, #T, collection_name",
-            ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'}
-        )
-        if not res.get('Items'):
-            return None
-
-        for art in res['Items']:
-            self.__use_cdn_url(art)
-
-        return res['Items']
 
 
