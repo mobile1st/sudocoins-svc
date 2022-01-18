@@ -4,7 +4,7 @@ import http.client
 import json
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta
-from decimal import Decimal, getcontext
+from decimal import Decimal
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -42,7 +42,8 @@ def lambda_handler(event, context):
                 "count": str(stats['count']),
                 'total_volume': str(stats['total_volume']),
                 'total_sales': str(stats['total_sales']),
-                '7d_volume': str(stats['seven_day_volume'])
+                '7d_volume': str(stats['seven_day_volume']),
+                'percent_total_owners': (Decimal(str(stats['num_owners'])) / Decimal(str(stats['count'])) * 100).quantize(Decimal('1.00'))
 
             }
             update_expression = "SET last_update=:lu, open_sea_stats=:oss"
