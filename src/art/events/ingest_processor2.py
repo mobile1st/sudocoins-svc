@@ -354,7 +354,11 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
-        art_record['collection_url'] = art_object.get('asset', {}).get('collection', {}).get('slug', "")
+        collection_url = art_object.get('asset', {}).get('collection', {}).get('slug', "")
+        collection_item_id = contract_token_id.split("#")[1]
+        collection_item_url = collection_url + "-" + collection_item_id
+        art_record['collection_url'] = collection_url
+        art_record['collection_item_url'] = collection_item_url
     else:
         art_record['collection_id'] = art_record['collection_address']
 
@@ -417,17 +421,22 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     c_name = ("-".join(collection_name.split())).lower()
     collection_id = collection_address + ":" + c_name
     collection_url = art_object.get('asset', {}).get('collection', {}).get('slug', "")
+    collection_item_id = contract_token_id.split("#")[1]
+    collection_item_url = collection_url + "-" + collection_item_id
+
 
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
             UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
                              "last_sale_price=:lsp, #n=:na, collection_address=:ca, collection_data=:cd,"
-                             "collection_name=:cn, collection_id=:cid, collection_url=:curl, token_id=:tok",
+                             "collection_name=:cn, collection_id=:cid, collection_url=:curl, token_id=:tok,"
+                             "collection_item_url=:ciurl",
             ExpressionAttributeValues={
                 ':art': art_url,
                 ':curl': collection_url,
                 ':buy': buy_url,
+                ':ciurl': collection_item_url,
                 ':pre': preview_url,
                 ':tok': contract_token_id.split("#")[1],
                 ':open': open_sea,
