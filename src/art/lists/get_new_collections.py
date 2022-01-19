@@ -9,7 +9,7 @@ def lambda_handler(event, context):
     return {
         'day': new_collections['day1'],
         "day3": new_collections['day3'],
-        "day7": new_collections['day7']
+        "week": new_collections['day7']
     }
 
 
