@@ -8,7 +8,6 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
-
     timestamp = str(datetime.utcnow().isoformat())
     log.info("timestamp")
 
@@ -17,6 +16,8 @@ def lambda_handler(event, context):
         ScanIndexForward=False,
         IndexName='approved-pubDate-index'
     )['Items']
+
+    news = list({v['link']: v for v in news}.values())
 
     return {
         "news": news
