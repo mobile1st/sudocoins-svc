@@ -10,15 +10,15 @@ dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
 
 
-
 def lambda_handler(event, context):
-    return
     time_now = str(datetime.utcnow().isoformat())
     log.info(f'time_now: {time_now}')
+
     start_time = dynamodb.Table('Config').get_item(Key={'configKey': 'listings'})['Item']['last_update']
     # start_time = "2022-01-09T23:08:11.111111"
     log.info(f'created: {start_time}')
-    end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=10)).isoformat()
+
+    end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=60)).isoformat()
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
     log.info(f'difference: {difference}')
     if difference < 1:
@@ -27,46 +27,55 @@ def lambda_handler(event, context):
     # get created listings
     offset = 0
     open_sea_response = call_open_sea(start_time, end_time, "created", offset)
-    log.info("created start")
-    log.info(f'offset: {offset}')
-
-    length_response = len(open_sea_response)
     log.info(f'length of response: {len(open_sea_response)}')
+    listings = open_sea_response
 
-    while length_response == 300:
-        offset += 1
-        log.info(f'offset: {offset}')
-        tmp_response = call_open_sea(start_time, end_time, "created", offset)
-        open_sea_response = open_sea_response + tmp_response
-        length_response = len(tmp_response)
+    while len(open_sea_response) == 300:
+        offset += len(open_sea_response)
+        log.info(offset)
+        path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
+            offset) + "&limit=300&occurred_after=2022-01-10T00:46:27.111111&occurred_before=2022-01-10T00:47:27.111111"
+        conn = http.client.HTTPSConnection("api.opensea.io")
+        api_key = {"X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"}
+        conn.request("GET", path, headers=api_key)
+        response = conn.getresponse()
+        decoded_response = response.read().decode('utf-8')
+        open_sea_response = json.loads(decoded_response)['asset_events']
+        listings = open_sea_response + listings
 
-    length_response = len(open_sea_response)
-    log.info(f'length of response: {len(open_sea_response)}')
+    length_listings = len(listings)
+    log.info(f'length of listings: {length_listings}')
 
-    count_eth = process_open_sea(open_sea_response)
+    count_eth = process_open_sea(listings)
+    return count_eth
     log.info(f'eth count created: {count_eth}')
+
     # finished with created
 
     # get cancelled listings
+    log.info("begin cancelled")
     offset = 0
     open_sea_response = call_open_sea(start_time, end_time, "cancelled", offset)
-    log.info("cancelled start")
-    log.info(f'offset: {offset}')
-
-    length_response = len(open_sea_response)
     log.info(f'length of response: {len(open_sea_response)}')
+    listings = open_sea_response
 
-    while length_response == 300:
-        offset += 1
-        log.info(f'offset: {offset}')
-        tmp_response = call_open_sea(start_time, end_time, "cancelled", offset)
-        open_sea_response = open_sea_response + tmp_response
-        length_response = len(tmp_response)
+    while len(open_sea_response) == 300:
+        offset += len(open_sea_response)
+        log.info(offset)
+        path = "/api/v1/events?event_type=cancelled&only_opensea=false&offset=" + str(
+            offset) + "&limit=300&occurred_after=2022-01-10T00:46:27.111111&occurred_before=2022-01-10T00:47:27.111111"
+        conn = http.client.HTTPSConnection("api.opensea.io")
+        api_key = {"X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"}
+        conn.request("GET", path, headers=api_key)
+        response = conn.getresponse()
+        decoded_response = response.read().decode('utf-8')
+        open_sea_response = json.loads(decoded_response)['asset_events']
+        listings = open_sea_response + listings
 
-    length_response = len(open_sea_response)
-    log.info(f'length of response: {len(open_sea_response)}')
+    length_listings = len(listings)
+    log.info(f'length of listings: {length_listings}')
 
-    count_eth = process_open_sea(open_sea_response)
+    count_eth = process_open_sea(listings)
     log.info(f'eth count created: {count_eth}')
 
     # finished with created
@@ -74,7 +83,7 @@ def lambda_handler(event, context):
     log.info(f'start_time: {start_time}')
     log.info(f'end_time: {end_time}')
 
-    set_config(end_time)
+    # set_config(end_time)
 
     return
 
@@ -138,24 +147,19 @@ def process_open_sea(open_sea_response):
                             "listing_time": listing_time,
                             "asset": k,
                             "owner": owner,
+                            "bundle": "true"
                         }
                         sns_client.publish(
                             TopicArn='arn:aws:sns:us-west-2:977566059069:ListingsTopic',
                             MessageStructure='string',
                             Message=json.dumps(msg)
                         )
-                        # log.info("bundle asset published")
+                        #log.info("bundle asset published")
 
                         count_eth += 1
-        except Exception as e:
-            log.info(f'status - failure: {e}')
-            errors += 1
 
-
-        else:
-            try:
+            else:
                 open_sea_url = i.get('asset', {}).get('permalink', "")
-
                 listing_price = i.get('starting_price')
                 listing_time = i.get('listing_time')
                 if listing_time is None:
@@ -177,7 +181,8 @@ def process_open_sea(open_sea_response):
                         "listing_price": listing_price,
                         "listing_time": listing_time,
                         "asset": i.get('asset'),
-                        "owner": i.get('asset', {}).get('owner', {}).get("address")
+                        "owner": i.get('asset', {}).get('owner', {}).get("address"),
+                        "bundle": "false"
 
                     }
 
@@ -188,10 +193,9 @@ def process_open_sea(open_sea_response):
                     )
                     count += 1
                     count_eth += 1
-            except Exception as e:
-                log.info(f'status - failure: {e}')
-                # log.info(i)
-                errors += 1
+        except Exception as e:
+            log.info(f'status - failure: {e}')
+            errors += 1
 
     log.info(f'number of errors: {errors}')
     return count_eth
@@ -209,7 +213,3 @@ def set_config(end_time):
         ReturnValues="ALL_NEW"
     )
     log.info("config updated")
-
-
-
-

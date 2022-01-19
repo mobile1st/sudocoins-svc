@@ -30,7 +30,7 @@ class Art:
             Key={'art_id': art_id},
             ProjectionExpression="art_id, preview_url, art_url, #n, mime_type, cdn_url, "
                                  "last_sale_price, list_price, description, collection_id, collection_data, "
-                                 "collection_name, #T, blockchain",
+                                 "collection_name, #T, blockchain, buy_url",
             ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'})
         try:
             if 'Item' in art:
@@ -43,10 +43,10 @@ class Art:
             else:
                 art = dynamodb.Table('art').query(
                     KeyConditionExpression=Key("collection_item_url").eq(art_id),
-                    IndexName='',
+                    IndexName='collection_item_url-index',
                     ProjectionExpression="art_id, preview_url, art_url, #n, mime_type, cdn_url, "
                                          "last_sale_price, list_price, description, collection_id, collection_data, "
-                                         "collection_name, #T, blockchain",
+                                         "collection_name, #T, blockchain, buy_url",
                     ExpressionAttributeNames={'#n': 'name', '#T': 'contractId#tokenId'})
 
                 if not art.get('Items'):
