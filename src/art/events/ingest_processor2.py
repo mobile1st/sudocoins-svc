@@ -399,7 +399,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
     except Exception as e:
         log.info(f"open_sea {open_sea}")
         log.info(f"status: failure - {e}")
-
+    '''
     try:
         msg = {
             "collection_id": art_record.get('collection_id', "")
@@ -412,6 +412,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         log.info(f"add search message published")
     except Exception as e:
         log.info(f"status: failure - {e}")
+    '''
 
 
 def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id):

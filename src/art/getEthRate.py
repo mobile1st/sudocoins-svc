@@ -18,7 +18,7 @@ def getConfig():
     response = configTable.get_item(Key={'configKey': configKey})
     config = response['Item']
 
-    rate = str(config['rate'])
+    rate = str(config['ethRate'])
 
     return rate
 

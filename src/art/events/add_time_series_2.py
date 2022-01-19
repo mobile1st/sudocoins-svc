@@ -34,11 +34,11 @@ def lambda_handler(event, context):
             sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
 
             sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
-            sql3 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
-            sql4 = '''select date(event_date), sum(price) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
-            sql5 = '''select date(event_date), avg(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
+            #sql3 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
+            #sql4 = '''select date(event_date), sum(price) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
+            #sql5 = '''select date(event_date), avg(price) from nft.events where event_date >= now() - interval 14 day and price>0 and collection_id=%s group by date(event_date);'''
 
-            sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
+            #sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
             sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s;'''
 
             log.info(f'sql: {sql}')
@@ -52,10 +52,10 @@ def lambda_handler(event, context):
             floor_chart = result2
             log.info('RDS query for Floor Charts executed')
 
-            statements = [sql3, sql4, sql5, sql6]
+            statements = []#[sql3, sql4, sql5, sql6]
             statements.append(sql7)
 
-            results = []
+            results = [(),(),(),()]
 
             for i in range(len(statements)):
                 cur.execute(statements[i], collection_id)
@@ -69,7 +69,7 @@ def lambda_handler(event, context):
             for i in range(len(results)):
                 chart_points = []
                 for k in results[i]:
-                    if i == 0:
+                    if i == 4:
                         # floor chart
                         point = {
                             "x": str(k[0]),
@@ -232,28 +232,24 @@ def get_day(collection_id):
             buyers = '''select date(event_date), count(distinct buyer_id) from nft.events where event_date >= curdate() and collection_id=%s group by date(event_date);'''
             avg_per_hour = '''select count(*) / HOUR(now()) from nft.events where event_date >= curdate() and collection_id=%s and price>0;'''
 
-            floor_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), min(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
-            ceiling_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), max(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
-            volume_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), sum(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
-            trades_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(*) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
-            buyers_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(distinct buyer_id) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
+            floor_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), min(price) from nft.events where event_date >= now() - interval 12 hour and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
+            #ceiling_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), max(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
+            #volume_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), sum(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
+            #trades_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(*) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
+            #buyers_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(distinct buyer_id) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
 
             results = []
+            '''
             statements = [floor, ceiling, volume, trades, buyers, avg_per_hour, floor_points, ceiling_points,
                           volume_points, trades_points, buyers_points]
+            '''
+            statements = [floor, ceiling, volume, trades, buyers, avg_per_hour, floor_points]
             for i in statements:
                 cur.execute(i, collection_id)
                 tmp = cur.fetchall()
                 results.append(tmp)
 
             conn.close()
-        log.info("0")
-        log.info(results[0])
-        log.info(results[1])
-        log.info(results[2])
-        log.info(results[3])
-        log.info(results[4])
-        log.info(results[5])
 
         daily_data = {
             "floor": results[0][0][1] / (10 ** 18),
@@ -266,7 +262,7 @@ def get_day(collection_id):
         log.info("1")
         try:
             charts = []
-            for i in range(6, 11):
+            for i in range(6, 7):
                 chart_points = []
                 for k in results[i]:
                     if i in [6, 7, 8]:
@@ -284,10 +280,10 @@ def get_day(collection_id):
                 charts.append(chart_points)
 
             daily_data['floor_points'] = charts[0]
-            daily_data['ceiling_points'] = charts[1]
-            daily_data['volume_points'] = charts[2]
-            daily_data['trades_points'] = charts[3]
-            daily_data['buyers_points'] = charts[4]
+            #daily_data['ceiling_points'] = charts[1]
+            #daily_data['volume_points'] = charts[2]
+            #daily_data['trades_points'] = charts[3]
+            #daily_data['buyers_points'] = charts[4]
 
         except Exception as e:
             log.info(f'status: failure - {e}')
@@ -321,15 +317,19 @@ def get_week_month(collection_id):
             avg_per_day2 = '''select count(*) / (30 + (HOUR(now())/24)) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price>0;'''
 
             floor_points = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            #ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            #volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            #trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            #buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
 
             results = []
+            '''
             statements = [floor, ceiling, volume, trades, buyers, avg_per_day, floor2, ceiling2, volume2, trades2,
                           buyers2, avg_per_day2, floor_points, ceiling_points,
                           volume_points, trades_points, buyers_points]
+            '''
+            statements = [floor, ceiling, volume, trades, buyers, avg_per_day, floor2, ceiling2, volume2, trades2,
+                          buyers2, avg_per_day2, floor_points]
             for i in statements:
                 cur.execute(i, collection_id)
                 tmp = cur.fetchall()
@@ -356,7 +356,7 @@ def get_week_month(collection_id):
 
         try:
             charts = []
-            for i in range(12, 17):
+            for i in range(12, 13):
                 chart_points = []
                 for k in results[i]:
                     if i in [12, 13, 14]:
@@ -374,10 +374,10 @@ def get_week_month(collection_id):
                 charts.append(chart_points)
 
             monthly_data['floor_points'] = charts[0]
-            monthly_data['ceiling_points'] = charts[1]
-            monthly_data['volume_points'] = charts[2]
-            monthly_data['trades_points'] = charts[3]
-            monthly_data['buyers_points'] = charts[4]
+            #monthly_data['ceiling_points'] = charts[1]
+            #monthly_data['volume_points'] = charts[2]
+            #monthly_data['trades_points'] = charts[3]
+            #monthly_data['buyers_points'] = charts[4]
 
         except Exception as e:
             log.info(f'status: failure - {e}')
