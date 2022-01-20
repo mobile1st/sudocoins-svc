@@ -4,7 +4,6 @@ import pymysql
 import os
 from datetime import datetime
 
-
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
@@ -35,17 +34,37 @@ def lambda_handler(event, context):
     for i in result:
         point = {
             "x": str(i[0]),
-            "sales": i[1] / (10 ** 18),
+            "sales": round(i[1] / (10 ** 18), 3),
             "buyers": i[2],
             "trades": i[3]
         }
         chart_data.append(point)
 
-    update_expression = "SET points=:pts"
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+
+    with conn.cursor() as cur:
+        sql0 = "select event_date, price, usd_price from nft.sudo_index where event_date >= %s - Interval 7 day and index_type = %s;"
+        cur.execute(sql0, (event_date, "all"))
+        result = cur.fetchall()
+        conn.close()
+
+    log.info(f'len result: {len(result)}')
+
+    index_data = []
+    for i in result:
+        point = {
+            "x": str(i[0]),
+            "eth_price": i[1] / (10 ** 18),
+            "usd_price": i[2]
+        }
+        index_data.append(point)
+
+    update_expression = "SET points=:pts, index_points=:idx"
     exp_att = {
-        ':pts': chart_data
+        ':pts': chart_data,
+        ':idx': index_data
     }
-    dynamodb.Table('config').update_item(
+    dynamodb.Table('Config').update_item(
         Key={'configKey': "macro_stats"},
         UpdateExpression=update_expression,
         ExpressionAttributeValues=exp_att,

@@ -313,5 +313,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_ethrate_integration
         )
+        # GET MACRO STATS
+        get_macro_stats_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_macro_stats_function
+        )
+        art_api_v3.add_routes(
+            path='/get-macro-stats',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_macro_stats_integration
+        )
 
 

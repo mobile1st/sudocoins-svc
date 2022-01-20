@@ -539,7 +539,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
 
-        sudo_index_schedule = events.Schedule.rate(cdk.Duration.minutes(30))
+        sudo_index_schedule = events.Schedule.rate(cdk.Duration.minutes(120))
         sudo_index_target = events_targets.LambdaFunction(handler=sudo_index_function)
         events.Rule(
             scope,
@@ -831,8 +831,17 @@ class SudocoinsArtLambdas:
             schedule=macro_stats_schedule,
             targets=[macro_stats_target]
         )
-
         resources.config_table.grant_read_write_data(macro_stats_function)
+        # GET MACRO STATS
+        self.get_macro_stats_function = _lambda.Function(
+            scope,
+            'GetMacroStats',
+            function_name='GetMacroStats',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.lists.get_macro_stats.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.config_table.grant_read_write_data(self.get_macro_stats_function)
 
 
 
