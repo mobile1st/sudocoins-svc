@@ -28,7 +28,7 @@ def get_new():
     record = dynamodb.Table('collections').query(
         KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
         IndexName='collection_date-index',
-        ProjectionExpression="collection_id, preview_url, collection_name, collection_date, chart_data, blockchain, collection_url, sales_volume, open_sea_stats",
+        ProjectionExpression="collection_id, preview_url, collection_name, collection_date, chart_data, blockchain, collection_url, sales_volume, open_sea_stats, daily_data",
 
     )
     data = record['Items']
@@ -36,7 +36,7 @@ def get_new():
         record = dynamodb.Table('collections').query(
             KeyConditionExpression=Key("sort_idx").eq('true') & Key("collection_date").gt(period),
             IndexName='collection_date-index',
-            ProjectionExpression="collection_id, preview_url, collection_name, collection_date, chart_data, blockchain, collection_url, sales_volume",
+            ProjectionExpression="collection_id, preview_url, collection_name, collection_date, chart_data, blockchain, collection_url, sales_volume, open_sea_stats, daily_data",
             ExclusiveStartKey=record['LastEvaluatedKey']
         )
         data.extend(record['Items'])
@@ -73,9 +73,9 @@ def set_config(day, day3, day7):
         },
         UpdateExpression="set day1=:day, day3=:day3, day7=:day7",
         ExpressionAttributeValues={
-            ":day": day[0:250],
-            ":day3": day3[0:250],
-            ":day7": day7[0:250]
+            ":day": day[0:200],
+            ":day3": day3[0:200],
+            ":day7": day7[0:200]
         },
         ReturnValues="ALL_NEW"
     )

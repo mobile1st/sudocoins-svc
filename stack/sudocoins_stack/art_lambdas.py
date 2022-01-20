@@ -811,6 +811,28 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_ethrate_function)
+        # SET MACRO_STATS
+        macro_stats_function = _lambda.Function(
+            scope,
+            'MacroStats',
+            function_name='MacroStats',
+            timeout=cdk.Duration.seconds(30),
+            handler='art.set_lists.macro_stats.lambda_handler',
+            **lambda_default_kwargs
+        )
+
+        macro_stats_schedule = events.Schedule.rate(cdk.Duration.minutes(120))
+        macro_stats_target = events_targets.LambdaFunction(handler=macro_stats_function)
+        events.Rule(
+            scope,
+            "MacroStatsRule",
+            description="Periodically sets Macro Stats",
+            enabled=True,
+            schedule=macro_stats_schedule,
+            targets=[macro_stats_target]
+        )
+
+        resources.config_table.grant_read_write_data(macro_stats_function)
 
 
 

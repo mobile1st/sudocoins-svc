@@ -33,12 +33,6 @@ def lambda_handler(event, context):
             log.exception(e)
             profile = {}
 
-    try:
-        config = getConfig()
-
-    except Exception as e:
-        log.exception(e)
-
     log.debug(f'profile: {profile}')
     global sub
     global userId
@@ -61,8 +55,7 @@ def lambda_handler(event, context):
             "sub": sub,
             "userId": userId,
             "portfolio": portfolio
-        },
-        "ethRate": config['ethRate']
+        }
     }
 
 

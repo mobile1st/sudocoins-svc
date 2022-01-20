@@ -5,7 +5,7 @@ import pymysql
 import os
 from datetime import datetime
 import numpy as np
-from collections import OrderedDict
+from decimal import Decimal
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
@@ -22,6 +22,14 @@ def lambda_handler(event, context):
     event_date = datetime.fromisoformat(
         dynamodb.Table('Config').get_item(Key={'configKey': 'ingest2'})['Item']['last_update'])
     log.info(f'created: {event_date}')
+
+    configTable = dynamodb.Table('Config')
+    configKey = "HomePage"
+
+    response = configTable.get_item(Key={'configKey': configKey})
+    config = response['Item']
+
+    eth_rate = str(config['ethRate'])
 
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
 
@@ -63,10 +71,12 @@ def lambda_handler(event, context):
     sudo_index = weighted_median(x, weights)
     log.info(sudo_index)
 
+    usd_index = ((Decimal(str(sudo_index))/(10**18)) / Decimal(str(eth_rate))).quantize(Decimal('1.00'))
+
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     with conn.cursor() as cur:
-        row_values = (event_date, sudo_index, "top50")
-        cur.execute('INSERT INTO nft.sudo_index (`event_date`,`price`,`index_type`) VALUES (%s, %s, %s)', row_values)
+        row_values = (event_date, sudo_index, "top50", usd_index, eth_rate)
+        cur.execute('INSERT INTO nft.sudo_index (`event_date`,`price`,`index_type`,`usd_price`,`eth_rate`) VALUES (%s, %s, %s, %s, %s)', row_values)
 
         conn.commit()
 
@@ -98,10 +108,12 @@ def lambda_handler(event, context):
     sudo_index = weighted_median(x, weights)
     log.info(sudo_index)
 
+    usd_index = ((Decimal(str(sudo_index))/(10**18)) / Decimal(str(eth_rate))).quantize(Decimal('1.00'))
+
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     with conn.cursor() as cur:
-        row_values = (event_date, sudo_index, 'all')
-        cur.execute('INSERT INTO nft.sudo_index (`event_date`,`price`, `index_type`) VALUES (%s, %s, %s)', row_values)
+        row_values = (event_date, sudo_index, 'all', usd_index, eth_rate)
+        cur.execute('INSERT INTO nft.sudo_index (`event_date`,`price`, `index_type`, `usd_price`, `eth_rate`) VALUES (%s, %s, %s, %s, %s)', row_values)
 
         conn.commit()
 

@@ -41,21 +41,21 @@ def lambda_handler(event, context):
             #sql6 = '''select date(event_date), count(*) from nft.events where event_date >= now() - interval 14 day and collection_id=%s group by date(event_date);'''
             sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s;'''
 
-            log.info(f'sql: {sql}')
+            #log.info(f'sql: {sql}')
             cur.execute(sql, collection_id)
             more_charts = cur.fetchall()
-            log.info('RDS queries for Floor, Median, and Max executed')
+            #log.info('RDS queries for Floor, Median, and Max executed')
 
-            log.info(f'sql: {sql2}')
+            #log.info(f'sql: {sql2}')
             cur.execute(sql2, collection_id)
             result2 = cur.fetchall()
             floor_chart = result2
-            log.info('RDS query for Floor Charts executed')
+            #log.info('RDS query for Floor Charts executed')
 
             statements = []#[sql3, sql4, sql5, sql6]
             statements.append(sql7)
 
-            results = [(),(),(),()]
+            results = []
 
             for i in range(len(statements)):
                 cur.execute(statements[i], collection_id)
@@ -65,11 +65,12 @@ def lambda_handler(event, context):
             conn.close()
 
         try:
-            charts = []
+            charts = [[],[],[],[]]
             for i in range(len(results)):
                 chart_points = []
                 for k in results[i]:
                     if i == 4:
+                        continue
                         # floor chart
                         point = {
                             "x": str(k[0]),
@@ -77,6 +78,7 @@ def lambda_handler(event, context):
                         }
                         chart_points.append(point)
                     elif i == 1:
+                        continue
                         # sum chart
                         point = {
                             "x": str(k[0]),
@@ -84,6 +86,7 @@ def lambda_handler(event, context):
                         }
                         chart_points.append(point)
                     elif i == 2:
+                        continue
                         # avg chart
                         point = {
                             "x": str(k[0]),
@@ -91,6 +94,7 @@ def lambda_handler(event, context):
                         }
                         chart_points.append(point)
                     elif i == 3:
+                        continue
                         # trades chart
                         point = {
                             "x": str(k[0]),
@@ -98,7 +102,7 @@ def lambda_handler(event, context):
                         }
                         chart_points.append(point)
 
-                    elif i == 4:
+                    elif i == 0:
                         try:
                             # sales scatter
                             utcTime = datetime.strptime(str(k[0]), "%Y-%m-%d %H:%M:%S")
@@ -115,7 +119,7 @@ def lambda_handler(event, context):
                             log.info(str(k[0]))
 
                 charts.append(chart_points)
-            log.info("more charts created")
+            #log.info("more charts created")
 
         except Exception as e:
             log.info(f'status: failure - {e}')
@@ -167,7 +171,6 @@ def lambda_handler(event, context):
                              "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
                              "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, daily_data=:daily, weekly_data=:weekly, monthly_data=:monthly"
         update_expression = update_expression1 + update_expression2
-        log.info('about to make expression attributes')
         exp_att1 = {
             ':fl': mins,
             ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
@@ -205,7 +208,6 @@ def lambda_handler(event, context):
         }
 
         ex_att2.update(exp_att1)
-        log.info('expression attributes merged')
         dynamodb.Table('collections').update_item(
             Key={'collection_id': collection_code},
             UpdateExpression=update_expression,
@@ -259,7 +261,6 @@ def get_day(collection_id):
             "buyers": results[4][0][1],
             "avg_per_hour": results[5][0][0]
         }
-        log.info("1")
         try:
             charts = []
             for i in range(6, 7):
@@ -383,7 +384,7 @@ def get_week_month(collection_id):
             log.info(f'status: failure - {e}')
 
         log.info(f'weekly - {weekly_data}')
-        log.info(f'monthly failure - {monthly_data}')
+        log.info(f'monthly - {monthly_data}')
         return weekly_data, monthly_data
 
     except Exception as e:
