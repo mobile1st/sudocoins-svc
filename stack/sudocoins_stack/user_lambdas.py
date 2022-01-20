@@ -21,17 +21,7 @@ class SudocoinsUserLambdas:
     def __init__(self,
                  scope: cdk.Construct,
                  resources: SudocoinsImportedResources):
-        # GET PROFILE
-        self.get_profile_function = _lambda.Function(
-            scope,
-            'UserGetProfileV2',
-            function_name='UserGetProfileV2',
-            handler='user.get_profile.lambda_handler',
-            description='Gets all data for displaying the profil page',
-            **lambda_default_kwargs
-        )
-        resources.sub_table.grant_read_write_data(self.get_profile_function)
-        resources.config_table.grant_read_data(self.get_profile_function)
+
 
         # GET PROFILE DEV
         self.get_profile_dev_function = _lambda.Function(
@@ -56,16 +46,6 @@ class SudocoinsUserLambdas:
             **lambda_default_kwargs
         )
         resources.sub_table.grant_read_write_data(self.get_user_id_function)
-
-        # USER VERIFY
-        self.user_verify_function = _lambda.Function(
-            scope,
-            'UserVerifyV2',
-            function_name='UserVerifyV2',
-            handler='user.user_verify.lambda_handler',
-            description='Verifies user with google recaptcha',
-            **lambda_default_kwargs
-        )
 
         # CONTACT US
         self.contact_function = _lambda.Function(

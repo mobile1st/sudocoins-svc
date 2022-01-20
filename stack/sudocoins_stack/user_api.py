@@ -24,15 +24,7 @@ class SudocoinsUserApi:
             ),
             cors_preflight=cors_preflight
         )
-        # GET PROFILE
-        get_profile_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.get_profile_function
-        )
-        user_api_v3.add_routes(
-            path='/profile',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=get_profile_integration
-        )
+
         # GET PROFILE DEV
         get_profile_dev_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.get_profile_dev_function
@@ -52,15 +44,6 @@ class SudocoinsUserApi:
             integration=get_user_id_integration
         )
 
-        # USER VERIFY
-        user_verify_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.user_verify_function
-        )
-        user_api_v3.add_routes(
-            path='/verify',
-            methods=[apigwv2.HttpMethod.POST],
-            integration=user_verify_integration
-        )
         # CONTACT US
         contact_integration = api_integrations.LambdaProxyIntegration(
             handler=lambdas.contact_function
