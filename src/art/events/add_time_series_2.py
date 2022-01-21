@@ -391,4 +391,3 @@ def get_week_month(collection_id):
         log.info(f'status: failure - {e}')
 
 
-
