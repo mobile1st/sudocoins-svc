@@ -59,11 +59,50 @@ def lambda_handler(event, context):
         }
         index_data.append(point)
 
-    update_expression = "SET points=:pts, index_points=:idx"
+    with conn.cursor() as cur:
+        sql_hour = "select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - Interval 1 day ;"
+        sql_day = "select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - Interval 7 day;"
+        sql_week = "select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - Interval 30 day ;"
+
+        statements = [sql_hour, sql_day, sql_week]
+        results = []
+        for i in statements:
+            cur.execute(sql0, event_date)
+            tmp = cur.fetchall()
+            results.append(tmp)
+        conn.close()
+
+
+    for i in range(len(results)):
+        if i == 0:
+            day = {
+                "volume": results[i][0][0],
+                "trades": results[i][0][2],
+                "buyers": results[i][0][1]
+            }
+        elif i == 1:
+            week = {
+                "volume": results[i][0][0],
+                "trades": results[i][0][2],
+                "buyers": results[i][0][1]
+            }
+        if i == 2:
+            month = {
+                "volume": results[i][0][0],
+                "trades": results[i][0][2],
+                "buyers": results[i][0][1]
+            }
+
+
+    update_expression = "SET points=:pts, index_points=:idx, day=:d, week=:w, month=:m"
     exp_att = {
         ':pts': chart_data,
-        ':idx': index_data
+        ':idx': index_data,
+        ':d': day,
+        ':w': week,
+        ':m': month
     }
+
     dynamodb.Table('Config').update_item(
         Key={'configKey': "macro_stats"},
         UpdateExpression=update_expression,
