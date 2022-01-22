@@ -7,8 +7,11 @@ def lambda_handler(event, context):
     macro = get_config()
 
     return {
-        'points': macro['points'],
-        'index_points': macro['index_points']
+        'day': macro['day'],
+        'hour': macro['hour'],
+        'week': macro['week'],
+        'index_data': macro['index_data'],
+        'daily_data': macro['daily_data']
     }
 
 
