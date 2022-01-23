@@ -375,6 +375,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         dynamodb.Table('art').put_item(Item=art_record)
         log.info("art added to art table")
 
+    '''
     try:
 
         sns.publish(
@@ -399,6 +400,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
     except Exception as e:
         log.info(f"open_sea {open_sea}")
         log.info(f"status: failure - {e}")
+    '''
     '''
     try:
         msg = {

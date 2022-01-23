@@ -101,9 +101,11 @@ class Art:
         #     del art['cdn_url']
 
         # we have a cdn too
+        '''
         if 'cdn_url' in art:
             art['art_url'] = art['cdn_url']
             del art['cdn_url']
+        '''
 
         return art
 
