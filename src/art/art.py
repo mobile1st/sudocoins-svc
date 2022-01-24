@@ -107,6 +107,8 @@ class Art:
             del art['cdn_url']
         '''
 
+        art['art_url'] = art['preview_url']
+
         return art
 
     def __is_html(self, art):

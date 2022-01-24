@@ -20,14 +20,14 @@ def lambda_handler(event, context):
     end_time = (datetime.fromisoformat(start_time) + timedelta(minutes=4)).isoformat()
 
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
-    log.info(f'difference: {difference}')
+    #log.info(f'difference: {difference}')
 
     if difference < 20:
         return
     open_sea_response = call_open_sea(start_time, end_time)
     length_response = len(open_sea_response)
     if length_response == 300:
-        log.info('split and call again')
+        #log.info('split and call again')
         middle_time = (datetime.fromisoformat(end_time) - timedelta(minutes=2)).isoformat()
         # start_time = (datetime.fromisoformat(end_time) - timedelta(minutes=4)).isoformat()
         open_sea_response1 = call_open_sea(middle_time, end_time)
@@ -37,8 +37,8 @@ def lambda_handler(event, context):
     count_eth = process_open_sea(open_sea_response)
     log.info(count_eth)
     set_config(end_time)
-    log.info(f'start_time: {start_time}')
-    log.info(f'end_time: {end_time}')
+    #log.info(f'start_time: {start_time}')
+    #log.info(f'end_time: {end_time}')
 
     return
 
@@ -85,7 +85,7 @@ def process_open_sea(open_sea_response):
         if i.get('asset') is None:
             try:
                 # . log.info(i)
-                log.info("bundle")
+                #log.info("bundle")
                 asset_bundle = i.get('asset_bundle', {}).get('assets', [])
                 bundle_count = len(asset_bundle)
                 price_per = int(i.get('total_price')) / bundle_count
@@ -134,7 +134,7 @@ def process_open_sea(open_sea_response):
                             MessageStructure='string',
                             Message=json.dumps(msg)
                         )
-                        log.info("bundle asset published")
+                        #log.info("bundle asset published")
 
                         count += 1
                         count_eth += 1
@@ -185,12 +185,12 @@ def process_open_sea(open_sea_response):
 
             except Exception as e:
                 log.info(f'status: failure - {e}')
-                log.info(f'art event: {i}')
+                #log.info(f'art event: {i}')
                 count += 1
 
     log.info(f'final count: {count}')
     log.info(f'eth count: {count_eth}')
-    log.info(f'matic count: {count_matic}')
+    #log.info(f'matic count: {count_matic}')
 
     return count_eth
 

@@ -20,7 +20,7 @@ port = 3306
 
 def lambda_handler(event, context):
     art = json.loads(event['Records'][0]['Sns']['Message'])
-    log.info(f'art: {art}')
+    #log.info(f'art: {art}')
     collection_id = art['collection_id']
     art_object = art['art_object']
     eth_sale_price = art['last_sale_price']
@@ -116,7 +116,7 @@ def lambda_handler(event, context):
                             chart_points.append(point)
                         except Exception as e:
                             log.info(f'status: failure - {e}')
-                            log.info(str(k[0]))
+                            #log.info(str(k[0]))
 
                 charts.append(chart_points)
             #log.info("more charts created")
@@ -142,8 +142,8 @@ def lambda_handler(event, context):
             "floor": chart_data
         }
 
-        log.info(f'floor_data: {floor_points}')
-        log.info(f'more charts: {charts}')
+        #log.info(f'floor_data: {floor_points}')
+        #log.info(f'more charts: {charts}')
 
 
     except Exception as e:
@@ -152,7 +152,7 @@ def lambda_handler(event, context):
     try:
         daily_data = get_day(collection_id)
         log.info('success daily')
-        log.info(daily_data)
+        #log.info(daily_data)
     except Exception as e:
         log.info(f'issue: {e}')
 
@@ -383,8 +383,8 @@ def get_week_month(collection_id):
         except Exception as e:
             log.info(f'status: failure - {e}')
 
-        log.info(f'weekly - {weekly_data}')
-        log.info(f'monthly - {monthly_data}')
+        #log.info(f'weekly - {weekly_data}')
+        #log.info(f'monthly - {monthly_data}')
         return weekly_data, monthly_data
 
     except Exception as e:
