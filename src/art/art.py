@@ -76,7 +76,7 @@ class Art:
             ScanIndexForward=False,
             Limit=count,
             IndexName='Recent_index',
-            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, collection_data, collection_address, open_sea_data.description, description, collection_id, blockchain",
+            ProjectionExpression="art_id, preview_url, art_url, #n, click_count, recent_sk, mime_type, cdn_url, last_sale_price, collection_data, collection_address, open_sea_data, description, collection_id, blockchain",
             ExpressionAttributeNames={'#n': 'name'}
         )
         if not res.get('Items'):
@@ -106,8 +106,10 @@ class Art:
             art['art_url'] = art['cdn_url']
             del art['cdn_url']
         '''
-
-        art['art_url'] = art['preview_url']
+        if art.get('open_sea_data', {}).get('image_url') is not None:
+            art['art_url'] = art.get('open_sea_data', {}).get('image_url')
+        else:
+            art['art_url'] = art['preview_url']
 
         return art
 
