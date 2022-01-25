@@ -374,7 +374,7 @@ def get_week_month(collection_id):
                         chart_points.append(point)
                 charts.append(chart_points)
 
-            monthly_data['floor_points'] = charts[0]
+            #monthly_data['floor_points'] = charts[0]
             #monthly_data['ceiling_points'] = charts[1]
             #monthly_data['volume_points'] = charts[2]
             #monthly_data['trades_points'] = charts[3]

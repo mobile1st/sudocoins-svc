@@ -40,8 +40,11 @@ def lambda_handler(event, context):
         conn.request("GET", path, headers=api_key)
         response = conn.getresponse()
         decoded_response = response.read().decode('utf-8')
-        open_sea_response = json.loads(decoded_response)['asset_events']
-        listings = open_sea_response + listings
+        open_sea_response = json.loads(decoded_response).get('asset_events')
+        if open_sea_response is not None:
+            log.info(f'no response: {path}')
+            listings = open_sea_response + listings
+            open_sea_response = []
 
     length_listings = len(listings)
     log.info(f'length of listings: {length_listings}')
@@ -147,14 +150,16 @@ def process_open_sea(open_sea_response):
                             "listing_time": listing_time,
                             "asset": k,
                             "owner": owner,
-                            "bundle": "true"
+                            "bundle": "true",
+                            "auction_type": k.get('auction_type')
                         }
                         sns_client.publish(
                             TopicArn='arn:aws:sns:us-west-2:977566059069:ListingsTopic',
                             MessageStructure='string',
                             Message=json.dumps(msg)
                         )
-                        #log.info("bundle asset published")
+                        log.info(msg)
+                        log.info(k)
 
                         count_eth += 1
 
@@ -182,7 +187,8 @@ def process_open_sea(open_sea_response):
                         "listing_time": listing_time,
                         "asset": i.get('asset'),
                         "owner": i.get('asset', {}).get('owner', {}).get("address"),
-                        "bundle": "false"
+                        "bundle": "false",
+                        "auction_type": i.get('auction_type')
 
                     }
 
@@ -191,6 +197,7 @@ def process_open_sea(open_sea_response):
                         MessageStructure='string',
                         Message=json.dumps(msg)
                     )
+
                     count += 1
                     count_eth += 1
         except Exception as e:

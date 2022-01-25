@@ -91,7 +91,6 @@ def add(art_object):
         "animation_url": art_object.get('asset', {}).get('animation_url'),
         "animation_original_url": art_object.get('asset', {}).get('animation_original_url'),
         "creator": art_object.get('asset', {}).get('asset_contract'),
-        "permalink": art_object.get('open_sea_url'),
         "token_metadata": art_object.get('asset', {}).get('token_metadata')
     }
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
@@ -326,13 +325,10 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         'preview_url': preview_url,
         'art_url': art_url,
         "open_sea_data": open_sea,
-        "timestamp": time_now,
         "recent_sk": time_now + "#" + nft_id,
         "token_id": contract_token_id.split("#")[1],
         "sort_idx": 'true',
-        "process_status": "STREAM_TO_S3",
         "event_date": art_object.get('created_date'),
-        "event_type": art_object.get('event_type'),
         "blockchain": art_object.get('blockchain'),
         "last_sale_price": eth_sale_price,
         "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
@@ -346,9 +342,7 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
             "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
         },
         "process_to_google_search": "TO_BE_INDEXED",
-        "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
-        "owner": art_object.get("owner", "unknown"),
-        "seller": art_object.get("seller", "unknown")
+        "collection_name": art_object.get('asset', {}).get('collection', {}).get('name')
     }
 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
@@ -431,33 +425,17 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
-            UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
-                             "last_sale_price=:lsp, #n=:na, collection_address=:ca, collection_data=:cd,"
-                             "collection_name=:cn, collection_id=:cid, collection_url=:curl, token_id=:tok,"
+            UpdateExpression="SET art_url=:art, preview_url=:pre, "
+                             "last_sale_price=:lsp,"
+                             "collection_url=:curl, token_id=:tok,"
                              "collection_item_url=:ciurl",
             ExpressionAttributeValues={
                 ':art': art_url,
                 ':curl': collection_url,
-                ':buy': buy_url,
                 ':ciurl': collection_item_url,
                 ':pre': preview_url,
                 ':tok': contract_token_id.split("#")[1],
-                ':open': open_sea,
                 ':lsp': eth_sale_price,
-                ":na": open_sea.get('name'),
-                ":ca": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
-                ":cd": {
-                    "name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                    "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
-                    "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
-                    "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
-                    "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
-                    "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
-                    "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
-                },
-                ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
-                ":cid": collection_id,
-
             },
             ExpressionAttributeNames={'#n': 'name'}
         )

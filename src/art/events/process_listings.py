@@ -2,7 +2,6 @@ import boto3
 import json
 from art.art import Art
 from util import sudocoins_logger
-from art.ledger import Ledger
 from decimal import Decimal, getcontext
 import pymysql
 from datetime import datetime
@@ -12,15 +11,13 @@ import os
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
-ledger = Ledger(dynamodb)
 art = Art(dynamodb)
 sns = boto3.client("sns")
 
 
 def lambda_handler(event, context):
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
-    log.info(f'payload: {art_object}')
-    return
+    # log.info(f'payload: {art_object}')
 
     if art_object['open_sea_url'] is None:
         log.info("open sea url doesn't exist")
@@ -113,13 +110,13 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     nft_id = art.get_id(contract_token_id)
     if nft_id:
         try:
-            update_nft(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
+            # update_nft(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id)
             collection_id = insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
                                        contract_token_id)
             if collection_id is None:
                 log.info("collection_id is None")
                 return
-            update_collection(art_object, eth_sale_price, collection_id)
+            # update_collection(art_object, eth_sale_price, collection_id)
         except Exception as e:
             log.info(f"status: failure - {e}")
 
@@ -128,13 +125,13 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     else:
         nft_id = str(uuid.uuid1())
         try:
-            add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
+            # add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
             collection_id = insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
                                        contract_token_id)
             if collection_id is None:
                 log.info("collection_id is None")
                 return
-            update_collection(art_object, eth_sale_price, collection_id)
+            # update_collection(art_object, eth_sale_price, collection_id)
         except Exception as e:
             log.info(f"status: failure - {e}")
 
@@ -152,7 +149,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         'art_url': art_url,
         "open_sea_data": open_sea,
         "timestamp": time_now,
-        "event_date": art_object.get('created_date'),
+        "event_date": art_object.get('listing_time'),
         "event_type": art_object.get('event_type'),
         "blockchain": art_object.get('blockchain'),
         "last_sale_price": eth_sale_price,
@@ -167,8 +164,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
         },
         "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
-        "owner": art_object.get("owner", "unknown"),
-        "seller": art_object.get("seller", "unknown")
+        "owner": art_object.get("owner", "unknown")
     }
 
     if art_record.get('blockchain') == 'Ethereum':
@@ -178,8 +174,15 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         blockchain_id = 2
         currency_id = 2
 
-    if art_record.get('event_type') == 'successful':
-        event_id = 1
+    if art_record.get('event_type') == 'created':
+        event_id = 2
+    elif art_record.get('event_type') == 'cancelled':
+        event_id = 3
+
+    if art_object.get('auction_type') == 'english':
+        auction_id = 1
+    elif art_object.get('auction_type') == 'dutch':
+        auction_id = 2
 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
@@ -259,21 +262,6 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 sql = '''select id from nft.users where public_key=%s limit 1;'''
                 cur.execute(sql, public_key)
                 result = cur.fetchall()
-                buyer_id = result[0][0]
-            else:
-                buyer_id = result[0][0]
-            # seller
-            public_key = art_record['seller']
-            sql = '''select id from nft.users where public_key=%s limit 1;'''
-            cur.execute(sql, public_key)
-            result = cur.fetchall()
-            if len(result) == 0:
-                row_values = (public_key)
-                cur.execute(
-                    'INSERT INTO `nft`.`users` (`public_key`) VALUES (%s)', row_values)
-                sql = '''select id from nft.users where public_key=%s limit 1;'''
-                cur.execute(sql, public_key)
-                result = cur.fetchall()
                 seller_id = result[0][0]
             else:
                 seller_id = result[0][0]
@@ -281,10 +269,10 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             price = int(art_record['last_sale_price'])
             event_date = art_record['event_date']
             row_values = (
-                collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, buyer_id, seller_id,
-                currency_id)
+                collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, seller_id, currency_id,
+                auction_id)
             cur.execute(
-                'INSERT INTO `nft`.`events` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain_id`, `event_id`,`buyer_id`,`seller_id`, `currency`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
+                'INSERT INTO `nft`.`listings` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain_id`, `event_id`,`seller_id`,`currency`, `auction_id`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
                 row_values)
             conn.commit()
             conn.close()
@@ -308,12 +296,12 @@ def eth_price(art_object):
         symbol = symbol.get("symbol", "ETH")
 
     if symbol != 'ETH':
-        total_price = Decimal(art_object.get("sale_price", 0))
+        total_price = Decimal(art_object.get("listing_price", 0))
         eth_price = Decimal(art_object.get("payment_token", {}).get("eth_price", "1"))
         eth_sale_price = int(total_price * eth_price)
 
     else:
-        eth_sale_price = int(art_object.get("sale_price", 0))
+        eth_sale_price = int(art_object.get("listing_price", 0))
 
     return eth_sale_price
 
@@ -331,11 +319,10 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         "open_sea_data": open_sea,
         "timestamp": time_now,
         "recent_sk": time_now + "#" + nft_id,
-        "click_count": 0,
-        "first_user": "ingest",
+        "token_id": contract_token_id.split("#")[1],
         "sort_idx": 'true',
         "process_status": "STREAM_TO_S3",
-        "event_date": art_object.get('created_date'),
+        "event_date": art_object.get('listing_time'),
         "event_type": art_object.get('event_type'),
         "blockchain": art_object.get('blockchain'),
         "last_sale_price": eth_sale_price,
@@ -349,15 +336,18 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
             "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
             "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
         },
-        "process_to_google_search": "TO_BE_INDEXED",
         "collection_name": art_object.get('asset', {}).get('collection', {}).get('name'),
-        "owner": art_object.get("owner", "unknown"),
-        "seller": art_object.get("seller", "unknown")
+        "owner": art_object.get("owner", "unknown")
     }
 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
+        collection_url = art_object.get('asset', {}).get('collection', {}).get('slug', "")
+        collection_item_id = contract_token_id.split("#")[1]
+        collection_item_url = collection_url + "-" + collection_item_id
+        art_record['collection_url'] = collection_url
+        art_record['collection_item_url'] = collection_item_url
     else:
         art_record['collection_id'] = art_record['collection_address']
 
@@ -374,44 +364,6 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         dynamodb.Table('art').put_item(Item=art_record)
         log.info("art added to art table")
 
-    try:
-
-        sns.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:ArtProcessor',
-            MessageStructure='string',
-            MessageAttributes={
-                'art_id': {
-                    'DataType': 'String',
-                    'StringValue': nft_id
-                },
-                'art_url': {
-                    'DataType': 'String',
-                    'StringValue': art_url
-                },
-                'process': {
-                    'DataType': 'String',
-                    'StringValue': "STREAM_TO_S3"
-                }
-            },
-            Message=json.dumps(art_record)
-        )
-    except Exception as e:
-        log.info(f"open_sea {open_sea}")
-        log.info(f"status: failure - {e}")
-
-    try:
-        msg = {
-            "collection_id": art_record.get('collection_id', "")
-        }
-        sns.publish(
-            TopicArn='arn:aws:sns:us-west-2:977566059069:AddSearchTopic',
-            MessageStructure='string',
-            Message=json.dumps(msg)
-        )
-        log.info(f"add search message published")
-    except Exception as e:
-        log.info(f"status: failure - {e}")
-
 
 def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price, contract_token_id):
     dynamodb = boto3.resource('dynamodb')
@@ -419,20 +371,26 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     collection_name = art_object.get('asset', {}).get('collection', {}).get('name')
     c_name = ("-".join(collection_name.split())).lower()
     collection_id = collection_address + ":" + c_name
+    collection_url = art_object.get('asset', {}).get('collection', {}).get('slug', "")
+    collection_item_id = contract_token_id.split("#")[1]
+    collection_item_url = collection_url + "-" + collection_item_id
 
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
             UpdateExpression="SET art_url=:art, buy_url=:buy, preview_url=:pre, open_sea_data=:open,"
-                             "last_sale_price=:lsp, event_date=:ed, #n=:na, collection_address=:ca, collection_data=:cd,"
-                             "collection_name=:cn, #o=:ow, collection_id=:cid, seller=:se",
+                             "last_sale_price=:lsp, #n=:na, collection_address=:ca, collection_data=:cd,"
+                             "collection_name=:cn, collection_id=:cid, collection_url=:curl, token_id=:tok,"
+                             "collection_item_url=:ciurl",
             ExpressionAttributeValues={
                 ':art': art_url,
+                ':curl': collection_url,
                 ':buy': buy_url,
+                ':ciurl': collection_item_url,
                 ':pre': preview_url,
+                ':tok': contract_token_id.split("#")[1],
                 ':open': open_sea,
                 ':lsp': eth_sale_price,
-                ":ed": art_object.get('created_date'),
                 ":na": open_sea.get('name'),
                 ":ca": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
                 ":cd": {
@@ -445,11 +403,10 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                     "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
                 },
                 ":cn": art_object.get('asset', {}).get('collection', {}).get('name'),
-                ":ow": art_object.get("owner", "unknown"),
                 ":cid": collection_id,
-                ":se": art_object.get("seller", "unknown")
+
             },
-            ExpressionAttributeNames={'#n': 'name', '#o': 'owner'}
+            ExpressionAttributeNames={'#n': 'name'}
         )
         log.info("art record updated")
         log.info(f"art_id: {art_id}")
@@ -464,12 +421,21 @@ def update_collection(art_object, eth_sale_price, collection_id):
     c_name = ("-".join(collection_name.split())).lower()
     collection_code = collection_address + ":" + c_name
 
+    remove_chars = [',', '&', '+', '.', '!', '(', ')', '`', '"', "'"]
+    replace_chars = [' ', '#', '/', '-', ':', '--', "|"]
+    collection_url = collection_name.lower()
+    for i in remove_chars:
+        collection_url = collection_url.replace(i, '')
+    for i in replace_chars:
+        collection_url = collection_url.replace(i, '-')
+
     try:
         msg = {
             "last_sale_price": eth_sale_price,
             "collection_id": collection_id,
             'art_object': art_object,
-            'collection_code': collection_code
+            'collection_code': collection_code,
+            'collection_url': collection_url
         }
 
         sns_client.publish(
@@ -481,6 +447,4 @@ def update_collection(art_object, eth_sale_price, collection_id):
         log.info(f"add time series published")
     except Exception as e:
         log.info(f"status: failure - {e}")
-
-
 
