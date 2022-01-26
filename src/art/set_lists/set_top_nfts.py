@@ -16,6 +16,7 @@ port = 3306
 
 
 def lambda_handler(event, context):
+    return
     nfts_hour, nfts_day, nfts_week, buyers_hour, buyers_day, buyers_week = get_trending()
 
     set_config(nfts_hour, nfts_day, nfts_week, buyers_hour, buyers_day, buyers_week)

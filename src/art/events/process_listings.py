@@ -17,7 +17,7 @@ sns = boto3.client("sns")
 
 def lambda_handler(event, context):
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
-    # log.info(f'payload: {art_object}')
+    log.info(f'payload: {art_object}')
 
     if art_object['open_sea_url'] is None:
         log.info("open sea url doesn't exist")
@@ -96,7 +96,11 @@ def add(art_object):
     }
     buy_url = open_sea['permalink'] if open_sea.get('permalink') else art_object.get('open_sea_url')
     preview_url, art_url = get_urls(open_sea)
-    eth_sale_price = eth_price(art_object)
+
+    if art_object.get('event_type') == 'created':
+        eth_sale_price = eth_price(art_object)
+    else:
+        eth_sale_price = None
 
     # function responsible for adding and inserting
     response = get_art_id(collection_address, token_id, art_url, buy_url, preview_url, open_sea, art_object,
@@ -269,8 +273,11 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 seller_id = result[0][0]
             else:
                 seller_id = result[0][0]
+            if event_id == 2:
+                price = int(art_record['last_sale_price'])
+            else:
+                price = None
 
-            price = int(art_record['last_sale_price'])
             event_date = art_record['event_date']
             row_values = (
                 collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, seller_id, currency_id,
@@ -284,6 +291,9 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
 
     except Exception as e:
+        error = str(e)
+        if "Duplicate entry" in error:
+            return
         log.info(f"status: failure - {e}")
         log.info(f"art object: - {art_object}")
         log.info(f"art record: - {art_record}")

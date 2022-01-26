@@ -288,6 +288,9 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
 
     except Exception as e:
+        error = str(e)
+        if "Duplicate entry" in error:
+            return None
         log.info(f"status: failure - {e}")
         conn.close()
         return None

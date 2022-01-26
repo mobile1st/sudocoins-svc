@@ -12,8 +12,16 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     log.info(f'event: {event}')
     body = json.loads(event.get('body', '{}'))
-    collection_id = body['collection_id']
-    art_id = body['art_id']
+    # body = event
+    collection_id = body.get('collection_id')
+    art_id = body.get('art_id')
+
+    if collection_id is None:
+        art = dynamodb.Table('art').get_item(Key={'art_id': art_id})['Item']
+        collection_address = art.get('open_sea_data', {}).get('asset', {}).get('asset_contract', {}).get('address')
+        collection_name = art.get('open_sea_data', {}).get('asset', {}).get('collection', {}).get('name')
+        c_name = ("-".join(collection_name.split())).lower()
+        collection_id = collection_address + ":" + c_name
 
     recent = get_recent(art_id, collection_id)
 
@@ -57,6 +65,6 @@ def get_recent(art_id, collection_id):
             a['mime_type'] = idx.get('mime_type')
         sanitized.append(a)
 
-    #newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
+    # newlist = sorted(sanitized, key=lambda k: int(k['last_sale_price']), reverse=True)
 
     return sanitized

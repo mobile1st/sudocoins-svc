@@ -12,7 +12,17 @@ arts = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'art_prompt {event}')
-    share_id = event['pathParameters']['shareId']
+    share_id = event.get('pathParameters', {}).get('shareId')
+    body = json.loads(event.get('body', '{}'))
+
+    try:
+        if 'collection_url' in body and 'token_id' in body:
+            collection_url = body['collection_url']
+            token_id = str(body['token_id'])
+            collection_item_url = collection_url + "-" + token_id
+            get_by_share_id(collection_item_url)
+    except Exception as e:
+        log.info(e)
 
     return get_by_share_id(share_id)
 

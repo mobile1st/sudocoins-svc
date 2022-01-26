@@ -34,19 +34,20 @@ def lambda_handler(event, context):
         offset += len(open_sea_response)
         log.info(offset)
         path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
-            offset) + "&limit=300&occurred_after=2022-01-10T00:46:27.111111&occurred_before=2022-01-10T00:47:27.111111"
+            offset) + "&limit=300&occurred_after=" + start_time + "&occurred_before=" + end_time
         conn = http.client.HTTPSConnection("api.opensea.io")
         api_key = {"X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"}
         conn.request("GET", path, headers=api_key)
         response = conn.getresponse()
         decoded_response = response.read().decode('utf-8')
         open_sea_response = json.loads(decoded_response).get('asset_events')
+        listings = open_sea_response + listings
 
     length_listings = len(listings)
     log.info(f'length of listings: {length_listings}')
 
     count_eth = process_open_sea(listings)
-    return count_eth
+
     log.info(f'eth count created: {count_eth}')
 
     # finished with created
@@ -61,8 +62,8 @@ def lambda_handler(event, context):
     while len(open_sea_response) == 300:
         offset += len(open_sea_response)
         log.info(offset)
-        path = "/api/v1/events?event_type=cancelled&only_opensea=false&offset=" + str(
-            offset) + "&limit=300&occurred_after=2022-01-10T00:46:27.111111&occurred_before=2022-01-10T00:47:27.111111"
+        path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
+            offset) + "&limit=300&occurred_after=" + start_time + "&occurred_before=" + end_time
         conn = http.client.HTTPSConnection("api.opensea.io")
         api_key = {"X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"}
         conn.request("GET", path, headers=api_key)
@@ -115,17 +116,21 @@ def process_open_sea(open_sea_response):
             if i.get('asset') is None:
                 log.info("bundle")
                 count += 1
-
-                listing_price = i.get('starting_price')
+                event_type = i.get('event_type')
+                asset_bundle = i.get('asset_bundle', {}).get('assets', [])
+                bundle_count = len(asset_bundle)
+                if event_type == 'cancelled':
+                    listing_price = None
+                    price_per = None
+                else:
+                    listing_price = i.get('starting_price')
+                    price_per = int(listing_price) / bundle_count
                 listing_time = i.get('listing_time')
                 if listing_time is None:
                     listing_time = i.get('created_date')
 
-                asset_bundle = i.get('asset_bundle', {}).get('assets', [])
-                bundle_count = len(asset_bundle)
-                price_per = int(listing_price) / bundle_count
                 payment_token = i.get('payment_token')
-                event_type = i.get('event_type')
+
                 owner = i.get('owner', {}).get("address")
                 for k in asset_bundle:
                     open_sea_url = i.get('permalink', "")
@@ -154,8 +159,8 @@ def process_open_sea(open_sea_response):
                             MessageStructure='string',
                             Message=json.dumps(msg)
                         )
-                        log.info(msg)
-                        log.info(k)
+                        # log.info(msg)
+                        # log.info(k)
 
                         count_eth += 1
 
@@ -198,6 +203,7 @@ def process_open_sea(open_sea_response):
                     count_eth += 1
         except Exception as e:
             log.info(f'status - failure: {e}')
+            log.info(f'nft: {i}')
             errors += 1
 
     return count_eth
