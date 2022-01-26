@@ -183,6 +183,8 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         auction_id = 1
     elif art_object.get('auction_type') == 'dutch':
         auction_id = 2
+    else:
+        auction_id = 3
 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
@@ -251,6 +253,8 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 nft_id = result[0][0]
             # buyer
             public_key = art_record['owner']
+            if public_key is None:
+                public_key = art_object.get('asset', {}).get('owner', {}).get('address')
             sql = '''select id from nft.users where public_key=%s limit 1;'''
             cur.execute(sql, public_key)
             result = cur.fetchall()
@@ -281,6 +285,8 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
     except Exception as e:
         log.info(f"status: failure - {e}")
+        log.info(f"art object: - {art_object}")
+        log.info(f"art record: - {art_record}")
         conn.close()
         return None
 

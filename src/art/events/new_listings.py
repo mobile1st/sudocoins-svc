@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     # start_time = "2022-01-09T23:08:11.111111"
     log.info(f'created: {start_time}')
 
-    end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=60)).isoformat()
+    end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=120)).isoformat()
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
     log.info(f'difference: {difference}')
     if difference < 1:
@@ -41,10 +41,6 @@ def lambda_handler(event, context):
         response = conn.getresponse()
         decoded_response = response.read().decode('utf-8')
         open_sea_response = json.loads(decoded_response).get('asset_events')
-        if open_sea_response is not None:
-            log.info(f'no response: {path}')
-            listings = open_sea_response + listings
-            open_sea_response = []
 
     length_listings = len(listings)
     log.info(f'length of listings: {length_listings}')
@@ -86,7 +82,7 @@ def lambda_handler(event, context):
     log.info(f'start_time: {start_time}')
     log.info(f'end_time: {end_time}')
 
-    # set_config(end_time)
+    set_config(end_time)
 
     return
 
@@ -204,7 +200,6 @@ def process_open_sea(open_sea_response):
             log.info(f'status - failure: {e}')
             errors += 1
 
-    log.info(f'number of errors: {errors}')
     return count_eth
 
 

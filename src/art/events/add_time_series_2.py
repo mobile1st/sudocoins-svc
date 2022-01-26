@@ -150,14 +150,14 @@ def lambda_handler(event, context):
         log.info(f'status: failure - {e}')
 
     try:
-        daily_data = get_day(collection_id)
+        #daily_data = get_day(collection_id)
         log.info('success daily')
         #log.info(daily_data)
     except Exception as e:
         log.info(f'issue: {e}')
 
     try:
-        weekly_data, monthly_data = get_week_month(collection_id)
+        #weekly_data, monthly_data = get_week_month(collection_id)
         log.info('success weekly and monthly')
     except Exception as e:
         log.info(f'issue: {e}')
@@ -165,56 +165,89 @@ def lambda_handler(event, context):
     last_update = "false"
 
     try:
-        update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
-        update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
-                             "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
-                             "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
-                             "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, daily_data=:daily, weekly_data=:weekly, monthly_data=:monthly"
-        update_expression = update_expression1 + update_expression2
-        exp_att1 = {
-            ':fl': mins,
-            ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
-            ':me': med,
-            ':ma': maxs,
-            ':chd': floor_points,
-            ':lasup': last_update,
-            ':mc': charts,
-            ':rdscollid': collection_id,
-            ':bc': art_object.get('blockchain'),
-            ':daily': daily_data,
-            ':weekly': weekly_data,
-            ':monthly': monthly_data
-        }
-        ex_att2 = {
-            ':start': 0,
-            ':inc': 1,
-            ':start2': 0,
-            ':inc2': eth_sale_price,
-            ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
-            ':purl': art_object.get('asset', {}).get('collection', {}).get('image_url'),
-            ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
-            ':cd': art_object.get('collection_date', "0"),
-            ":si": "true",
-            ":os": art_object.get('asset', {}).get('collection', {}).get('slug', ""),
-            ":colldata": {
-                "name": art_object.get('asset', {}).get('collection', {}).get('name'),
-                "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
-                "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
-                "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
-                "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
-                "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
-                "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
-            }
-        }
-
-        ex_att2.update(exp_att1)
-        dynamodb.Table('collections').update_item(
-            Key={'collection_id': collection_code},
-            UpdateExpression=update_expression,
-            ExpressionAttributeValues=ex_att2,
-            ReturnValues="UPDATED_NEW"
+        collection_record = dynamodb.Table('collections').get_item(
+            Key={'collection_id': collection_code}
         )
-        log.info('data added to collection table')
+
+        if 'Item' in collection_record:
+            update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
+            update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
+                                 "sales_volume, :start2) + :inc2,  " \
+                                 "last_update=:lasup," \
+                                 "collection_url=:curl"
+            update_expression = update_expression1 + update_expression2
+            exp_att1 = {
+                ':fl': mins,
+                ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
+                ':me': med,
+                ':ma': maxs,
+                ':chd': floor_points,
+                ':lasup': last_update,
+                ':mc': charts
+            }
+            ex_att2 = {
+                ':start': 0,
+                ':inc': 1,
+                ':start2': 0,
+                ':inc2': eth_sale_price
+            }
+            ex_att2.update(exp_att1)
+            dynamodb.Table('collections').update_item(
+                Key={'collection_id': collection_code},
+                UpdateExpression=update_expression,
+                ExpressionAttributeValues=ex_att2,
+                ReturnValues="UPDATED_NEW"
+            )
+            log.info('data added to collection table')
+
+        else:
+
+            update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
+            update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
+                                 "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
+                                 "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
+                                 "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl"
+            update_expression = update_expression1 + update_expression2
+            exp_att1 = {
+                ':fl': mins,
+                ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
+                ':me': med,
+                ':ma': maxs,
+                ':chd': floor_points,
+                ':lasup': last_update,
+                ':mc': charts,
+                ':rdscollid': collection_id,
+                ':bc': art_object.get('blockchain')
+            }
+            ex_att2 = {
+                ':start': 0,
+                ':inc': 1,
+                ':start2': 0,
+                ':inc2': eth_sale_price,
+                ':cn': art_object.get('asset', {}).get('collection', {}).get('name'),
+                ':purl': art_object.get('asset', {}).get('collection', {}).get('image_url'),
+                ':ca': art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
+                ':cd': art_object.get('collection_date', "0"),
+                ":si": "true",
+                ":os": art_object.get('asset', {}).get('collection', {}).get('slug', ""),
+                ":colldata": {
+                    "name": art_object.get('asset', {}).get('collection', {}).get('name'),
+                    "image_url": art_object.get('asset', {}).get('collection', {}).get('image_url'),
+                    "description": art_object.get('asset', {}).get('collection', {}).get('description', ""),
+                    "discord": art_object.get('asset', {}).get('collection', {}).get('discord_url', ""),
+                    "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+                    "instagram": art_object.get('asset', {}).get('collection', {}).get('instagram_username', ""),
+                    "website": art_object.get('asset', {}).get('collection', {}).get('external_url', "")
+                }
+            }
+            ex_att2.update(exp_att1)
+            dynamodb.Table('collections').update_item(
+                Key={'collection_id': collection_code},
+                UpdateExpression=update_expression,
+                ExpressionAttributeValues=ex_att2,
+                ReturnValues="UPDATED_NEW"
+            )
+            log.info('data added to collection table')
     except Exception as e:
         log.info(f'status: failure - {e}')
 
@@ -389,5 +422,3 @@ def get_week_month(collection_id):
 
     except Exception as e:
         log.info(f'status: failure - {e}')
-
-

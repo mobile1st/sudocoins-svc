@@ -436,8 +436,7 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 ':pre': preview_url,
                 ':tok': contract_token_id.split("#")[1],
                 ':lsp': eth_sale_price,
-            },
-            ExpressionAttributeNames={'#n': 'name'}
+            }
         )
         log.info("art record updated")
         log.info(f"art_id: {art_id}")
