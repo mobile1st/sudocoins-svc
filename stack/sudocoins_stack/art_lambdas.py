@@ -724,7 +724,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
 
-        new_listings_schedule = events.Schedule.rate(cdk.Duration.seconds(90))
+        new_listings_schedule = events.Schedule.rate(cdk.Duration.seconds(60))
         new_listings_target = events_targets.LambdaFunction(handler=new_listings_function)
         events.Rule(
             scope,

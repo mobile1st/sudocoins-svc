@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     # start_time = "2022-01-09T23:08:11.111111"
     log.info(f'created: {start_time}')
 
-    end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=120)).isoformat()
+    end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=90)).isoformat()
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
     log.info(f'difference: {difference}')
     if difference < 1:

@@ -304,5 +304,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_macro_stats_integration
         )
+        # GET NFT
+        get_nft_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_shared_art_function
+        )
+        art_api_v3.add_routes(
+            path='/get-nft',
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_nft_integration
+        )
 
 
