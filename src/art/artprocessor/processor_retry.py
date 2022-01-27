@@ -9,6 +9,7 @@ sns_client = boto3.client('sns')
 
 
 def lambda_handler(event, context):
+    return
     set_log_context(event)
     log.debug(f'add_view event{event}')
 

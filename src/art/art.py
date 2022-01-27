@@ -1,8 +1,5 @@
 import boto3
-import json
 from boto3.dynamodb.conditions import Key
-from datetime import datetime
-import uuid
 from util import sudocoins_logger
 
 log = sudocoins_logger.get()

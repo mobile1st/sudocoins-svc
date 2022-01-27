@@ -12,10 +12,11 @@ sns_client = boto3.client("sns")
 
 
 def lambda_handler(event, context):
-    log.info("")
 
+    time_now = str(datetime.utcnow().isoformat())
+    period = (datetime.fromisoformat(time_now) - timedelta(hours=1)).isoformat()
     data = dynamodb.Table('collections').query(
-        KeyConditionExpression=Key('last_update').eq("false"),
+        KeyConditionExpression=Key('last_update').lt(period),
         IndexName='last_update-index',
         ProjectionExpression='collection_id, open_sea'
     )
@@ -23,9 +24,8 @@ def lambda_handler(event, context):
     collections = data['Items']
     while 'LastEvaluatedKey' in data:
         data = dynamodb.Table('collections').query(
-            KeyConditionExpression=Key('last_update').eq("false"),
+            KeyConditionExpression=Key('last_update').lt(period),
             IndexName='last_update-index',
-            Limit=1,
             ProjectionExpression='collection_id, open_sea',
             ExclusiveStartKey=data['LastEvaluatedKey']
         )

@@ -431,7 +431,7 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             UpdateExpression="SET art_url=:art, preview_url=:pre, "
                              "last_sale_price=:lsp,"
                              "collection_url=:curl, token_id=:tok,"
-                             "collection_item_url=:ciurl",
+                             "collection_item_url=:ciurl, collection_id=:cid",
             ExpressionAttributeValues={
                 ':art': art_url,
                 ':curl': collection_url,
@@ -439,6 +439,7 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 ':pre': preview_url,
                 ':tok': contract_token_id.split("#")[1],
                 ':lsp': eth_sale_price,
+                ':cid': collection_id
             }
         )
         log.info("art record updated")
