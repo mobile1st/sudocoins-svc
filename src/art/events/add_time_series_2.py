@@ -20,7 +20,7 @@ port = 3306
 
 def lambda_handler(event, context):
     art = json.loads(event['Records'][0]['Sns']['Message'])
-    #log.info(f'art: {art}')
+    log.info(f'art: {art}')
     collection_id = art['collection_id']
     art_object = art['art_object']
     eth_sale_price = art['last_sale_price']
@@ -34,123 +34,26 @@ def lambda_handler(event, context):
         )
 
         if 'Item' in collection_record:
-            updated = collection_record.get('last_update')
-            difference = (datetime.fromisoformat(last_update) - datetime.fromisoformat(updated)).total_seconds() / 60
+            updated = collection_record['Item'].get('last_update')
 
-        if 'Item' in collection_record and difference > 60:
-            conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
-            log.info('connection established')
-            try:
-                with conn.cursor() as cur:
+            if updated is None or updated == 'true' or updated == 'false':
+                log.info('no last_update')
+                log.info(updated)
+                difference = 60
+            else:
+                log.info(last_update)
+                log.info(updated)
+                difference = (datetime.fromisoformat(last_update) - datetime.fromisoformat(
+                    str(updated))).total_seconds() / 60
 
-                    sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
-                    sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
-                    sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s;'''
+        if 'Item' in collection_record and difference >= 60:
 
-                    cur.execute(sql, collection_id)
-                    more_charts = cur.fetchall()
-
-                    cur.execute(sql2, collection_id)
-                    result2 = cur.fetchall()
-                    floor_chart = result2
-
-                    statements = []
-                    statements.append(sql7)
-                    results = []
-
-                    for i in range(len(statements)):
-                        cur.execute(statements[i], collection_id)
-                        result = cur.fetchall()
-                        results.append(result)
-
-                    conn.close()
-
-                try:
-                    charts = [[], [], [], []]
-                    for i in range(len(results)):
-                        chart_points = []
-                        for k in results[i]:
-                            if i == 4:
-                                continue
-                                # floor chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1] / (10 ** 18)
-                                }
-                                chart_points.append(point)
-                            elif i == 1:
-                                continue
-                                # sum chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1] / (10 ** 18)
-                                }
-                                chart_points.append(point)
-                            elif i == 2:
-                                continue
-                                # avg chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1] / (10 ** 18)
-                                }
-                                chart_points.append(point)
-                            elif i == 3:
-                                continue
-                                # trades chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1]
-                                }
-                                chart_points.append(point)
-
-                            elif i == 0:
-                                try:
-                                    # sales scatter
-                                    utcTime = datetime.strptime(str(k[0]), "%Y-%m-%d %H:%M:%S")
-
-                                    epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                                    epochTime = int(epochTime)
-                                    point = {
-                                        "x": epochTime,
-                                        "y": k[1] / (10 ** 18)
-                                    }
-                                    chart_points.append(point)
-                                except Exception as e:
-                                    log.info(f'status: failure - {e}')
-                                    # log.info(str(k[0]))
-
-                        charts.append(chart_points)
-                    # log.info("more charts created")
-
-                except Exception as e:
-                    log.info(f'status: failure - {e}')
-
-                values1 = {}
-                for k in more_charts:
-                    values1[k[0]] = k[1]
-                med = statistics.median(values1.values())
-                mins = min(values1.values())
-                maxs = max(values1.values())
-                chart_data = []
-                for i in floor_chart:
-                    point = {
-                        "x": str(i[0]),
-                        "y": i[1] / (10 ** 18)
-                    }
-                    chart_data.append(point)
-                floor_points = {
-                    "floor": chart_data
-                }
-                # log.info(f'floor_data: {floor_points}')
-                # log.info(f'more charts: {charts}')
-
-            except Exception as e:
-                log.info(f'status: failure - {e}')
+            med, mins, maxs, floor_points, charts = get_charts(collection_id)
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                                  "sales_volume, :start2) + :inc2,  " \
-                                 "last_update=:lasup," \
+                                 "last_update=:lasup, os_update=:osup," \
                                  "collection_url=:curl"
             update_expression = update_expression1 + update_expression2
             exp_att1 = {
@@ -160,7 +63,8 @@ def lambda_handler(event, context):
                 ':ma': maxs,
                 ':chd': floor_points,
                 ':lasup': last_update,
-                ':mc': charts
+                ':mc': charts,
+                ':osup': 'false'
             }
             ex_att2 = {
                 ':start': 0,
@@ -179,120 +83,13 @@ def lambda_handler(event, context):
 
         elif 'Item' not in collection_record:
 
-            conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
-            log.info('connection established')
-            try:
-                with conn.cursor() as cur:
-
-                    sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
-                    sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
-                    sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s;'''
-
-                    cur.execute(sql, collection_id)
-                    more_charts = cur.fetchall()
-
-                    cur.execute(sql2, collection_id)
-                    result2 = cur.fetchall()
-                    floor_chart = result2
-
-                    statements = []
-                    statements.append(sql7)
-                    results = []
-
-                    for i in range(len(statements)):
-                        cur.execute(statements[i], collection_id)
-                        result = cur.fetchall()
-                        results.append(result)
-
-                    conn.close()
-
-                try:
-                    charts = [[], [], [], []]
-                    for i in range(len(results)):
-                        chart_points = []
-                        for k in results[i]:
-                            if i == 4:
-                                continue
-                                # floor chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1] / (10 ** 18)
-                                }
-                                chart_points.append(point)
-                            elif i == 1:
-                                continue
-                                # sum chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1] / (10 ** 18)
-                                }
-                                chart_points.append(point)
-                            elif i == 2:
-                                continue
-                                # avg chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1] / (10 ** 18)
-                                }
-                                chart_points.append(point)
-                            elif i == 3:
-                                continue
-                                # trades chart
-                                point = {
-                                    "x": str(k[0]),
-                                    "y": k[1]
-                                }
-                                chart_points.append(point)
-
-                            elif i == 0:
-                                try:
-                                    # sales scatter
-                                    utcTime = datetime.strptime(str(k[0]), "%Y-%m-%d %H:%M:%S")
-
-                                    epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
-                                    epochTime = int(epochTime)
-                                    point = {
-                                        "x": epochTime,
-                                        "y": k[1] / (10 ** 18)
-                                    }
-                                    chart_points.append(point)
-                                except Exception as e:
-                                    log.info(f'status: failure - {e}')
-                                    # log.info(str(k[0]))
-
-                        charts.append(chart_points)
-                    # log.info("more charts created")
-
-                except Exception as e:
-                    log.info(f'status: failure - {e}')
-
-                values1 = {}
-                for k in more_charts:
-                    values1[k[0]] = k[1]
-                med = statistics.median(values1.values())
-                mins = min(values1.values())
-                maxs = max(values1.values())
-                chart_data = []
-                for i in floor_chart:
-                    point = {
-                        "x": str(i[0]),
-                        "y": i[1] / (10 ** 18)
-                    }
-                    chart_data.append(point)
-                floor_points = {
-                    "floor": chart_data
-                }
-                # log.info(f'floor_data: {floor_points}')
-                # log.info(f'more charts: {charts}')
-
-            except Exception as e:
-                log.info(f'status: failure - {e}')
+            med, mins, maxs, floor_points, charts = get_charts(collection_id)
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                                  "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                                  "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
-                                 "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl"
+                                 "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, os_update=:osup"
             update_expression = update_expression1 + update_expression2
             exp_att1 = {
                 ':fl': mins,
@@ -303,7 +100,8 @@ def lambda_handler(event, context):
                 ':lasup': last_update,
                 ':mc': charts,
                 ':rdscollid': collection_id,
-                ':bc': art_object.get('blockchain')
+                ':bc': art_object.get('blockchain'),
+                ':osup': 'false'
             }
             ex_att2 = {
                 ':start': 0,
@@ -340,6 +138,125 @@ def lambda_handler(event, context):
     return
 
 
+def get_charts(collection_id):
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
+    try:
+        with conn.cursor() as cur:
+
+            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0;'''
+            sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=%s group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s;'''
+
+            cur.execute(sql, collection_id)
+            more_charts = cur.fetchall()
+
+            cur.execute(sql2, collection_id)
+            result2 = cur.fetchall()
+            floor_chart = result2
+
+            statements = []
+            statements.append(sql7)
+            results = []
+
+            for i in range(len(statements)):
+                cur.execute(statements[i], collection_id)
+                result = cur.fetchall()
+                results.append(result)
+
+            conn.close()
+
+        try:
+            charts = [[], [], [], []]
+            for i in range(len(results)):
+                chart_points = []
+                for k in results[i]:
+                    if i == 4:
+                        continue
+                        # floor chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 1:
+                        continue
+                        # sum chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 2:
+                        continue
+                        # avg chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 3:
+                        continue
+                        # trades chart
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1]
+                        }
+                        chart_points.append(point)
+
+                    elif i == 0:
+                        try:
+                            # sales scatter
+                            utcTime = datetime.strptime(str(k[0]), "%Y-%m-%d %H:%M:%S")
+
+                            epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
+                            epochTime = int(epochTime)
+                            point = {
+                                "x": epochTime,
+                                "y": k[1] / (10 ** 18)
+                            }
+                            chart_points.append(point)
+                        except Exception as e:
+                            log.info(f'status: failure - {e}')
+                            # log.info(str(k[0]))
+
+                charts.append(chart_points)
+            # log.info("more charts created")
+
+        except Exception as e:
+            log.info(f'status: failure - {e}')
+
+        values1 = {}
+        for k in more_charts:
+            values1[k[0]] = k[1]
+        if len(values1) == 0:
+            med = 0
+            mins = 0
+            maxs = 0
+        else:
+            med = statistics.median(values1.values())
+            mins = min(values1.values())
+            maxs = max(values1.values())
+
+        chart_data = []
+        for i in floor_chart:
+            point = {
+                "x": str(i[0]),
+                "y": i[1] / (10 ** 18)
+            }
+            chart_data.append(point)
+        floor_points = {
+            "floor": chart_data
+        }
+        # log.info(f'floor_data: {floor_points}')
+        # log.info(f'more charts: {charts}')
+
+        return med, mins, maxs, floor_points, charts
+
+    except Exception as e:
+        log.info(f'status: failure - {e}')
+
+
 def get_day(collection_id):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
@@ -354,10 +271,10 @@ def get_day(collection_id):
             avg_per_hour = '''select ceiling(count(*) / IF(HOUR(now())=0,1,HOUR(now()))) from nft.events where event_date >= curdate() and collection_id=%s and price>0;'''
 
             floor_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), min(price) from nft.events where event_date >= now() - interval 12 hour and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
-            #ceiling_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), max(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
-            #volume_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), sum(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
-            #trades_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(*) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
-            #buyers_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(distinct buyer_id) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
+            # ceiling_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), max(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
+            # volume_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), sum(price) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
+            # trades_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(*) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
+            # buyers_points = '''select year(event_date), month(event_date), day(event_date), hour(event_date), count(distinct buyer_id) from nft.events where event_date >= now() - interval 1 day and collection_id=%s group by day(event_date), hour(event_date);'''
 
             results = []
             '''
@@ -400,10 +317,10 @@ def get_day(collection_id):
                 charts.append(chart_points)
 
             daily_data['floor_points'] = charts[0]
-            #daily_data['ceiling_points'] = charts[1]
-            #daily_data['volume_points'] = charts[2]
-            #daily_data['trades_points'] = charts[3]
-            #daily_data['buyers_points'] = charts[4]
+            # daily_data['ceiling_points'] = charts[1]
+            # daily_data['volume_points'] = charts[2]
+            # daily_data['trades_points'] = charts[3]
+            # daily_data['buyers_points'] = charts[4]
 
         except Exception as e:
             log.info(f'status: failure - {e}')
@@ -437,10 +354,10 @@ def get_week_month(collection_id):
             avg_per_day2 = '''select ceiling(count(*) / (30 + (IF(HOUR(now())=0,1,HOUR(now()))/24))) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price>0;'''
 
             floor_points = '''select date(event_date), min(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            #ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            #volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            #trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
-            #buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            # ceiling_points = '''select date(event_date), max(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            # volume_points = '''select date(event_date), sum(price) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            # trades_points = '''select date(event_date), count(*) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
+            # buyers_points = '''select date(event_date),  count(distinct buyer_id) from nft.events where event_date >= curdate() - interval 30 day and collection_id=%s and price >0 group by date(event_date);'''
 
             results = []
             '''
@@ -493,17 +410,17 @@ def get_week_month(collection_id):
                         chart_points.append(point)
                 charts.append(chart_points)
 
-            #monthly_data['floor_points'] = charts[0]
-            #monthly_data['ceiling_points'] = charts[1]
-            #monthly_data['volume_points'] = charts[2]
-            #monthly_data['trades_points'] = charts[3]
-            #monthly_data['buyers_points'] = charts[4]
+            # monthly_data['floor_points'] = charts[0]
+            # monthly_data['ceiling_points'] = charts[1]
+            # monthly_data['volume_points'] = charts[2]
+            # monthly_data['trades_points'] = charts[3]
+            # monthly_data['buyers_points'] = charts[4]
 
         except Exception as e:
             log.info(f'status: failure - {e}')
 
-        #log.info(f'weekly - {weekly_data}')
-        #log.info(f'monthly - {monthly_data}')
+        # log.info(f'weekly - {weekly_data}')
+        # log.info(f'monthly - {monthly_data}')
         return weekly_data, monthly_data
 
     except Exception as e:

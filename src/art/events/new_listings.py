@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     end_time = (datetime.fromisoformat(start_time) + timedelta(seconds=90)).isoformat()
     difference = (datetime.fromisoformat(time_now) - datetime.fromisoformat(start_time)).total_seconds() / 60
     log.info(f'difference: {difference}')
-    if difference < 1:
+    if difference < 20:
         return
 
     # get created listings
@@ -29,9 +29,10 @@ def lambda_handler(event, context):
     open_sea_response = call_open_sea(start_time, end_time, "created", offset)
     log.info(f'length of response: {len(open_sea_response)}')
     listings = open_sea_response
+    length = len(open_sea_response)
 
-    while len(open_sea_response) == 300:
-        offset += len(open_sea_response)
+    while length == 300:
+        offset += length
         log.info(offset)
         path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
             offset) + "&limit=300&occurred_after=" + start_time + "&occurred_before=" + end_time
@@ -41,7 +42,12 @@ def lambda_handler(event, context):
         response = conn.getresponse()
         decoded_response = response.read().decode('utf-8')
         open_sea_response = json.loads(decoded_response).get('asset_events')
-        listings = open_sea_response + listings
+        if open_sea_response is None:
+            length = 300
+            offset -= 300
+        else:
+            length = len(open_sea_response)
+            listings = open_sea_response + listings
 
     length_listings = len(listings)
     log.info(f'length of listings: {length_listings}')
@@ -58,9 +64,10 @@ def lambda_handler(event, context):
     open_sea_response = call_open_sea(start_time, end_time, "cancelled", offset)
     log.info(f'length of response: {len(open_sea_response)}')
     listings = open_sea_response
+    length = len(open_sea_response)
 
-    while len(open_sea_response) == 300:
-        offset += len(open_sea_response)
+    while length == 300:
+        offset += length
         log.info(offset)
         path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
             offset) + "&limit=300&occurred_after=" + start_time + "&occurred_before=" + end_time
@@ -70,7 +77,12 @@ def lambda_handler(event, context):
         response = conn.getresponse()
         decoded_response = response.read().decode('utf-8')
         open_sea_response = json.loads(decoded_response)['asset_events']
-        listings = open_sea_response + listings
+        if open_sea_response is None:
+            length = 300
+            offset -= 300
+        else:
+            length = len(open_sea_response)
+            listings = open_sea_response + listings
 
     length_listings = len(listings)
     log.info(f'length of listings: {length_listings}')
