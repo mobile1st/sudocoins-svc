@@ -17,6 +17,7 @@ port = 3306
 
 
 def lambda_handler(event, context):
+    return
     hour = get_collections("hour")
     day = get_collections("day")
     week = get_collections("week")

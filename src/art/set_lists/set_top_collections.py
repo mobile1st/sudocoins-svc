@@ -45,7 +45,7 @@ def get_collections(time_period):
     date_object = datetime.fromisoformat(start_time)
     log.info(f'created: {start_time}')
     with conn.cursor() as cur:
-        sql = "select coll.collection_code, sum(price) as a, count(*) as b, count(distinct buyer_id) as c from nft.events ev INNER JOIN nft.collections coll on ev.collection_id=coll.id where event_date >= %s - interval 1 " + time_period + " group by coll.collection_code order by a desc limit 100;"
+        sql = "select coll.collection_code, sum(price) as a, count(*) as b, count(distinct buyer_id) as c from nft.events ev INNER JOIN nft.collections coll on ev.collection_id=coll.id where event_date >= %s - interval 1 " + time_period + " and event_id=1 group by coll.collection_code order by a desc limit 100;"
         log.info(sql)
         cur.execute(sql, date_object)
         result = cur.fetchall()

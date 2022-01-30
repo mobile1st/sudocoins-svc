@@ -179,16 +179,21 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         currency_id = 2
 
     if art_record.get('event_type') == 'created':
-        event_id = 2
-    elif art_record.get('event_type') == 'cancelled':
-        event_id = 3
+        if art_object.get('auction_type') == 'english':
+            event_id = 2
+        elif art_object.get('auction_type') == 'dutch':
+            event_id = 3
+        else:
+            event_id = 4
 
-    if art_object.get('auction_type') == 'english':
-        auction_id = 1
-    elif art_object.get('auction_type') == 'dutch':
-        auction_id = 2
-    else:
-        auction_id = 3
+    elif art_record.get('event_type') == 'cancelled':
+        if art_object.get('auction_type') == 'english':
+            event_id = 5
+        elif art_object.get('auction_type') == 'dutch':
+            event_id = 6
+        else:
+            event_id = 7
+
 
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
@@ -280,10 +285,9 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
             event_date = art_record['event_date']
             row_values = (
-                collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, seller_id, currency_id,
-                auction_id)
+                collection_id, nft_id, price, event_date, time_now, blockchain_id, event_id, seller_id, currency_id)
             cur.execute(
-                'INSERT INTO `nft`.`listings` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain_id`, `event_id`,`seller_id`,`currency`, `auction_id`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s,%s)',
+                'INSERT INTO `nft`.`events` (`collection_id`,`nft_id`,`price`, `event_date`, `created_date`, `blockchain_id`, `event_id`,`seller_id`,`currency`) VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s)',
                 row_values)
             conn.commit()
             conn.close()

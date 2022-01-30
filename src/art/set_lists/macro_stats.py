@@ -24,8 +24,8 @@ def lambda_handler(event, context):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
 
     with conn.cursor() as cur:
-        daily = "select date(event_date), sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - Interval 29 day group by date(event_date);"
-        hourly = '''select year(event_date), month(event_date), day(event_date), hour(event_date), sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - interval 1 day group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
+        daily = "select date(event_date), sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - Interval 29 day and event_id=1 group by date(event_date);"
+        hourly = '''select year(event_date), month(event_date), day(event_date), hour(event_date), sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= %s - interval 1 day and event_id=1 group by day(event_date), hour(event_date) order by day(event_date) asc, hour(event_date) asc;'''
 
         cur.execute(daily, event_date)
         result = cur.fetchall()
@@ -60,13 +60,13 @@ def lambda_handler(event, context):
 
     with conn.cursor() as cur:
         sql0 = "select event_date, price, usd_price from nft.sudo_index where event_date >= %s - Interval 1 day and index_type = %s;"
-        sql_hour = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 1 hour;'''
-        sql_day = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 1 day;'''
-        sql_week = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 7 day;'''
+        sql_hour = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 1 hour and event_id=1;'''
+        sql_day = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 1 day and event_id=1;'''
+        sql_week = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 7 day and event_id=1;'''
 
-        sql_hour2 = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 2 hour and event_date <= now() - Interval 1 hour ;'''
-        sql_day2 = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 2 day and event_date <= now() - Interval 1 day;'''
-        sql_week2 = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 14 day and event_date <= now() - Interval 7 day;'''
+        sql_hour2 = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 2 hour and event_date <= now() - Interval 1 hour and event_id=1;'''
+        sql_day2 = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 2 day and event_date <= now() - Interval 1 day and event_id=1;'''
+        sql_week2 = '''select sum(price), count(distinct buyer_id), count(*) from nft.events where event_date >= now() - Interval 14 day and event_date <= now() - Interval 7 day and event_id=1;'''
 
         statements = [sql_hour, sql_day, sql_week, sql_hour2, sql_day2, sql_week2]
         results = []

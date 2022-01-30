@@ -18,6 +18,7 @@ conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_
 
 
 def lambda_handler(event, context):
+    return
     hour = get_collections("hour")
     day = get_collections("day")
     week = get_collections("week")

@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
 
     with conn.cursor() as cur:
-        sql0 = "select collection_id, price from nft.events where collection_id in (select collection_id from nft.events where event_date >= now() - Interval 1 day and price>0 group by collection_id) and event_date >= %s - interval 1 day;"
+        sql0 = "select collection_id, price from nft.events where collection_id in (select collection_id from nft.events where event_date >= now() - Interval 1 day and price>0 group by collection_id) and event_date >= %s - interval 1 day and event_id=1;"
         cur.execute(sql0, event_date)
         result = cur.fetchall()
         conn.close()
