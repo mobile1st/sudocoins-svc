@@ -45,7 +45,7 @@ def get_collections(time_period):
     date_object = datetime.fromisoformat(start_time)
     log.info(f'created: {start_time}')
     with conn.cursor() as cur:
-        sql = "select coll.collection_code, sum(price) as a, count(*) as b, count(distinct buyer_id) as c from nft.events ev INNER JOIN nft.collections coll on ev.collection_id=coll.id where event_date >= %s - interval 1 " + time_period + " and event_id=1 group by coll.collection_code order by a desc limit 100;"
+        sql = "select coll.collection_code, sum(price) as a, count(*) as b, count(distinct buyer_id) as c from nft.events ev INNER JOIN nft.collections coll on ev.collection_id=coll.id where event_id=1 and event_date >= %s - interval 1 " + time_period + " group by coll.collection_code order by a desc limit 50;"
         log.info(sql)
         cur.execute(sql, date_object)
         result = cur.fetchall()
@@ -74,8 +74,10 @@ def get_collections(time_period):
 
     query = {
         'Keys': key_list,
-        'ProjectionExpression': 'collection_id, preview_url, collection_name, chart_data, collection_url, open_sea_stats'
+        'ProjectionExpression': 'collection_id, preview_url, collection_name, chart_data, collection_url, open_sea_stats, collection_data, collection_date, maximum'
     }
+
+
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
     for i in response['Responses']['collections']:

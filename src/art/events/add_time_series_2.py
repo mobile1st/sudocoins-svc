@@ -19,6 +19,7 @@ port = 3306
 
 
 def lambda_handler(event, context):
+
     art = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'art: {art}')
     collection_id = art['collection_id']
@@ -144,9 +145,9 @@ def get_charts(collection_id):
     try:
         with conn.cursor() as cur:
 
-            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where price>0 and collection_id=%s and event_id = 1 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where price>0 and event_id=1;'''
-            sql2 = '''select date(event_date), min(price) from nft.events where event_date >= now() - interval 7 day and price>0 and collection_id=%s and event_-d=1 group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_date >= now() - interval 1 day and collection_id=%s and event_id=1;'''
+            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where event_id = 1 and collection_id=%s and price>0 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=1 and price>0;'''
+            sql2 = '''select date(event_date), min(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 1 day;'''
 
             cur.execute(sql, collection_id)
             more_charts = cur.fetchall()

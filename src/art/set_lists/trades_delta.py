@@ -51,7 +51,7 @@ def get_collections(period):
     date_object = datetime.fromisoformat(start_time)
     log.info(f'created: {start_time}')
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_date >= %s - interval 1 " + period + " and event_id=1 GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_date >= %s - interval 2 " + period + " and event_date <= %s - interval 1 " + period + " and event_id=1 GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.count2 > 10 order by delta desc limit 50;"
+        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and event_date >= %s - interval 1 " + period + " GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and event_date >= %s - interval 2 " + period + " and event_date <= %s - interval 1 " + period + "  GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id where t2.count2 > 10 order by delta desc limit 50;"
         cur.execute(sql, (date_object, date_object, date_object))
         result = cur.fetchall()
 
@@ -77,7 +77,7 @@ def get_collections(period):
 
     query = {
         'Keys': key_list,
-        'ProjectionExpression': 'collection_id, preview_url, collection_name, chart_data, collection_url, open_sea_stats'
+        'ProjectionExpression': 'collection_id, preview_url, collection_name, chart_data, collection_url, open_sea_stats, collection_data, collection_date, maximum'
     }
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
