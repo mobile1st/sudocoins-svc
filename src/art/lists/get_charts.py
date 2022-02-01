@@ -12,23 +12,24 @@ def lambda_handler(event, context):
     body = json.loads(event['body'])
 
     collection_url = body.get('collection_url')
+    log.info(collection_url)
 
     try:
 
         data = dynamodb.Table('collections').query(
             KeyConditionExpression=Key('collection_url').eq(collection_url),
-            ScanIndexForward=False,
             Limit=1,
             IndexName='collection_url-index',
             ProjectionExpression='more_charts'
         )
 
-        collection_data = data['Items'][0]
+        collection_data = data['Items'][0].get('more_charts')
 
         return collection_data
 
     except Exception as e:
         log.info(f"status: failure - {e}")
+        return collection_url
 
 
 def set_log_context(event):
