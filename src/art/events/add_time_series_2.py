@@ -168,48 +168,14 @@ def get_charts(collection_id):
             conn.close()
 
         try:
-            charts = [[], [], [], []]
+            charts = []
             for i in range(len(results)):
                 chart_points = []
                 for k in results[i]:
-                    if i == 4:
-                        continue
-                        # floor chart
-                        point = {
-                            "x": str(k[0]),
-                            "y": k[1] / (10 ** 18)
-                        }
-                        chart_points.append(point)
-                    elif i == 1:
-                        continue
-                        # sum chart
-                        point = {
-                            "x": str(k[0]),
-                            "y": k[1] / (10 ** 18)
-                        }
-                        chart_points.append(point)
-                    elif i == 2:
-                        continue
-                        # avg chart
-                        point = {
-                            "x": str(k[0]),
-                            "y": k[1] / (10 ** 18)
-                        }
-                        chart_points.append(point)
-                    elif i == 3:
-                        continue
-                        # trades chart
-                        point = {
-                            "x": str(k[0]),
-                            "y": k[1]
-                        }
-                        chart_points.append(point)
-
-                    elif i == 0:
+                    if i == 0:
                         try:
                             # sales scatter
                             utcTime = datetime.strptime(str(k[0]), "%Y-%m-%d %H:%M:%S")
-
                             epochTime = int((utcTime - datetime(1970, 1, 1)).total_seconds())
                             epochTime = int(epochTime)
                             point = {
@@ -219,10 +185,11 @@ def get_charts(collection_id):
                             chart_points.append(point)
                         except Exception as e:
                             log.info(f'status: failure - {e}')
-                            # log.info(str(k[0]))
 
-                charts.append(chart_points)
-            # log.info("more charts created")
+                scatter = {
+                    "scatter": chart_points
+                }
+                charts.append(scatter)
 
         except Exception as e:
             log.info(f'status: failure - {e}')
@@ -249,8 +216,6 @@ def get_charts(collection_id):
         floor_points = {
             "floor": chart_data
         }
-        # log.info(f'floor_data: {floor_points}')
-        # log.info(f'more charts: {charts}')
 
         return med, mins, maxs, floor_points, charts
 

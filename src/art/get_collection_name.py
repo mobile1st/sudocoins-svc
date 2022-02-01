@@ -33,7 +33,7 @@ def lambda_handler(event, context):
                 ScanIndexForward=False,
                 Limit=1,
                 IndexName='collection_url-index',
-                ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain, daily_data, weekly_data, monthly_data, collection_url, collection_id, open_sea_stats'
+                ProjectionExpression='collection_data, sales_volume, collection_date, sale_count, floor, median, maximum, more_charts, open_sea, blockchain, collection_url, collection_id, open_sea_stats'
             )
 
             collection_data = data['Items'][0]
