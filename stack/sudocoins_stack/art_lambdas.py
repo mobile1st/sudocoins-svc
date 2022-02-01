@@ -693,6 +693,10 @@ class SudocoinsArtLambdas:
         )
         resources.config_table.grant_read_write_data(self.get_charts_function)
         resources.collections_table.grant_read_write_data(self.get_charts_function)
+        resources.grant_read_index_data(
+            self.get_charts_function,
+            [resources.art_table, resources.collections_table]
+        )
         # SET Buyers DELTA
         set_buyers_delta_function = _lambda.Function(
             scope,
