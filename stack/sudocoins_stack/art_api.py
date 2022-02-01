@@ -277,14 +277,14 @@ class SudocoinsArtApi:
             methods=[apigwv2.HttpMethod.GET],
             integration=get_volume_delta_integration
         )
-        # GET Buyer DELTA
-        get_buyers_delta_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.get_buyers_delta_function
+        # GET Charts
+        get_charts_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.get_charts_function
         )
         art_api_v3.add_routes(
-            path='/buyers-delta',
+            path='/get-charts',
             methods=[apigwv2.HttpMethod.GET],
-            integration=get_buyers_delta_integration
+            integration=get_charts_integration
         )
         # GET ETH RATE
         get_ethrate_integration = api_integrations.LambdaProxyIntegration(

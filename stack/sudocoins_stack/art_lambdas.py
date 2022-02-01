@@ -682,16 +682,17 @@ class SudocoinsArtLambdas:
             schedule=set_volume_delta_schedule,
             targets=[set_volume_delta_target]
         )
-        # GET Buyers DELTA
-        self.get_buyers_delta_function = _lambda.Function(
+        # GET Charts
+        self.get_charts_function = _lambda.Function(
             scope,
-            'GetBuyersDelta',
-            function_name='GetBuyersDelta',
+            'GetCharts',
+            function_name='GetCharts',
             timeout=cdk.Duration.seconds(30),
-            handler='art.lists.get_buyers_delta.lambda_handler',
+            handler='art.lists.get_charts.lambda_handler',
             **lambda_default_kwargs
         )
-        resources.config_table.grant_read_write_data(self.get_buyers_delta_function)
+        resources.config_table.grant_read_write_data(self.get_charts_function)
+        resources.collections_table.grant_read_write_data(self.get_charts_function)
         # SET Buyers DELTA
         set_buyers_delta_function = _lambda.Function(
             scope,
