@@ -168,7 +168,7 @@ def get_charts(collection_id):
             conn.close()
 
         try:
-            charts = []
+            charts = {}
             for i in range(len(results)):
                 chart_points = []
                 for k in results[i]:
@@ -186,10 +186,7 @@ def get_charts(collection_id):
                         except Exception as e:
                             log.info(f'status: failure - {e}')
 
-                scatter = {
-                    "scatter": chart_points
-                }
-                charts.append(scatter)
+                charts['scatter'] = chart_points
 
         except Exception as e:
             log.info(f'status: failure - {e}')

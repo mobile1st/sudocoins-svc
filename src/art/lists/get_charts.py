@@ -9,9 +9,10 @@ dynamodb = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     set_log_context(event)
-    body = json.loads(event['body'])
+    log.info(event)
+    # body = json.loads(event['body'])
 
-    collection_url = body.get('collection_url')
+    collection_url = event.get('queryStringParameters').get('collection_url')
     log.info(collection_url)
 
     try:
