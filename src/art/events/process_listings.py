@@ -102,6 +102,8 @@ def add(art_object):
     else:
         eth_sale_price = None
 
+    log.info(eth_sale_price)
+
     # function responsible for adding and inserting
     response = get_art_id(collection_address, token_id, art_url, buy_url, preview_url, open_sea, art_object,
                           eth_sale_price)
@@ -194,7 +196,6 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         else:
             event_id = 7
 
-
     if art_record['collection_name'] is not None and art_record['collection_address'] is not None:
         c_name = ("-".join(art_record['collection_name'].split())).lower()
         art_record['collection_id'] = art_record['collection_address'] + ":" + c_name
@@ -278,8 +279,8 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 seller_id = result[0][0]
             else:
                 seller_id = result[0][0]
-            if event_id == 2:
-                price = int(art_record['last_sale_price'])
+            if event_id in [2, 3, 4]:
+                price = int(art_record.get('last_sale_price'))
             else:
                 price = None
 
@@ -308,8 +309,11 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
 
 
 def eth_price(art_object):
+    log.info("eth_price")
     getcontext().prec = 18
     symbol = art_object.get("payment_token", {})
+    log.info("symbol")
+    log.info("payment_token")
     if symbol is None:
         symbol = "ETH"
     else:

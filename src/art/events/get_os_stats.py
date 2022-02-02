@@ -55,13 +55,13 @@ def lambda_handler(event, context):
                         Decimal('1.00'))
 
                 stats = {
-                    "floor_price": str(stats['floor_price']),
-                    "market_cap": str(stats['market_cap']),
-                    "num_owners": str(stats['num_owners']),
-                    "count": str(stats['count']),
-                    'total_volume': str(stats['total_volume']),
-                    'total_sales': str(stats['total_sales']),
-                    '7d_volume': str(stats['seven_day_volume']),
+                    "floor_price": Decimal(str(stats['floor_price'])),
+                    "market_cap": Decimal(str(stats['market_cap'])),
+                    "num_owners": Decimal(str(stats['num_owners'])),
+                    "count": Decimal(str(stats['count'])),
+                    'total_volume': Decimal(str(stats['total_volume'])),
+                    'total_sales': Decimal(str(stats['total_sales'])),
+                    '7d_volume': Decimal(str(stats['seven_day_volume'])),
                     'percent_total_owners': percent_total_owners
 
                 }
