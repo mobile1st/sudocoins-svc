@@ -65,10 +65,11 @@ def lambda_handler(event, context):
                     'percent_total_owners': percent_total_owners
 
                 }
-                update_expression = "SET os_update=:lu, open_sea_stats=:oss"
+                update_expression = "SET os_update=:lu, open_sea_stats=:oss, percentage_total_owners=:pto"
                 ex_att = {
                     ':lu': "true",
-                    ':oss': stats
+                    ':oss': stats,
+                    ':pto': stats['percent_total_owners']
                 }
                 count += 1
                 # log.info(f'numbers: {[no_count, count, error]}')
