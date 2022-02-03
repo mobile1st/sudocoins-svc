@@ -19,7 +19,6 @@ port = 3306
 
 
 def lambda_handler(event, context):
-
     art = json.loads(event['Records'][0]['Sns']['Message'])
     log.info(f'art: {art}')
     collection_id = art['collection_id']
@@ -56,7 +55,7 @@ def lambda_handler(event, context):
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                                  "sales_volume, :start2) + :inc2,  " \
                                  "last_update=:lasup, os_update=:osup," \
-                                 "collection_url=:curl, trades_delta=:td"
+                                 "collection_url=:curl, sales_delta=:td"
             update_expression = update_expression1 + update_expression2
             exp_att1 = {
                 ':fl': mins,
@@ -94,7 +93,7 @@ def lambda_handler(event, context):
                                  "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                                  "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
                                  "open_sea=:os, rds_collection_id=:rdscollid, blockchain=:bc, collection_url=:curl, os_update=:osup," \
-                                 "trades_delta=:td"
+                                 "sales_delta=:td"
             update_expression = update_expression1 + update_expression2
             exp_att1 = {
                 ':fl': mins,
@@ -228,19 +227,19 @@ def get_charts(collection_id):
 def get_trades_delta(collection_id):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
-    #period = "day"
+    # period = "day"
 
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 1 day GROUP BY collection_id) t1 INNER JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 2 day and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id ;"
+        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 2 day and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id ;"
+        log.info(sql)
         cur.execute(sql, (collection_id, collection_id))
         result = cur.fetchall()
 
-    for i in result:
-        trades = {
-            "yesterday": i[1],
-            "today": i[2],
-            "delta": i[3]
-        }
+    trades = {
+        "yesterday": result[0][1],
+        "today": result[0][2],
+        "delta": result[0][3]
+    }
 
     return trades
 
