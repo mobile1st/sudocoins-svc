@@ -36,7 +36,7 @@ def lambda_handler(event, context):
 
     query = {
         'Keys': key_list,
-        'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url, open_sea_stats'
+        'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url, open_sea_stats, sales_delta'
     }
 
     response = dynamodb.batch_get_item(RequestItems={'collections': query})
@@ -49,4 +49,3 @@ def lambda_handler(event, context):
 def set_log_context(event):
     global log
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
-

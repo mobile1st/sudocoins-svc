@@ -4,7 +4,6 @@ from art.art import Art
 import http.client
 import json
 
-
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
 art = Art(dynamodb)
@@ -13,14 +12,15 @@ art = Art(dynamodb)
 def lambda_handler(event, context):
     set_log_context(event)
     log.info(f'event: {event}')
-    #input_json=event
+    # input_json=event
     input_json = json.loads(event.get('body', '{}'))
     public_key = input_json['sub']
 
-    collections = get_metamask_arts(public_key)
+    collections, valuation = get_metamask_arts(public_key)
 
     return {
-        "portfolio": collections
+        "portfolio": collections,
+        "valuation": valuation
     }
 
 
@@ -30,9 +30,8 @@ def set_log_context(event):
 
 
 def get_metamask_arts(public_address):
-
     try:
-        path = "/api/v1/assets?owner="+public_address+"&order_direction=desc&offset=0&limit=50"
+        path = "/api/v1/assets?owner=" + public_address + "&order_direction=desc&offset=0&limit=50"
         log.info(f'path: {path}')
         conn = http.client.HTTPSConnection("api.opensea.io")
         api_key = {
@@ -58,35 +57,45 @@ def get_metamask_arts(public_address):
                 count += 50
                 nfts = nfts + open_sea_response
 
-            collections = []
+            collections = {}
+            key_list = []
             for i in nfts:
                 collection_address = i.get('asset_contract', {}).get('address', "unknown")
                 collection_name = i.get('collection', {}).get('name')
                 c_name = ("-".join(collection_name.split())).lower()
                 collection_code = collection_address + ":" + c_name
                 if collection_code in collections:
+                    collections[collection_code]['count'] += 1
                     continue
                 else:
-                    collections.append(collection_code)
-
-            key_list = []
-            for i in collections:
-                tmp = {
-                    "collection_id": i
-                }
-                key_list.append(tmp)
+                    collections[collection_code] = {}
+                    collections[collection_code]['count'] = 1
+                    key_list.append({"collection_id": collection_code})
 
             if len(key_list) == 0:
                 return []
 
             query = {
                 'Keys': key_list,
-                'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url, open_sea_stats'
+                'ProjectionExpression': 'collection_id, preview_url, floor, median, maximum, collection_name, chart_data, collection_url, open_sea_stats, sales_delta'
             }
 
             response = dynamodb.batch_get_item(RequestItems={'collections': query})
 
-            collections = response['Responses']['collections']
+            response = response['Responses']['collections']
+
+            valuation = 0
+            for i in response:
+                collections[i['collection_id']].update(i)
+                try:
+                    valuation += collections[i['collection_id']]['count'] * \
+                                 collections[i['collection_id']]['open_sea_stats']['floor_price']
+                except:
+                    continue
+
+
+
+
         except Exception as e:
             log.info(e)
             return []
@@ -95,6 +104,4 @@ def get_metamask_arts(public_address):
         log.info(e)
         return []
 
-    return collections
-
-
+    return collections, valuation

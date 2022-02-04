@@ -45,31 +45,20 @@ def lambda_handler(event, context):
                 no_count += 1
                 # log.info(f'numbers: {[no_count, count, error]}')
             else:
-                stats = call_open_sea(i.get('open_sea'))
-                nft_count = stats.get('count')
-                if nft_count == 0 or nft_count is None:
-                    percent_total_owners = 0
-                else:
-                    percent_total_owners = (
-                                Decimal(str(stats['num_owners'])) / Decimal(str(stats['count'])) * 100).quantize(
-                        Decimal('1.00'))
+                try:
+                    stats = call_open_sea(i.get('open_sea'))
+                except:
+                    error+=1
+                    continue
 
-                stats = {
-                    "floor_price": Decimal(str(stats['floor_price'])),
-                    "market_cap": Decimal(str(stats['market_cap'])),
-                    "num_owners": Decimal(str(stats['num_owners'])),
-                    "count": Decimal(str(stats['count'])),
-                    'total_volume': Decimal(str(stats['total_volume'])),
-                    'total_sales': Decimal(str(stats['total_sales'])),
-                    '7d_volume': Decimal(str(stats['seven_day_volume'])),
-                    'percent_total_owners': percent_total_owners
+                stats2 = get_stats(stats)
 
-                }
+                #log.info(stats)
                 update_expression = "SET os_update=:lu, open_sea_stats=:oss, percentage_total_owners=:pto"
                 ex_att = {
                     ':lu': "true",
-                    ':oss': stats,
-                    ':pto': stats['percent_total_owners']
+                    ':oss': stats2,
+                    ':pto': stats2['percent_total_owners']
                 }
                 count += 1
                 # log.info(f'numbers: {[no_count, count, error]}')
@@ -81,17 +70,15 @@ def lambda_handler(event, context):
                 ReturnValues="UPDATED_NEW"
             )
 
-
-
         except Exception as e:
             log.info(f'status - failure: {e}')
             error += 1
-            # log.info(f'numbers: {[no_count, count, error]}')
-            log.info(i)
+            #log.info(i)
+            log.info(stats)
 
-    # log.info(f'no slug: {no_count}')
-    # log.info(f'count updated: {count}')
-    # log.info(f'error: {error}')
+    log.info(f'no slug: {no_count}')
+    log.info(f'count updated: {count}')
+    log.info(f'error: {error}')
 
     return
 
@@ -110,3 +97,62 @@ def call_open_sea(slug):
     # log.info(open_sea_response)
 
     return open_sea_response['stats']
+
+
+def get_stats(stats):
+    nft_count = stats.get('count')
+
+    if nft_count == 0 or nft_count is None:
+        percent_total_owners = 0
+    else:
+        percent_total_owners = (
+                Decimal(str(stats['num_owners'])) / Decimal(str(stats['count'])) * 100).quantize(Decimal('1.00'))
+
+    if stats['floor_price'] == 'None' or stats['floor_price'] is None:
+        floor_price = 'None'
+    else:
+        floor_price = Decimal(str(stats['floor_price']))
+
+    if stats['market_cap'] == 'None' or stats['market_cap'] is None:
+        market_cap = 'None'
+    else:
+        market_cap = Decimal(str(stats['market_cap']))
+
+    if stats['num_owners'] == 'None' or stats['num_owners'] is None:
+        num_owners = 'None'
+    else:
+        num_owners = Decimal(str(stats['num_owners']))
+
+    if stats['count'] == 'None' or stats['count'] is None:
+        count = 'None'
+    else:
+        count = Decimal(str(stats['count']))
+
+    if stats['total_volume'] == 'None' or stats['total_volume'] is None:
+        total_volume = 'None'
+    else:
+        total_volume = Decimal(str(stats['total_volume']))
+
+    if stats['total_sales'] == 'None' or stats['total_sales'] is None:
+        total_sales = 'None'
+    else:
+        total_sales = Decimal(str(stats['total_sales']))
+
+    if stats['seven_day_volume'] == 'None' or stats['seven_day_volume'] is None:
+        week_volume = "None"
+    else:
+        week_volume = Decimal(str(stats['seven_day_volume']))
+
+    stats = {
+        "floor_price": floor_price,
+        "market_cap": market_cap,
+        "num_owners": num_owners,
+        "count": count,
+        'total_volume': total_volume,
+        'total_sales': total_sales,
+        '7d_volume': week_volume,
+        'percent_total_owners': percent_total_owners
+
+    }
+
+    return stats
