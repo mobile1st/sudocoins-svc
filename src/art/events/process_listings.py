@@ -131,7 +131,7 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     else:
         nft_id = str(uuid.uuid1())
         try:
-            # add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
+            add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
             collection_id = insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
                                        contract_token_id)
             if collection_id is None:
@@ -341,15 +341,13 @@ def add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, 
         'preview_url': preview_url,
         'art_url': art_url,
         "open_sea_data": open_sea,
-        "timestamp": time_now,
         "recent_sk": time_now + "#" + nft_id,
         "token_id": contract_token_id.split("#")[1],
         "sort_idx": 'true',
-        "process_status": "STREAM_TO_S3",
         "event_date": art_object.get('listing_time'),
-        "event_type": art_object.get('event_type'),
         "blockchain": art_object.get('blockchain'),
-        "last_sale_price": eth_sale_price,
+        "last_sale_price": 0,
+        "list_price": eth_sale_price,
         "collection_address": art_object.get('asset', {}).get('asset_contract', {}).get('address', "unknown"),
         "collection_data": {
             "name": art_object.get('asset', {}).get('collection', {}).get('name'),

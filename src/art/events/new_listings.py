@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     while length == 300:
         offset += length
         log.info(offset)
-        path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
+        path = "/api/v1/events?event_type=created&only_opensea=true&offset=" + str(
             offset) + "&limit=300&occurred_after=" + start_time + "&occurred_before=" + end_time
         conn = http.client.HTTPSConnection("api.opensea.io")
         api_key = {"X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"}
@@ -69,7 +69,7 @@ def lambda_handler(event, context):
     while length == 300:
         offset += length
         log.info(offset)
-        path = "/api/v1/events?event_type=created&only_opensea=false&offset=" + str(
+        path = "/api/v1/events?event_type=created&only_opensea=true&offset=" + str(
             offset) + "&limit=300&occurred_after=" + start_time + "&occurred_before=" + end_time
         conn = http.client.HTTPSConnection("api.opensea.io")
         api_key = {"X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"}
@@ -101,10 +101,10 @@ def lambda_handler(event, context):
 
 
 def call_open_sea(created, end_time, event_type, offset):
-    path = "/api/v1/events?event_type=" + event_type + "&only_opensea=false&offset=" + str(
+    path = "/api/v1/events?event_type=" + event_type + "&only_opensea=true&offset=" + str(
         offset) + "&limit=300&occurred_after=" \
            + created + "&occurred_before=" + end_time
-    # log.info(f'path: {path}')
+    log.info(f'path: {path}')
     conn = http.client.HTTPSConnection("api.opensea.io")
     api_key = {
         "X-API-KEY": "4714cd73a39041bf9cffda161163f8a5"

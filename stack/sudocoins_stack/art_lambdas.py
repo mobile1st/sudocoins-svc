@@ -772,7 +772,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
 
-        get_os_stats_schedule = events.Schedule.rate(cdk.Duration.minutes(10))
+        get_os_stats_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
         get_os_stats_target = events_targets.LambdaFunction(handler=get_os_stats_function)
         events.Rule(
             scope,
