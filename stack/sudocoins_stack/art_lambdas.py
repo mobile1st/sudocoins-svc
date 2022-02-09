@@ -509,6 +509,7 @@ class SudocoinsArtLambdas:
             )
         )
         resources.collections_table.grant_read_write_data(self.add_time_series2_function)
+        resources.add_score_topic.grant_publish(self.add_time_series2_function)
         # SET SUDO_INDEX
         sudo_index_function = _lambda.Function(
             scope,
@@ -827,6 +828,20 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_write_data(self.get_macro_stats_function)
+        # ADD SCORE
+        self.add_score_function = _lambda.Function(
+            scope,
+            'AddScore',
+            function_name='AddScore',
+            handler='art.set_lists.add_score.lambda_handler',
+            **lambda_default_kwargs
+        )
+        resources.add_score_topic.add_subscription(
+            subs.LambdaSubscription(
+                self.add_score_function
+            )
+        )
+        resources.collections_table.grant_read_write_data(self.add_score_function)
 
 
 

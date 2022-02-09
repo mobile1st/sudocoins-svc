@@ -12,6 +12,7 @@ dynamodb = boto3.resource('dynamodb')
 sns_client = boto3.client("sns")
 
 rds_host = os.environ['db_host']
+rds_host2 = os.environ['db_host2']
 name = os.environ['db_user']
 password = os.environ['db_pw']
 db_name = os.environ['db_name']
@@ -52,7 +53,17 @@ def lambda_handler(event, context):
             trades = get_trades_delta(collection_id)
             try:
                 floor_snapshot(collection_id)
-                log.info("snapshot complete")
+                log.info("floor snapshot complete")
+            except Exception as e:
+                log.info(e)
+
+            try:
+                if 'percentage_total_owners' in collection_record['Item']:
+                    log.info(collection_record['Item']['percentage_total_owners'])
+                    owner_asset_snapshot(collection_id, collection_record['Item']['percentage_total_owners'])
+                    log.info("oa snapshot complete")
+
+                    generate_score(collection_id, collection_record['Item']['percentage_total_owners'])
             except Exception as e:
                 log.info(e)
 
@@ -87,6 +98,24 @@ def lambda_handler(event, context):
                 ReturnValues="UPDATED_NEW"
             )
             log.info('data added to collection table')
+
+            try:
+                msg = {
+                    "collection_id": collection_id,
+                    'twitter': art_object.get("twitter"),
+                    'collection_code': collection_code,
+                    'collection_url': art_object.get('asset', {}).get('collection', {}).get('slug', "")
+                }
+
+                sns_client.publish(
+                    TopicArn='arn:aws:sns:us-west-2:977566059069:AddScoreTopic',
+                    MessageStructure='string',
+                    Message=json.dumps(msg)
+                )
+
+                log.info(f"add time series published")
+            except Exception as e:
+                log.info(f"status: failure - {e}")
 
         elif 'Item' not in collection_record:
 
@@ -250,7 +279,7 @@ def get_trades_delta(collection_id):
 
 
 def floor_snapshot(collection_id):
-    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    conn = pymysql.connect(host=rds_host2, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
     # period = "day"
 
@@ -272,4 +301,46 @@ def floor_snapshot(collection_id):
     log.info('snapshot created')
 
 
+def owner_asset_snapshot(collection_id, oa_ratio):
+    conn = pymysql.connect(host=rds_host2, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
 
+    with conn.cursor() as cur:
+        time_now = str(datetime.utcnow().isoformat())
+
+        row_values = (collection_id, oa_ratio, time_now)
+        cur.execute(
+            'INSERT INTO `nft`.`owner_asset_ratios` (`collection_id`,`ratio`, `created_date`) VALUES (%s, %s, %s)',
+            row_values)
+        conn.commit()
+        conn.close()
+    log.info('snapshot created')
+
+
+def generate_score(collection_id, oa_ratio):
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
+    with conn.cursor() as cur:
+        sql = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 14 day and event_date <= now() - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
+        sql2 = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, sum(price) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, sum(price) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 14 day and event_date <= now() - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
+        sql3 = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, avg(price) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, avg(price) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 14 day and event_date <= now() - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
+
+        statements = [sql, sql2, sql3]
+        results = []
+        for i in range(len(statements)):
+            cur.execute(statements[i], (collection_id, collection_id))
+            result = cur.fetchall()
+            results.append(result)
+
+        conn.close()
+    score = 0
+    for i in results:
+        log.info(i[0][0])
+        if i[0][0] > 0:
+            score += 15
+    if oa_ratio > 50:
+        score += 15
+
+    log.info(score)
+
+    return

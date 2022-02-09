@@ -469,7 +469,8 @@ def update_collection(art_object, eth_sale_price, collection_id):
             "collection_id": collection_id,
             'art_object': art_object,
             'collection_code': collection_code,
-            'collection_url': collection_url
+            'collection_url': collection_url,
+            "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', "")
         }
 
         sns_client.publish(
