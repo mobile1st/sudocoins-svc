@@ -50,6 +50,11 @@ def lambda_handler(event, context):
 
             med, mins, maxs, floor_points, charts = get_charts(collection_id)
             trades = get_trades_delta(collection_id)
+            try:
+                floor_snapshot(collection_id)
+                log.info("snapshot complete")
+            except Exception as e:
+                log.info(e)
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
@@ -242,4 +247,29 @@ def get_trades_delta(collection_id):
     }
 
     return trades
+
+
+def floor_snapshot(collection_id):
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
+    # period = "day"
+
+    with conn.cursor() as cur:
+        sql = "select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=1084 and event_date > '2022-02-08T22:37:06.111111' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id in (3,4) and price>0 and price is not null order by t.price asc limit 1;"
+        log.info(sql)
+        cur.execute(sql)
+        result = cur.fetchall()
+        floor = result[0][1]
+        nft_id = result[0][0]
+        time_now = str(datetime.utcnow().isoformat())
+
+        row_values = (collection_id, nft_id, floor, time_now)
+        cur.execute(
+            'INSERT INTO `nft`.`floor_charts` (`collection_id`,`nft_id`,`price`, `created_date`) VALUES (%s, %s, %s, %s)',
+            row_values)
+        conn.commit()
+        conn.close()
+    log.info('snapshot created')
+
+
 
