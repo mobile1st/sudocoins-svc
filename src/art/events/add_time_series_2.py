@@ -26,6 +26,7 @@ def lambda_handler(event, context):
     art_object = art['art_object']
     eth_sale_price = art['last_sale_price']
     collection_code = art['collection_code']
+    twitter = art['twitter']
 
     last_update = str(datetime.utcnow().isoformat())
 
@@ -56,20 +57,22 @@ def lambda_handler(event, context):
                 log.info("floor snapshot complete")
             except Exception as e:
                 log.info(e)
-
             try:
                 if 'percentage_total_owners' in collection_record['Item']:
                     log.info(collection_record['Item']['percentage_total_owners'])
                     owner_asset_snapshot(collection_id, collection_record['Item']['percentage_total_owners'])
                     log.info("oa snapshot complete")
-
-                    generate_score(collection_id, collection_record)
+            except Exception as e:
+                log.info(e)
+            try:
+                score = generate_score(collection_id, collection_record)
+                log.info("score calculated")
             except Exception as e:
                 log.info(e)
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
-                                 "sales_volume, :start2) + :inc2,  " \
+                                 "sales_volume, :start2) + :inc2, score=:scor,  " \
                                  "last_update=:lasup, os_update=:osup," \
                                  "collection_url=:curl, sales_delta=:td"
             update_expression = update_expression1 + update_expression2
@@ -82,7 +85,8 @@ def lambda_handler(event, context):
                 ':lasup': last_update,
                 ':mc': charts,
                 ':osup': 'false',
-                ':td': trades
+                ':td': trades,
+                ':scor': score
             }
             ex_att2 = {
                 ':start': 0,
@@ -102,10 +106,12 @@ def lambda_handler(event, context):
             try:
                 msg = {
                     "collection_id": collection_id,
-                    'twitter': art_object.get("twitter"),
+                    'twitter': twitter,
                     'collection_code': collection_code,
                     'collection_url': art_object.get('asset', {}).get('collection', {}).get('slug', "")
                 }
+
+                log.info(msg)
 
                 sns_client.publish(
                     TopicArn='arn:aws:sns:us-west-2:977566059069:AddScoreTopic',
@@ -349,8 +355,8 @@ def generate_score(collection_id, collection_record):
         elif collection_record['Item']['followers'] > 25000:
             score += 20
 
-    if 'ifps' in collection_record['Item']:
-        if 'ifps' == 'true':
+    if 'ipfs' in collection_record['Item']:
+        if 'ipfs' == 'true':
             score += 20
 
     log.info(score)
