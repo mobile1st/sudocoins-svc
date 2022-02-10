@@ -63,7 +63,7 @@ def lambda_handler(event, context):
                     owner_asset_snapshot(collection_id, collection_record['Item']['percentage_total_owners'])
                     log.info("oa snapshot complete")
 
-                    generate_score(collection_id, collection_record['Item']['percentage_total_owners'])
+                    generate_score(collection_id, collection_record)
             except Exception as e:
                 log.info(e)
 
@@ -317,7 +317,7 @@ def owner_asset_snapshot(collection_id, oa_ratio):
     log.info('snapshot created')
 
 
-def generate_score(collection_id, oa_ratio):
+def generate_score(collection_id, collection_record):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
     with conn.cursor() as cur:
@@ -338,9 +338,41 @@ def generate_score(collection_id, oa_ratio):
         log.info(i[0][0])
         if i[0][0] > 0:
             score += 15
-    if oa_ratio > 50:
+    if collection_record['Item']['percentage_total_owners'] > 50:
         score += 15
 
+    if 'followers' in collection_record['Item']:
+        if collection_record['Item']['followers'] > 5000 and collection_record['Item']['followers'] < 10000:
+            score += 10
+        elif collection_record['Item']['followers'] > 10000 and collection_record['Item']['followers'] < 25000:
+            score += 15
+        elif collection_record['Item']['followers'] > 25000:
+            score += 20
+
+    if 'ifps' in collection_record['Item']:
+        if 'ifps' == 'true':
+            score += 20
+
     log.info(score)
+
+    return
+
+
+def charts_30(collection_id):
+    conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
+    log.info('connection established')
+    with conn.cursor() as cur:
+        sql = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 30 day group by event_date;"
+        sql2 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 30 day group by event_date;"
+        sql3 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 30 day group by event_date;"
+
+        statements = [sql, sql2, sql3]
+        results = []
+        for i in range(len(statements)):
+            cur.execute(statements[i], (collection_id, collection_id))
+            result = cur.fetchall()
+            results.append(result)
+
+        conn.close()
 
     return
