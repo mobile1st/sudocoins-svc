@@ -842,8 +842,8 @@ class SudocoinsArtLambdas:
             )
         )
         resources.collections_table.grant_read_write_data(self.add_score_function)
-        resources.grant_read_index_data(self.add_score_function, [resources.collections_table])
-
+        resources.grant_read_index_data(self.add_score_function, [resources.collections_table, resources.art ])
+        resources.art_table.grant_read_write_data(self.add_score_function)
 
 
 
