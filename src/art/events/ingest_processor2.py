@@ -17,7 +17,7 @@ sns = boto3.client("sns")
 
 def lambda_handler(event, context):
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
-    log.info(f'payload: {art_object}')
+    #log.info(f'payload: {art_object}')
 
     if art_object['open_sea_url'] is None:
         log.info("open sea url doesn't exist")
@@ -424,6 +424,7 @@ def update_nft(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
     collection_item_id = contract_token_id.split("#")[1]
     collection_item_url = collection_url + "-" + collection_item_id
 
+
     if art_url != "" and preview_url is not None:
         dynamodb.Table('art').update_item(
             Key={'art_id': art_id},
@@ -471,8 +472,6 @@ def update_collection(art_object, eth_sale_price, collection_id):
             'collection_url': collection_url,
             "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', "")
         }
-
-        log.info(msg)
 
         sns_client.publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeries2Topic',

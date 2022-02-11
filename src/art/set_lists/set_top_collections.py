@@ -74,7 +74,7 @@ def get_collections(time_period):
 
     query = {
         'Keys': key_list,
-        'ProjectionExpression': 'collection_id, preview_url, collection_name, collection_url, open_sea_stats, collection_data, collection_date, maximum, trades_delta, open_sea, followers, score'
+        'ProjectionExpression': 'collection_id, preview_url, collection_name, collection_url, open_sea_stats, collection_data, collection_date, maximum, trades_delta, open_sea'
     }
 
 
