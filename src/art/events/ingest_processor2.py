@@ -17,7 +17,7 @@ sns = boto3.client("sns")
 
 def lambda_handler(event, context):
     art_object = json.loads(event['Records'][0]['Sns']['Message'])
-    log.info(f'payload: {art_object}')
+    # log.info(f'payload: {art_object}')
 
     if art_object['open_sea_url'] is None:
         log.info("open sea url doesn't exist")
@@ -198,6 +198,7 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
         password = os.environ['db_pw']
         db_name = os.environ['db_name']
         log.info("about to connect")
+
         conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name)
         log.info("conn object made")
         with conn.cursor() as cur:
@@ -205,11 +206,13 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
             # collection table
             collection_code = art_record['collection_id']
 
-            sql = '''select id from nft.collections where collection_code=%s limit 1;'''
+            sql = '''select id, collection_url from nft.collections where collection_code=%s limit 1;'''
             cur.execute(sql, collection_code)
             result = cur.fetchall()
+            log.info(result)
 
             if len(result) == 0:
+                log.info("new collection")
                 name = art_record.get('collection_name')
                 avatar = art_object.get('asset', {}).get('collection', {}).get('image_url')
                 collection_address = art_record.get("collection_address")
@@ -223,7 +226,14 @@ def insert_rds(art_id, art_url, buy_url, preview_url, open_sea, art_object, eth_
                 cur.execute(sql, collection_code)
                 result = cur.fetchall()
                 collection_id = result[0][0]
+            elif len(result) == 1 and result[0][1] is None:
+                log.info("update collection_url")
+                collection_url = art_object.get('asset', {}).get('collection', {}).get('slug', "")
+                sql = '''update nft.collections set collection_url=%s where id=%s;'''
+                cur.execute(sql, (collection_url, result[0][0]))
+                collection_id = result[0][0]
             else:
+                log.info("collection_url exists")
                 collection_id = result[0][0]
             # nft
             nft_code = art_record['art_id']
@@ -469,10 +479,9 @@ def update_collection(art_object, eth_sale_price, collection_id):
             'art_object': art_object,
             'collection_code': collection_code,
             'collection_url': collection_url,
-            "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', "")
+            "twitter": art_object.get('asset', {}).get('collection', {}).get('twitter_username', ""),
+            "end_time": art_object.get("end_time")
         }
-
-        log.info(msg)
 
         sns_client.publish(
             TopicArn='arn:aws:sns:us-west-2:977566059069:AddTimeSeries2Topic',

@@ -27,6 +27,9 @@ def lambda_handler(event, context):
     eth_sale_price = art['last_sale_price']
     collection_code = art['collection_code']
     twitter = art['twitter']
+    end_time = art_object.get('end_time')
+
+    log.info(end_time)
 
     last_update = str(datetime.utcnow().isoformat())
 
@@ -50,8 +53,8 @@ def lambda_handler(event, context):
 
         if 'Item' in collection_record and difference >= 60:
 
-            med, mins, maxs, floor_points, charts = get_charts(collection_id)
-            trades = get_trades_delta(collection_id)
+            med, mins, maxs, floor_points, charts = get_charts(collection_id, end_time)
+            trades = get_trades_delta(collection_id, end_time)
             try:
                 floor_snapshot(collection_id)
                 log.info("floor snapshot complete")
@@ -65,14 +68,14 @@ def lambda_handler(event, context):
             except Exception as e:
                 log.info(e)
             try:
-                score = generate_score(collection_id, collection_record)
+                score = generate_score(collection_id, collection_record, end_time)
                 log.info("score calculated")
             except Exception as e:
                 log.info(e)
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
-                                 "sales_volume, :start2) + :inc2, score=:scor,  " \
+                                 "sales_volume, :start2) + :inc2, score=:sco, " \
                                  "last_update=:lasup, os_update=:osup," \
                                  "collection_url=:curl, sales_delta=:td"
             update_expression = update_expression1 + update_expression2
@@ -86,7 +89,7 @@ def lambda_handler(event, context):
                 ':mc': charts,
                 ':osup': 'false',
                 ':td': trades,
-                ':scor': score
+                ':sco': score
             }
             ex_att2 = {
                 ':start': 0,
@@ -125,8 +128,8 @@ def lambda_handler(event, context):
 
         elif 'Item' not in collection_record:
 
-            med, mins, maxs, floor_points, charts = get_charts(collection_id)
-            trades = get_trades_delta(collection_id)
+            med, mins, maxs, floor_points, charts = get_charts(collection_id, end_time)
+            trades = get_trades_delta(collection_id, end_time)
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
@@ -183,20 +186,20 @@ def lambda_handler(event, context):
     return
 
 
-def get_charts(collection_id):
+def get_charts(collection_id, end_time):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
     try:
         with conn.cursor() as cur:
 
             sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where event_id = 1 and collection_id=%s and price>0 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=1 and price>0;'''
-            sql2 = '''select date(event_date), min(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 1 day;'''
+            sql2 = '''select date(event_date), min(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 1 day;'''
 
             cur.execute(sql, collection_id)
             more_charts = cur.fetchall()
 
-            cur.execute(sql2, collection_id)
+            cur.execute(sql2, (collection_id, end_time))
             result2 = cur.fetchall()
             floor_chart = result2
 
@@ -205,7 +208,7 @@ def get_charts(collection_id):
             results = []
 
             for i in range(len(statements)):
-                cur.execute(statements[i], collection_id)
+                cur.execute(statements[i], (collection_id, end_time))
                 result = cur.fetchall()
                 results.append(result)
 
@@ -264,15 +267,15 @@ def get_charts(collection_id):
         log.info(f'status: failure - {e}')
 
 
-def get_trades_delta(collection_id):
+def get_trades_delta(collection_id, end_time):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
+    end_time = datetime.fromisoformat(str(end_time))
     # period = "day"
 
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 2 day and event_date <= now() - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id ;"
-        log.info(sql)
-        cur.execute(sql, (collection_id, collection_id))
+        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 2 day and event_date <= %s - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id ;"
+        cur.execute(sql, (collection_id, end_time, collection_id, end_time, end_time))
         result = cur.fetchall()
 
     trades = {
@@ -323,18 +326,21 @@ def owner_asset_snapshot(collection_id, oa_ratio):
     log.info('snapshot created')
 
 
-def generate_score(collection_id, collection_record):
+def generate_score(collection_id, collection_record, end_time):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
+    log.info(collection_id)
+    log.info(end_time)
+    end_time = datetime.fromisoformat(str(end_time))
     with conn.cursor() as cur:
-        sql = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 14 day and event_date <= now() - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
-        sql2 = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, sum(price) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, sum(price) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 14 day and event_date <= now() - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
-        sql3 = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, avg(price) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, avg(price) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 14 day and event_date <= now() - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
+        sql = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where collection_id=%s and event_id=1 and event_date >= %s - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where collection_id=%s and event_id=1 and event_date >= %s - interval 14 day and event_date <= %s - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
+        sql2 = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, sum(price) AS count1 FROM nft.events where collection_id=%s and event_id=1 and event_date >= %s - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, sum(price) AS count2 FROM nft.events where collection_id=%s and event_id=1 and event_date >= %s - interval 14 day and event_date <= %s - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
+        sql3 = "SELECT round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, avg(price) AS count1 FROM nft.events where collection_id=%s and event_id=1 and event_date >= %s - interval 7 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, avg(price) AS count2 FROM nft.events where collection_id=%s and event_id=1 and event_date >= %s - interval 14 day and event_date <= %s - interval 7 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id;"
 
         statements = [sql, sql2, sql3]
         results = []
         for i in range(len(statements)):
-            cur.execute(statements[i], (collection_id, collection_id))
+            cur.execute(statements[i], (collection_id, end_time, collection_id, end_time, end_time))
             result = cur.fetchall()
             results.append(result)
 
@@ -342,17 +348,23 @@ def generate_score(collection_id, collection_record):
     score = 0
     for i in results:
         log.info(i[0][0])
+        if i[0][0] is None:
+            continue
         if i[0][0] > 0:
             score += 15
-    if collection_record['Item']['percentage_total_owners'] > 50:
+
+    if 'percentage_total_owners' in collection_record['Item'] and collection_record['Item'][
+        'percentage_total_owners'] > 50:
         score += 15
 
-    if 'followers' in collection_record['Item']:
-        if collection_record['Item']['followers'] > 5000 and collection_record['Item']['followers'] < 10000:
+    if 'followers' in collection_record['Item'] and collection_record['Item']['followers'] != "false" and \
+            collection_record['Item']['followers'] is None:
+        if int(collection_record['Item']['followers']) > 5000 and int(collection_record['Item']['followers'] < 10000):
             score += 10
-        elif collection_record['Item']['followers'] > 10000 and collection_record['Item']['followers'] < 25000:
+        elif int(collection_record['Item']['followers']) > 10000 and int(
+                collection_record['Item']['followers'] < 25000):
             score += 15
-        elif collection_record['Item']['followers'] > 25000:
+        elif int(collection_record['Item']['followers']) > 25000:
             score += 20
 
     if 'ipfs' in collection_record['Item']:
@@ -364,18 +376,22 @@ def generate_score(collection_id, collection_record):
     return
 
 
-def charts_30(collection_id):
+def charts_30(collection_id, end_time):
     conn = pymysql.connect(host=rds_host, user=name, password=password, database=db_name, connect_timeout=15)
     log.info('connection established')
+    log.info(collection_id)
+    log.info(end_time)
+    end_time = datetime.fromisoformat(str(end_time))
+
     with conn.cursor() as cur:
-        sql = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 30 day group by event_date;"
-        sql2 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 30 day group by event_date;"
-        sql3 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= now() - interval 30 day group by event_date;"
+        sql = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 30 day group by event_date;"
+        sql2 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 30 day group by event_date;"
+        sql3 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 30 day group by event_date;"
 
         statements = [sql, sql2, sql3]
         results = []
         for i in range(len(statements)):
-            cur.execute(statements[i], (collection_id, collection_id))
+            cur.execute(statements[i], (collection_id, end_time))
             result = cur.fetchall()
             results.append(result)
 

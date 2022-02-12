@@ -35,6 +35,7 @@ def lambda_handler(event, context):
         ReturnValues="ALL_NEW",
         ExpressionAttributeNames={'#d': 'day', '#h': 'hour', '#w': 'week'}
     )
+    log.info("config updated")
 
     return
 
