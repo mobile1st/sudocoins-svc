@@ -124,4 +124,5 @@ class SudocoinsUserLambdas:
         resources.portfolio_table.grant_read_write_data(self.get_wallet_function)
         resources.collections_table.grant_read_write_data(self.get_wallet_function)
         resources.grant_read_index_data(self.get_wallet_function, [resources.portfolio_table])
+        resources.config_table.grant_read_data(self.get_wallet_function)
 

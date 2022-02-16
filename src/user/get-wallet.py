@@ -1,12 +1,11 @@
 import boto3
 from util import sudocoins_logger
-from art.art import Art
 import http.client
 import json
+from decimal import Decimal, getcontext
 
 log = sudocoins_logger.get()
 dynamodb = boto3.resource('dynamodb')
-art = Art(dynamodb)
 
 
 def lambda_handler(event, context):
@@ -14,7 +13,15 @@ def lambda_handler(event, context):
     log.info(f'event: {event}')
     public_key = event.get('queryStringParameters').get('ethAddress')
 
-    collections = get_metamask_arts(public_key)
+    configTable = dynamodb.Table('Config')
+    configKey = "HomePage"
+
+    response = configTable.get_item(Key={'configKey': configKey})
+    config = response['Item']
+
+    rate = str(config['ethRate'])
+
+    collections = get_metamask_arts(public_key, rate)
 
     return {
         "wallet": collections
@@ -26,7 +33,7 @@ def set_log_context(event):
     log = sudocoins_logger.get(sudocoins_logger.get_ctx(event))
 
 
-def get_metamask_arts(public_address):
+def get_metamask_arts(public_address, rate):
     try:
         path = "/api/v1/assets?owner=" + public_address + "&order_direction=desc&offset=0&limit=50"
         log.info(f'path: {path}')
@@ -88,7 +95,10 @@ def get_metamask_arts(public_address):
                     valuation += collections[i['collection_id']]['count'] * \
                                  collections[i['collection_id']]['open_sea_stats']['floor_price']
 
-                    valuation = {"eth_valuation": valuation}
+                    valuation = {
+                        "eth_valuation": valuation,
+                        "usd_valuation": Decimal(valuation / rate)
+                    }
                     collections[i['collection_id']].update(valuation)
 
                 except Exception as e:
