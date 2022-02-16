@@ -111,4 +111,17 @@ class SudocoinsUserLambdas:
         resources.portfolio_table.grant_read_write_data(self.import_nfts_function)
         resources.collections_table.grant_read_write_data(self.import_nfts_function)
         resources.grant_read_index_data(self.import_nfts_function, [resources.portfolio_table])
+        # Get Wallet
+        self.get_wallet_function = _lambda.Function(
+            scope,
+            'GetWallet',
+            function_name='GetWallet',
+            handler='user.get-wallet.lambda_handler',
+            description='Gets the user portfolio from Meta Mask',
+            **lambda_default_kwargs
+        )
+        resources.sub_table.grant_read_write_data(self.get_wallet_function)
+        resources.portfolio_table.grant_read_write_data(self.get_wallet_function)
+        resources.collections_table.grant_read_write_data(self.get_wallet_function)
+        resources.grant_read_index_data(self.get_wallet_function, [resources.portfolio_table])
 

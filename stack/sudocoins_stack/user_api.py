@@ -89,4 +89,13 @@ class SudocoinsUserApi:
             methods=[apigwv2.HttpMethod.POST],
             integration=import_nfts_integration
         )
+        # Get Wallet
+        get_wallet_integration = api_integrations.LambdaProxyIntegration(
+            handler=lambdas.import_nfts_function
+        )
+        user_api_v3.add_routes(
+            path="/get-wallet",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=get_wallet_integration
+        )
 

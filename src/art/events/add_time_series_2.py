@@ -29,8 +29,6 @@ def lambda_handler(event, context):
     twitter = art['twitter']
     end_time = art_object.get('end_time')
 
-    log.info(end_time)
-
     last_update = str(datetime.utcnow().isoformat())
 
     try:
@@ -53,7 +51,7 @@ def lambda_handler(event, context):
 
         if 'Item' in collection_record and difference >= 60:
 
-            med, mins, maxs, floor_points, charts = get_charts(collection_id, end_time)
+            med, mins, maxs, charts = get_charts(collection_id, end_time)
             trades = get_trades_delta(collection_id, end_time)
             try:
                 floor_snapshot(collection_id)
@@ -73,7 +71,15 @@ def lambda_handler(event, context):
             except Exception as e:
                 log.info(e)
 
-            update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
+            try:
+                score = generate_score(collection_id, collection_record, end_time)
+                log.info("score calculated")
+            except Exception as e:
+                log.info(e)
+
+
+
+            update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                                  "sales_volume, :start2) + :inc2, score=:sco, " \
                                  "last_update=:lasup, os_update=:osup," \
@@ -84,7 +90,6 @@ def lambda_handler(event, context):
                 ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
                 ':me': med,
                 ':ma': maxs,
-                ':chd': floor_points,
                 ':lasup': last_update,
                 ':mc': charts,
                 ':osup': 'false',
@@ -128,10 +133,10 @@ def lambda_handler(event, context):
 
         elif 'Item' not in collection_record:
 
-            med, mins, maxs, floor_points, charts = get_charts(collection_id, end_time)
+            med, mins, maxs, charts = get_charts(collection_id, end_time)
             trades = get_trades_delta(collection_id, end_time)
 
-            update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, chart_data =:chd, more_charts=:mc,"
+            update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
                                  "sales_volume, :start2) + :inc2, collection_name = :cn, preview_url = :purl, " \
                                  "collection_address = :ca, collection_date=:cd, sort_idx=:si, collection_data=:colldata, last_update=:lasup," \
@@ -143,7 +148,6 @@ def lambda_handler(event, context):
                 ':curl': art_object.get('asset', {}).get('collection', {}).get('slug', ""),
                 ':me': med,
                 ':ma': maxs,
-                ':chd': floor_points,
                 ':lasup': last_update,
                 ':mc': charts,
                 ':rdscollid': collection_id,
@@ -194,7 +198,10 @@ def get_charts(collection_id, end_time):
 
             sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where event_id = 1 and collection_id=%s and price>0 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=1 and price>0;'''
             sql2 = '''select date(event_date), min(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 1 day;'''
+            volume_data = '''select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
+            trades_data = '''select date(event_date), count(*) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
+            buyers_data = '''select date(event_date), count(distinct buyer_id) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 6 hour;'''
 
             cur.execute(sql, collection_id)
             more_charts = cur.fetchall()
@@ -203,8 +210,7 @@ def get_charts(collection_id, end_time):
             result2 = cur.fetchall()
             floor_chart = result2
 
-            statements = []
-            statements.append(sql7)
+            statements = [sql7, volume_data, trades_data, buyers_data]
             results = []
 
             for i in range(len(statements)):
@@ -215,7 +221,7 @@ def get_charts(collection_id, end_time):
             conn.close()
 
         try:
-            charts = {}
+            charts_dict = {}
             for i in range(len(results)):
                 chart_points = []
                 for k in results[i]:
@@ -232,8 +238,33 @@ def get_charts(collection_id, end_time):
                             chart_points.append(point)
                         except Exception as e:
                             log.info(f'status: failure - {e}')
+                    elif i == 1:
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1] / (10 ** 18)
+                        }
+                        chart_points.append(point)
+                    elif i == 2:
+                        point = {
+                            "x": str(k[0]),
+                            "y": k[1]
+                        }
+                        chart_points.append(point)
+                    elif i == 3:
+                        point = {
+                            "x": str(k[0]),
+                            "y": str(k[0])
+                        }
+                        chart_points.append(point)
+                if i == 0:
+                    charts_dict['scatter'] = chart_points
+                if i == 1:
+                    charts_dict['volume'] = chart_points
+                if i == 2:
+                    charts_dict['sales'] = chart_points
+                if i == 3:
+                    charts_dict['buyers'] = chart_points
 
-                charts['scatter'] = chart_points
 
         except Exception as e:
             log.info(f'status: failure - {e}')
@@ -257,11 +288,9 @@ def get_charts(collection_id, end_time):
                 "y": i[1] / (10 ** 18)
             }
             chart_data.append(point)
-        floor_points = {
-            "floor": chart_data
-        }
+        charts_dict['floor'] = chart_data
 
-        return med, mins, maxs, floor_points, charts
+        return med, mins, maxs, charts_dict
 
     except Exception as e:
         log.info(f'status: failure - {e}')
@@ -384,9 +413,9 @@ def charts_30(collection_id, end_time):
     end_time = datetime.fromisoformat(str(end_time))
 
     with conn.cursor() as cur:
-        sql = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 30 day group by event_date;"
-        sql2 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 30 day group by event_date;"
-        sql3 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 30 day group by event_date;"
+        sql = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);"
+        sql2 = "select date(event_date), min(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);"
+        sql3 = "select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);"
 
         statements = [sql, sql2, sql3]
         results = []

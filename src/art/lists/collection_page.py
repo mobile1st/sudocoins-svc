@@ -54,7 +54,7 @@ def get_recent(collection_id):
         Limit=25,
         IndexName='collection_id-event_date-index',
         ExpressionAttributeNames={'#n': 'name'},
-        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, last_sale_price, description, collection_id, collection_data, collection_name, blockchain, last_sale_price, collection_url, token_id,collection_item_url'
+        ProjectionExpression='art_url, art_id, list_price, preview_url, #n, description, collection_id, collection_data, collection_name, blockchain, last_sale_price, collection_url, token_id,collection_item_url'
     )
 
     uploads = data['Items']

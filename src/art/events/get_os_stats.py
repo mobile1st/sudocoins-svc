@@ -47,8 +47,19 @@ def lambda_handler(event, context):
             else:
                 try:
                     stats = call_open_sea(i.get('open_sea'))
-                except:
+                except Exception as e:
+                    log.info(e)
                     error+=1
+                    update_expression = "SET os_update=:lu"
+                    ex_att = {
+                        ':lu': "true"
+                    }
+                    res = dynamodb.Table('collections').update_item(
+                        Key={'collection_id': i['collection_id']},
+                        UpdateExpression=update_expression,
+                        ExpressionAttributeValues=ex_att,
+                        ReturnValues="UPDATED_NEW"
+                    )
                     continue
 
                 stats2 = get_stats(stats)
@@ -61,7 +72,8 @@ def lambda_handler(event, context):
                     ':pto': stats2['percent_total_owners']
                 }
                 count += 1
-                # log.info(f'numbers: {[no_count, count, error]}')
+                #log.info(f'numbers: {count}')
+                #log.info(f'numbers: {error}')
 
             res = dynamodb.Table('collections').update_item(
                 Key={'collection_id': i['collection_id']},
@@ -74,7 +86,9 @@ def lambda_handler(event, context):
             log.info(f'status - failure: {e}')
             error += 1
             #log.info(i)
-            log.info(stats)
+            #log.info(stats)
+            #log.info(f'numbers: {count}')
+            #log.info(f'numbers: {error}')
 
     log.info(f'no slug: {no_count}')
     log.info(f'count updated: {count}')

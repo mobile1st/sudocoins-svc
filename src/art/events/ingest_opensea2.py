@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         open_sea_response2 = call_open_sea(start_time, middle_time)
         open_sea_response = open_sea_response1 + open_sea_response2
 
-    count_eth = process_open_sea(open_sea_response)
+    count_eth = process_open_sea(open_sea_response, end_time)
     log.info(count_eth)
     set_config(end_time)
     #log.info(f'start_time: {start_time}')
@@ -77,7 +77,7 @@ def set_config(end_time):
     log.info("config updated")
 
 
-def process_open_sea(open_sea_response):
+def process_open_sea(open_sea_response, end_time):
     count = 0
     count_eth = 0
     count_matic = 0
@@ -127,7 +127,8 @@ def process_open_sea(open_sea_response):
                             "asset": k,
                             "owner": winner_account,
                             "collection_date": k.get('collection', {}).get('created_date'),
-                            "seller": seller
+                            "seller": seller,
+                            "end_time": end_time
                         }
                         sns_client.publish(
                             TopicArn='arn:aws:sns:us-west-2:977566059069:IngestOpenSea2Topic',
@@ -168,7 +169,8 @@ def process_open_sea(open_sea_response):
                         "created_date": created_date,
                         "asset": i.get('asset'),
                         "owner": i.get('winner_account', {}).get('address', ""),
-                        "collection_date": i.get('asset', {}).get('collection', {}).get('created_date')
+                        "collection_date": i.get('asset', {}).get('collection', {}).get('created_date'),
+                        "end_time": end_time
                     }
                     if i.get('seller') is None:
                         seller = "unknown"
