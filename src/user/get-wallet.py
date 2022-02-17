@@ -21,10 +21,12 @@ def lambda_handler(event, context):
 
     rate = str(config['ethRate'])
 
-    collections = get_metamask_arts(public_key, rate)
+    collections, eth_valuation = get_metamask_arts(public_key, rate)
 
     return {
-        collections
+        "wallet": collections,
+        "eth_valuation": eth_valuation,
+        "usd_valuation": eth_valuation/rate
     }
 
 
@@ -92,19 +94,23 @@ def get_metamask_arts(public_address, rate):
 
             response = response['Responses']['collections']
 
-            valuation = 0
+            eth_valuation = 0
+            new_collections = []
             for i in response:
-                collections[i['collection_id']].update(i)
-                try:
-                    valuation += collections[i['collection_id']]['count'] * \
-                        collections[i['collection_id']
-                                    ]['open_sea_stats']['floor_price']
+                i.update(collections[i['collection_id']])
+                new_collections.append(i)
+                # collections[i['collection_id']].update(i)
 
+                try:
+                    eth_valuation += Decimal(str(i['count'])) * \
+                        Decimal(str(i['open_sea_stats']['floor_price']))
+                    '''
                     valuation = {
                         "eth_valuation": valuation,
                         "usd_valuation": Decimal(valuation / rate)
                     }
                     collections[i['collection_id']].update(valuation)
+                   '''
 
                 except Exception as e:
                     log.info(e)
@@ -118,4 +124,4 @@ def get_metamask_arts(public_address, rate):
         log.info(e)
         return []
 
-    return collections, valuation
+    return new_collections, eth_valuation
