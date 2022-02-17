@@ -91,7 +91,7 @@ class SudocoinsUserApi:
         )
         # Get Wallet
         get_wallet_integration = api_integrations.LambdaProxyIntegration(
-            handler=lambdas.import_nfts_function
+            handler=lambdas.get_wallet_function
         )
         user_api_v3.add_routes(
             path="/get-wallet",
