@@ -24,7 +24,7 @@ def lambda_handler(event, context):
     collections = get_metamask_arts(public_key, rate)
 
     return {
-        "wallet": collections
+        collections
     }
 
 
@@ -35,7 +35,8 @@ def set_log_context(event):
 
 def get_metamask_arts(public_address, rate):
     try:
-        path = "/api/v1/assets?owner=" + public_address + "&order_direction=desc&offset=0&limit=50"
+        path = "/api/v1/assets?owner=" + public_address + \
+            "&order_direction=desc&offset=0&limit=50"
         log.info(f'path: {path}')
         conn = http.client.HTTPSConnection("api.opensea.io")
         api_key = {
@@ -52,7 +53,8 @@ def get_metamask_arts(public_address, rate):
         try:
             count = 50
             while len(open_sea_response) >= 50:
-                path = "/api/v1/assets?owner=" + public_address + "&limit=50&offset=" + str(count)
+                path = "/api/v1/assets?owner=" + public_address + \
+                    "&limit=50&offset=" + str(count)
                 conn = http.client.HTTPSConnection("api.opensea.io")
                 conn.request("GET", path)
                 response = conn.getresponse()
@@ -64,7 +66,8 @@ def get_metamask_arts(public_address, rate):
             collections = {}
             key_list = []
             for i in nfts:
-                collection_address = i.get('asset_contract', {}).get('address', "unknown")
+                collection_address = i.get(
+                    'asset_contract', {}).get('address', "unknown")
                 collection_name = i.get('collection', {}).get('name')
                 c_name = ("-".join(collection_name.split())).lower()
                 collection_code = collection_address + ":" + c_name
@@ -84,7 +87,8 @@ def get_metamask_arts(public_address, rate):
                 'ProjectionExpression': 'collection_id, preview_url, collection_name, collection_url, open_sea_stats, more_charts'
             }
 
-            response = dynamodb.batch_get_item(RequestItems={'collections': query})
+            response = dynamodb.batch_get_item(
+                RequestItems={'collections': query})
 
             response = response['Responses']['collections']
 
@@ -93,7 +97,8 @@ def get_metamask_arts(public_address, rate):
                 collections[i['collection_id']].update(i)
                 try:
                     valuation += collections[i['collection_id']]['count'] * \
-                                 collections[i['collection_id']]['open_sea_stats']['floor_price']
+                        collections[i['collection_id']
+                                    ]['open_sea_stats']['floor_price']
 
                     valuation = {
                         "eth_valuation": valuation,
