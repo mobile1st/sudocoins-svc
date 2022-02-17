@@ -24,7 +24,7 @@ def lambda_handler(event, context):
     collections, eth_valuation = get_metamask_arts(public_key, rate)
 
     return {
-        "wallet": collections,
+        "nfts": collections,
         "eth_valuation": eth_valuation,
         "usd_valuation": eth_valuation/config['ethRate']
     }
