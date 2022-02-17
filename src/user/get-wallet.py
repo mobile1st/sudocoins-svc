@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     return {
         "wallet": collections,
         "eth_valuation": eth_valuation,
-        "usd_valuation": eth_valuation/rate
+        "usd_valuation": eth_valuation/config['ethRate']
     }
 
 
