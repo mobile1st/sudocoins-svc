@@ -87,8 +87,7 @@ def lambda_handler(event, context):
                 ':lasup': last_update,
                 ':mc': charts,
                 ':osup': 'false',
-                ':td': trades,
-                ':sco': score
+                ':td': trades
             }
             ex_att2 = {
                 ':start': 0,
