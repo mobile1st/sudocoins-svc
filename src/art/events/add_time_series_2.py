@@ -42,46 +42,40 @@ def lambda_handler(event, context):
             if updated is None or updated == 'true' or updated == 'false':
                 log.info('no last_update')
                 log.info(updated)
-                difference = 60
+                difference = 120
             else:
                 log.info(last_update)
                 log.info(updated)
                 difference = (datetime.fromisoformat(last_update) - datetime.fromisoformat(
                     str(updated))).total_seconds() / 60
 
-        if 'Item' in collection_record and difference >= 60:
+        if 'Item' in collection_record and difference >= 120:
 
             med, mins, maxs, charts = get_charts(collection_id, end_time)
             trades = get_trades_delta(collection_id, end_time)
             try:
                 floor_snapshot(collection_id)
-                log.info("floor snapshot complete")
+                #  log.info("floor snapshot complete")
             except Exception as e:
                 log.info(e)
             try:
                 if 'percentage_total_owners' in collection_record['Item']:
-                    log.info(collection_record['Item']['percentage_total_owners'])
+                    #  log.info(collection_record['Item']['percentage_total_owners'])
                     owner_asset_snapshot(collection_id, collection_record['Item']['percentage_total_owners'])
-                    log.info("oa snapshot complete")
+                    #  log.info("oa snapshot complete")
             except Exception as e:
                 log.info(e)
+            '''
             try:
                 score = generate_score(collection_id, collection_record, end_time)
                 log.info("score calculated")
             except Exception as e:
                 log.info(e)
-
-            try:
-                score = generate_score(collection_id, collection_record, end_time)
-                log.info("score calculated")
-            except Exception as e:
-                log.info(e)
-
-
+            '''
 
             update_expression1 = "SET floor = :fl, median = :me, maximum = :ma, more_charts=:mc,"
             update_expression2 = " sale_count = if_not_exists(sale_count, :start) + :inc, sales_volume = if_not_exists(" \
-                                 "sales_volume, :start2) + :inc2, score=:sco, " \
+                                 "sales_volume, :start2) + :inc2, " \
                                  "last_update=:lasup, os_update=:osup," \
                                  "collection_url=:curl, sales_delta=:td"
             update_expression = update_expression1 + update_expression2

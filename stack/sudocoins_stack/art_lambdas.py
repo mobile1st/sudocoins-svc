@@ -341,35 +341,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
         resources.config_table.grant_read_data(self.get_new_collections_function)
-        # ADD CHAT
-        self.add_chat_function = _lambda.Function(
-            scope,
-            'AddChatV2',
-            function_name='AddChatV2',
-            handler='art.chat.add_chat.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.chat_table.grant_read_write_data(self.add_chat_function)
-        resources.chat_connections_table.grant_read_write_data(self.add_chat_function)
-        # GET CHATS
-        self.get_chats_function = _lambda.Function(
-            scope,
-            'GetChatsV2',
-            function_name='GetChatsV2',
-            handler='art.chat.get_chats.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.chat_table.grant_read_write_data(self.add_chat_function)
-        resources.grant_read_index_data(self.get_chats_function, [resources.chat_table])
-        # MANAGE CHAT CONNECTIONS
-        self.manage_connections_function = _lambda.Function(
-            scope,
-            'ManageConnectionsV2',
-            function_name='ManageConnectionsV2',
-            handler='art.chat.manage_connection.lambda_handler',
-            **lambda_default_kwargs
-        )
-        resources.chat_connections_table.grant_read_write_data(self.manage_connections_function)
+
         # GET RELATED ART
         self.get_related_function = _lambda.Function(
             scope,
@@ -773,7 +745,7 @@ class SudocoinsArtLambdas:
             **lambda_default_kwargs
         )
 
-        get_os_stats_schedule = events.Schedule.rate(cdk.Duration.minutes(5))
+        get_os_stats_schedule = events.Schedule.rate(cdk.Duration.minutes(30))
         get_os_stats_target = events_targets.LambdaFunction(handler=get_os_stats_function)
         events.Rule(
             scope,

@@ -35,7 +35,7 @@ def lambda_handler(event, context):
     error = 0
     for i in collections:
         try:
-            time.sleep(1)
+            #  time.sleep(1)
             opensea_slug = i.get('open_sea')
             if opensea_slug is None:
                 update_expression = "SET os_update=:lu"
