@@ -131,7 +131,7 @@ def get_art_id(contract_id, token_id, art_url, buy_url, preview_url, open_sea, a
     else:
         nft_id = str(uuid.uuid1())
         try:
-            add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
+            #  add_nft(nft_id, contract_token_id, art_url, preview_url, buy_url, open_sea, art_object, eth_sale_price)
             collection_id = insert_rds(nft_id, art_url, buy_url, preview_url, open_sea, art_object, eth_sale_price,
                                        contract_token_id)
             if collection_id is None:
