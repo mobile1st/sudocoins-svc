@@ -189,12 +189,12 @@ def get_charts(collection_id, end_time):
     try:
         with conn.cursor() as cur:
 
-            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where event_id = 1 and collection_id=%s and price>0 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=1 and price>0;'''
-            sql2 = '''select date(event_date), min(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
-            volume_data = '''select date(event_date), sum(price) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
-            trades_data = '''select date(event_date), count(*) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
-            buyers_data = '''select date(event_date), count(distinct buyer_id) from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 7 day group by date(event_date);'''
-            sql7 = '''select event_date, price as c from nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 6 hour;'''
+            sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=%s and event_id = 1 and price>0 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=1 and price>0;'''
+            sql2 = '''select date(event_date), min(price) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
+            volume_data = '''select date(event_date), sum(price) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
+            trades_data = '''select date(event_date), count(*) from nft.events where collection_id=%s and event_id = 1 and and event_date >= %s - interval 7 day group by date(event_date);'''
+            buyers_data = '''select date(event_date), count(distinct buyer_id) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
+            sql7 = '''select event_date, price as c from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 6 hour;'''
 
             cur.execute(sql, collection_id)
             more_charts = cur.fetchall()
@@ -296,7 +296,7 @@ def get_trades_delta(collection_id, end_time):
     # period = "day"
 
     with conn.cursor() as cur:
-        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where event_id=1 and collection_id=%s and event_date >= %s - interval 2 day and event_date <= %s - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id ;"
+        sql = "SELECT distinct co.collection_code, t2.count2, t1.count1, round(((t1.count1-t2.count2)/t2.count2*100),1) AS delta FROM (SELECT collection_id, COUNT(*) AS count1 FROM nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 1 day GROUP BY collection_id) t1 LEFT JOIN (SELECT collection_id, COUNT(*) AS count2 FROM nft.events where where collection_id=%s and event_id = 1 and event_date >= %s - interval 2 day and event_date <= %s - interval 1 day GROUP BY collection_id) t2 ON t1.collection_id = t2.collection_id INNER JOIN nft.collections co on co.id=t1.collection_id ;"
         cur.execute(sql, (collection_id, end_time, collection_id, end_time, end_time))
         result = cur.fetchall()
 
@@ -315,7 +315,7 @@ def floor_snapshot(collection_id):
     # period = "day"
 
     with conn.cursor() as cur:
-        sql = "select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=1084 and event_date > '2022-02-08T22:37:06.111111' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id in (3,4) and price>0 and price is not null order by t.price asc limit 1;"
+        sql = "select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=1084 and event_id in (3,4) and event_date > '2022-02-08T22:37:06.111111' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id in (3,4) and price>0 and price is not null order by t.price asc limit 1;"
         log.info(sql)
         cur.execute(sql)
         result = cur.fetchall()
