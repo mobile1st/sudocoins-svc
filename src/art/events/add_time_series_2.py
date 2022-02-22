@@ -315,7 +315,7 @@ def floor_snapshot(collection_id):
     # period = "day"
 
     with conn.cursor() as cur:
-        sql = "select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=1084 and event_id in (3,4) and event_date > '2022-02-08T22:37:06.111111' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id in (3,4) and price>0 and price is not null order by t.price asc limit 1;"
+        sql = "select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=1084 and event_id=3 and event_date > '2022-02-08T22:37:06.111111' group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=3 and price>0 and price is not null order by t.price asc limit 1;"
         log.info(sql)
         cur.execute(sql)
         result = cur.fetchall()
