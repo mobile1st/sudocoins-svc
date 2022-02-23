@@ -192,7 +192,7 @@ def get_charts(collection_id, end_time):
             sql = '''select t.nft_id, t.price from nft.events t inner join (select nft_id, max(event_date) as MaxDate from nft.events where collection_id=%s and event_id = 1 and price>0 group by nft_id) tm on t.nft_id = tm.nft_id and t.event_date = tm.MaxDate where event_id=1 and price>0;'''
             sql2 = '''select date(event_date), min(price) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
             volume_data = '''select date(event_date), sum(price) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
-            trades_data = '''select date(event_date), count(*) from nft.events where collection_id=%s and event_id = 1 and and event_date >= %s - interval 7 day group by date(event_date);'''
+            trades_data = '''select date(event_date), count(*) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
             buyers_data = '''select date(event_date), count(distinct buyer_id) from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 7 day group by date(event_date);'''
             sql7 = '''select event_date, price as c from nft.events where collection_id=%s and event_id = 1 and event_date >= %s - interval 6 hour;'''
 
